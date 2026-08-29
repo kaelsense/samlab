@@ -137,11 +137,19 @@ oppgave innfri sin «Ferdig når».*
   kompetanse-liste og bedriftsvelger. Kobling valideres mot
   post-type (ikke-bedrift nulles). 17 tester grønne i riggen
   (tests/rigg/test-b5.php), tom debug.log, WPCS grønn.
-- [ ] **B6. Egne tabeller: vegg og reaksjoner.** dbDelta-skjema for
+- [x] **B6. Egne tabeller: vegg og reaksjoner.** dbDelta-skjema for
   vegginnlegg og reaksjoner (hybridmodellen fra
   FluentCommunity-analysen) med modellklasser for CRUD.
   *Ferdig når:* tabellene opprettes ved aktivering, CRUD-metodene har
   enkle wp-cli-røyk-tester, prepared statements overalt.
+  *Notat (2026-08-29):* includes/database.php (dbDelta, versjonert
+  med samlab_db_version + admin_init-oppgradering) og klassene
+  Samlab_Innlegg/Samlab_Reaksjon med prepared statements overalt
+  (wpdb::insert/update/delete + prepare på alle SELECT-er).
+  wp_kses_post på innhold, festet-først-sortering, idempotente
+  reaksjoner med unik-indeks, kaskadesletting. 26 røyk-tester
+  grønne i riggen (tests/rigg/test-b6.php), tom debug.log,
+  WPCS grønn.
 - [ ] **B7. Portal-ruter og app-skall.** `add_rewrite_rule` for
   portal-stien (innstilling, standard `/portal/`) med eget komplett
   sideskall (egen `<html>`, ikke temaets template), noindex-meta, og

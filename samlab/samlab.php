@@ -42,6 +42,9 @@ add_action( 'init', 'samlab_load_textdomain' );
  */
 require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/post-types.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/database.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-innlegg.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
 
 /**
  * Aktivering: registrer pluginens rewrite-regler og flush dem én gang.
@@ -61,6 +64,7 @@ function samlab_activate() {
 	samlab_register_bedrift();
 	samlab_register_behov();
 	samlab_ensure_retning_terms();
+	samlab_create_tables();
 	samlab_add_roles();
 	flush_rewrite_rules();
 	update_option( 'samlab_version', SAMLAB_VERSION );

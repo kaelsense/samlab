@@ -18,3 +18,4 @@ require_once __DIR__ . '/includes/roles.php';
 samlab_remove_roles();
 
 delete_option( 'samlab_version' );
+delete_option( 'samlab_db_version' );
