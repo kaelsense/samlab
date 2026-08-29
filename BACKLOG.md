@@ -117,11 +117,16 @@ oppgave innfri sin «Ferdig når».*
   feltvis sanitering i save-handleren. 18 røyk-tester grønne i
   riggen (tests/rigg/test-b3.php): XSS strippet, javascript:-URL
   avvist, ugyldig nonce og manglende rettigheter avvist. WPCS grønn.
-- [ ] **B4. Bedriftsredaktør-avgrensning.** `map_meta_cap` slik at
+- [x] **B4. Bedriftsredaktør-avgrensning.** `map_meta_cap` slik at
   bedriftsredaktører kun kan redigere bedriften der de er
   kontaktperson.
   *Ferdig når:* wp-cli-test viser at redaktør A ikke kan redigere
   bedrift B (capability-sjekk, ikke bare skjult UI).
+  *Notat (2026-08-29):* samlab_map_bedrift_caps i post-types.php:
+  admin/redaktør beholder standardmapping, kontaktperson mappes til
+  samlab_edit_bedrift, alle andre do_not_allow; sletting kun
+  admin/redaktør. 13 tester grønne i riggen (tests/rigg/test-b4.php),
+  inkl. at meta-lagring avvises på annens bedrift. WPCS grønn.
 - [ ] **B5. CPT: behov.** `samlab_behov` med taksonomier for
   trenger/tilbyr og behovstype, meta for frist, budsjett, kompetanse
   og kontaktform, kobling til bedrift.

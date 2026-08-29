@@ -62,6 +62,46 @@ function samlab_register_bedrift() {
 add_action( 'init', 'samlab_register_bedrift' );
 
 /**
+ * Håndhever at bedriftsredaktører kun kan redigere bedriften der de
+ * er kontaktperson - som capability-sjekk, ikke skjult UI.
+ *
+ * Administrator og redaktør beholder standardmappingen
+ * (edit_others_posts). Alle andre: redigering krever
+ * samlab_edit_bedrift OG at brukeren er bedriftens kontaktperson;
+ * sletting er forbeholdt admin/redaktør.
+ *
+ * @param string[] $caps    Primitive capabilities som kreves.
+ * @param string   $cap     Meta-capability som sjekkes.
+ * @param int      $user_id Brukeren som sjekkes.
+ * @param array    $args    Ekstra argumenter; $args[0] er post-ID.
+ * @return string[]
+ */
+function samlab_map_bedrift_caps( $caps, $cap, $user_id, $args ) {
+	if ( ! in_array( $cap, array( 'edit_post', 'delete_post' ), true ) || empty( $args[0] ) ) {
+		return $caps;
+	}
+
+	$post = get_post( $args[0] );
+	if ( ! $post || 'samlab_bedrift' !== $post->post_type ) {
+		return $caps;
+	}
+
+	if ( user_can( $user_id, 'edit_others_posts' ) ) {
+		return $caps;
+	}
+
+	if ( 'edit_post' === $cap ) {
+		$kontakt = (int) get_post_meta( $post->ID, '_samlab_kontaktperson', true );
+		if ( $kontakt > 0 && $kontakt === (int) $user_id ) {
+			return array( 'samlab_edit_bedrift' );
+		}
+	}
+
+	return array( 'do_not_allow' );
+}
+add_filter( 'map_meta_cap', 'samlab_map_bedrift_caps', 10, 4 );
+
+/**
  * Enkle metafelter for bedrift: meta-nøkkel => skjemadefinisjon.
  *
  * Tjenester og «åpen for» håndteres separat (sammensatte felter).
