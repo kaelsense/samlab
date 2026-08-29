@@ -48,11 +48,15 @@ oppgave innfri sin «Ferdig når».*
   (`php -l` grønn på alle filer, direkte kall gir null output).
   Kun wp-env-aktiveringstesten gjenstår - den kan ikke kjøres i
   loop-miljøet, se AVKLARINGER.md punkt 1.
-- [ ] **A2. wp-env.** Legg til `.wp-env.json` med nyeste stabile
+- [ ] **A2. wp-env.** [BLOKKERT] Legg til `.wp-env.json` med nyeste stabile
   WordPress, PHP 8.2, pluginen montert, og standardtemaet
   Twenty Twenty-Four. Dokumenter `npx wp-env start` i README.
   *Ferdig når:* `npx wp-env start` gir en kjørende side der Samlab
   kan aktiveres i wp-admin.
+  *Notat (2026-08-29):* `.wp-env.json` og README med
+  wp-env-oppskrift committet; JSON validert. Kjøretesten
+  (`npx wp-env start`) gjenstår - samme miljøbegrensning som A1,
+  se AVKLARINGER.md punkt 1.
 - [ ] **A3. Kodestandard.** Sett opp PHP_CodeSniffer med
   WordPress-Coding-Standards i composer (dev-avhengighet er lov -
   regelen gjelder betal-plugins i runtime), med `composer lint` og
