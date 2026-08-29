@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const SAMLAB_DB_VERSION = '2';
+const SAMLAB_DB_VERSION = '3';
 
 /**
  * Fullt tabellnavn med nettstedets prefiks.
@@ -38,6 +38,7 @@ function samlab_create_tables() {
 	$innlegg    = samlab_table( 'innlegg' );
 	$reaksjoner = samlab_table( 'reaksjoner' );
 	$varsler    = samlab_table( 'varsler' );
+	$stemmer    = samlab_table( 'stemmer' );
 
 	dbDelta(
 		"CREATE TABLE {$innlegg} (
@@ -48,11 +49,27 @@ function samlab_create_tables() {
 			image_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			pinned tinyint(1) NOT NULL DEFAULT 0,
 			status varchar(20) NOT NULL DEFAULT 'publish',
+			poll_sporsmal varchar(255) NOT NULL DEFAULT '',
+			poll_valg longtext,
 			created_at datetime NOT NULL,
 			updated_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			KEY user_id (user_id),
 			KEY status_pinned_created (status,pinned,created_at)
+		) {$charset};"
+	);
+
+	dbDelta(
+		"CREATE TABLE {$stemmer} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			innlegg_id bigint(20) unsigned NOT NULL,
+			user_id bigint(20) unsigned NOT NULL,
+			valg tinyint(3) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			updated_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY unik_stemme (innlegg_id,user_id),
+			KEY innlegg (innlegg_id)
 		) {$charset};"
 	);
 

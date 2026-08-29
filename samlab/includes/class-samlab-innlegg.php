@@ -18,7 +18,9 @@ class Samlab_Innlegg {
 	 * Oppretter et innlegg.
 	 *
 	 * @param array $args user_id (påkrevd), content (påkrevd),
-	 *                    bedrift_id, image_id, pinned, status.
+	 *                    bedrift_id, image_id, pinned, status,
+	 *                    poll_sporsmal + poll_valg (2-5 alternativer)
+	 *                    for en valgfri avstemning.
 	 * @return int|false Innleggets ID, eller false ved feil.
 	 */
 	public static function create( $args ) {
@@ -30,23 +32,56 @@ class Samlab_Innlegg {
 			return false;
 		}
 
+		// Avstemning: krever spørsmål og 2-5 ikke-tomme alternativer.
+		$poll_sporsmal = isset( $args['poll_sporsmal'] ) ? sanitize_text_field( $args['poll_sporsmal'] ) : '';
+		$poll_valg     = array();
+		if ( '' !== $poll_sporsmal && isset( $args['poll_valg'] ) && is_array( $args['poll_valg'] ) ) {
+			$poll_valg = array_values( array_filter( array_map( 'sanitize_text_field', array_map( 'trim', $args['poll_valg'] ) ) ) );
+		}
+		if ( count( $poll_valg ) < 2 || count( $poll_valg ) > 5 ) {
+			$poll_sporsmal = '';
+			$poll_valg     = array();
+		}
+
 		$now = gmdate( 'Y-m-d H:i:s' );
 		$ok  = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Egen tabell, wpdb::insert preparerer selv.
 			samlab_table( 'innlegg' ),
 			array(
-				'user_id'    => $user_id,
-				'bedrift_id' => isset( $args['bedrift_id'] ) ? absint( $args['bedrift_id'] ) : 0,
-				'content'    => $content,
-				'image_id'   => isset( $args['image_id'] ) ? absint( $args['image_id'] ) : 0,
-				'pinned'     => empty( $args['pinned'] ) ? 0 : 1,
-				'status'     => isset( $args['status'] ) && 'hidden' === $args['status'] ? 'hidden' : 'publish',
-				'created_at' => $now,
-				'updated_at' => $now,
+				'user_id'       => $user_id,
+				'bedrift_id'    => isset( $args['bedrift_id'] ) ? absint( $args['bedrift_id'] ) : 0,
+				'content'       => $content,
+				'image_id'      => isset( $args['image_id'] ) ? absint( $args['image_id'] ) : 0,
+				'pinned'        => empty( $args['pinned'] ) ? 0 : 1,
+				'status'        => isset( $args['status'] ) && 'hidden' === $args['status'] ? 'hidden' : 'publish',
+				'poll_sporsmal' => $poll_sporsmal,
+				'poll_valg'     => array() === $poll_valg ? '' : wp_json_encode( $poll_valg ),
+				'created_at'    => $now,
+				'updated_at'    => $now,
 			),
-			array( '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s' )
+			array( '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		return $ok ? (int) $wpdb->insert_id : false;
+	}
+
+	/**
+	 * Avstemningen på et innlegg, om den finnes.
+	 *
+	 * @param object $innlegg Innleggsraden (fra get/get_list).
+	 * @return array{sporsmal: string, valg: string[]}|null
+	 */
+	public static function poll( $innlegg ) {
+		if ( empty( $innlegg->poll_sporsmal ) || empty( $innlegg->poll_valg ) ) {
+			return null;
+		}
+		$valg = json_decode( (string) $innlegg->poll_valg, true );
+		if ( ! is_array( $valg ) || count( $valg ) < 2 ) {
+			return null;
+		}
+		return array(
+			'sporsmal' => (string) $innlegg->poll_sporsmal,
+			'valg'     => array_map( 'strval', array_values( $valg ) ),
+		);
 	}
 
 	/**
@@ -132,6 +167,9 @@ class Samlab_Innlegg {
 			Samlab_Reaksjon::remove_all( 'innlegg', $id );
 			if ( class_exists( 'Samlab_Varsel' ) ) {
 				Samlab_Varsel::remove_for_object( 'innlegg', $id );
+			}
+			if ( class_exists( 'Samlab_Stemme' ) ) {
+				Samlab_Stemme::remove_for_innlegg( $id );
 			}
 		}
 

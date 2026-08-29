@@ -51,6 +51,22 @@ Brukerforslag til @-mentions. Krever `samlab_read_portal`.
 
 Svar: liste av `{ login, navn }`, maks 8.
 
+### `POST /wp-json/samlab/v1/stemmer`
+
+Avgir eller endrer innlogget brukers stemme i en avstemning på et
+vegginnlegg (én stemme per medlem, ny stemme erstatter den gamle).
+Krever `samlab_read_portal`.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `innlegg_id` | int | Innlegget med avstemningen (påkrevd) |
+| `valg` | int | Alternativindeks 0-4 (påkrevd) |
+
+Svar: `{ innlegg_id, valg, counts, totalt }` der `counts` er antall
+stemmer per alternativ (indeksert liste) og `totalt` er summen -
+resultatvisningen etter avgitt stemme. 404 uten avstemning på
+innlegget, 400 ved indeks utenfor alternativene.
+
 ### `GET /wp-json/samlab/v1/varsler`
 
 Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller.
@@ -130,6 +146,22 @@ do_action( 'samlab_arrangement_opprettet', $arrangement_id, $user_id );
 | --- | --- | --- |
 | `$arrangement_id` | int | Arrangementets post-ID |
 | `$user_id` | int | Innsenderen |
+
+Siden: 0.2.0.
+
+### `samlab_stemme_avgitt`
+
+Kjøres når en stemme er avgitt eller endret via REST.
+
+```php
+do_action( 'samlab_stemme_avgitt', $innlegg_id, $user_id, $valg );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$innlegg_id` | int | Innlegget med avstemningen |
+| `$user_id` | int | Brukeren som stemte |
+| `$valg` | int | Alternativindeksen (0-basert) |
 
 Siden: 0.2.0.
 

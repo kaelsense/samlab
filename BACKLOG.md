@@ -508,12 +508,28 @@ med `wp cron event run`.*
   med riktig meta/forfatter og vises på flate + i globalt søk,
   feil nonce 403. Tom debug.log, WPCS grønn, hooks- og
   sikkerhetsdocs oppdatert.
-- [ ] **E7. Avstemninger.** Enkel avstemning på vegginnlegg
+- [x] **E7. Avstemninger.** Enkel avstemning på vegginnlegg
   (spørsmål + 2-5 alternativer, egen tabell for stemmer, én stemme
   per medlem, endring tillatt), stemming via REST med
   resultatvisning etter avgitt stemme.
   *Ferdig når:* opprette-stemme-endre-flyt virker ende til ende i
   riggen, stemmetallene er riktige, uinnloggede avvises.
+  *Notat (2026-08-29):* DB v3: poll-kolonner på innlegg-tabellen +
+  ny samlab_stemmer-tabell med UNIQUE(innlegg_id, user_id) - én
+  stemme per medlem håndhevet i skjemaet, ny stemme oppdaterer
+  raden. Samlab_Stemme (vote/user_choice/counts/kaskade ved
+  innleggssletting), avstemningsfelter i Samlab_Innlegg::create
+  (2-5 alternativer validert, ellers stille uten avstemning) og i
+  veggskjemaet (details-seksjon; ugyldig antall gir feilmelding).
+  REST POST /stemmer med samme auth som reaksjoner; action
+  samlab_stemme_avgitt. Veggen viser alternativknapper, og tall +
+  status først etter avgitt stemme (server-rendret for de som har
+  stemt, JS-oppdatert ved stemming/endring). 10 modelltester
+  grønne + HTTP ende til ende: skjema oppretter avstemning (og
+  avviser 1 alternativ), 401 utlogget, stemme/endring gir riktige
+  tall, 400 ugyldig indeks, 404 uten avstemning, veggen viser
+  status. Tom debug.log, WPCS grønn, hooks- og sikkerhetsdocs
+  oppdatert.
 - [ ] **E8. Lesebekreftelser.** «Bekreft lest» på festede oppslag
   (moderator velger per innlegg), bekreftelse via REST, og
   moderatoroversikt i kontrollpanelet over hvem som har/ikke har

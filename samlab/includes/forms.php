@@ -215,6 +215,18 @@ function samlab_handle_vegg_form() {
 		exit;
 	}
 
+	// Valgfri avstemning: spørsmål + 2-5 alternativer (ett per linje).
+	$poll_sporsmal = isset( $_POST['samlab_poll_sporsmal'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_poll_sporsmal'] ) ) : '';
+	$poll_valg     = array();
+	if ( '' !== $poll_sporsmal ) {
+		$linjer    = isset( $_POST['samlab_poll_valg'] ) ? explode( "\n", sanitize_textarea_field( wp_unslash( $_POST['samlab_poll_valg'] ) ) ) : array();
+		$poll_valg = array_values( array_filter( array_map( 'trim', $linjer ) ) );
+		if ( count( $poll_valg ) < 2 || count( $poll_valg ) > 5 ) {
+			wp_safe_redirect( add_query_arg( 'feil', 'avstemning', samlab_portal_url( 'vegg' ) ) );
+			exit;
+		}
+	}
+
 	$image_id = 0;
 	if ( ! empty( $_FILES['samlab_bilde']['name'] ) && current_user_can( 'upload_files' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -228,9 +240,11 @@ function samlab_handle_vegg_form() {
 
 	$innlegg_id = Samlab_Innlegg::create(
 		array(
-			'user_id'  => get_current_user_id(),
-			'content'  => $innhold,
-			'image_id' => $image_id,
+			'user_id'       => get_current_user_id(),
+			'content'       => $innhold,
+			'image_id'      => $image_id,
+			'poll_sporsmal' => $poll_sporsmal,
+			'poll_valg'     => $poll_valg,
 		)
 	);
 

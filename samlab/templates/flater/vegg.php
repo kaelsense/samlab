@@ -25,6 +25,8 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 
 <?php if ( 'innlegg' === $samlab_feil ) : ?>
 	<p class="samlab-melding er-feil"><?php esc_html_e( 'Innlegget kan ikke være tomt.', 'samlab' ); ?></p>
+<?php elseif ( 'avstemning' === $samlab_feil ) : ?>
+	<p class="samlab-melding er-feil"><?php esc_html_e( 'En avstemning trenger 2-5 alternativer (ett per linje) - prøv igjen.', 'samlab' ); ?></p>
 <?php endif; ?>
 
 <?php if ( current_user_can( 'samlab_post_wall' ) ) : ?>
@@ -37,6 +39,17 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 				<textarea id="samlab-innhold" name="samlab_innhold" rows="3" placeholder="<?php esc_attr_e( 'Del noe med huset …', 'samlab' ); ?>" required></textarea>
 			</p>
 			<ul id="samlab-mention-forslag" class="samlab-mention-forslag" hidden></ul>
+			<details class="samlab-avstemning-felter">
+				<summary><?php esc_html_e( 'Legg til avstemning (valgfritt)', 'samlab' ); ?></summary>
+				<p>
+					<label for="samlab-poll-sporsmal"><?php esc_html_e( 'Spørsmål', 'samlab' ); ?></label><br />
+					<input type="text" id="samlab-poll-sporsmal" name="samlab_poll_sporsmal" />
+				</p>
+				<p>
+					<label for="samlab-poll-valg"><?php esc_html_e( 'Alternativer (2-5, ett per linje)', 'samlab' ); ?></label><br />
+					<textarea id="samlab-poll-valg" name="samlab_poll_valg" rows="3"></textarea>
+				</p>
+			</details>
 			<p class="samlab-vegg-verktoy">
 				<label for="samlab-bilde"><?php esc_html_e( 'Bilde (valgfritt)', 'samlab' ); ?></label>
 				<input type="file" id="samlab-bilde" name="samlab_bilde" accept="image/*" />
@@ -87,6 +100,38 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 				<div class="samlab-innlegg-tekst"><?php echo wp_kses_post( samlab_render_mentions( wpautop( $samlab_innlegg->content ) ) ); ?></div>
 				<?php if ( $samlab_innlegg->image_id ) : ?>
 					<figure class="samlab-innlegg-bilde"><?php echo wp_get_attachment_image( (int) $samlab_innlegg->image_id, 'large' ); ?></figure>
+				<?php endif; ?>
+				<?php
+				$samlab_poll = Samlab_Innlegg::poll( $samlab_innlegg );
+				if ( $samlab_poll ) :
+					$samlab_stemmetall = Samlab_Stemme::counts( (int) $samlab_innlegg->id, count( $samlab_poll['valg'] ) );
+					$samlab_min_stemme = Samlab_Stemme::user_choice( (int) $samlab_innlegg->id, get_current_user_id() );
+					$samlab_har_stemt  = null !== $samlab_min_stemme;
+					?>
+					<div class="samlab-avstemning" data-id="<?php echo esc_attr( (string) $samlab_innlegg->id ); ?>">
+						<p class="samlab-avstemning-sporsmal"><strong><?php echo esc_html( $samlab_poll['sporsmal'] ); ?></strong></p>
+						<ul class="samlab-avstemning-valg">
+							<?php foreach ( $samlab_poll['valg'] as $samlab_i => $samlab_alternativ ) : ?>
+								<li>
+									<button type="button" class="samlab-knapp samlab-stem"
+										data-id="<?php echo esc_attr( (string) $samlab_innlegg->id ); ?>"
+										data-valg="<?php echo esc_attr( (string) $samlab_i ); ?>"
+										aria-pressed="<?php echo $samlab_har_stemt && $samlab_i === $samlab_min_stemme ? 'true' : 'false'; ?>">
+										<?php echo esc_html( $samlab_alternativ ); ?>
+										<span class="samlab-stemme-antall" <?php echo $samlab_har_stemt ? '' : 'hidden'; ?>>(<?php echo esc_html( (string) $samlab_stemmetall[ $samlab_i ] ); ?>)</span>
+									</button>
+								</li>
+							<?php endforeach; ?>
+						</ul>
+						<p class="samlab-kort-meta samlab-avstemning-status"
+							data-mal="<?php echo esc_attr( /* translators: %d: antall stemmer. */ __( '%d stemmer så langt - du kan endre stemmen din.', 'samlab' ) ); ?>"
+							<?php echo $samlab_har_stemt ? '' : 'hidden'; ?>>
+							<?php
+							/* translators: %d: antall stemmer. */
+							echo esc_html( sprintf( __( '%d stemmer så langt - du kan endre stemmen din.', 'samlab' ), array_sum( $samlab_stemmetall ) ) );
+							?>
+						</p>
+					</div>
 				<?php endif; ?>
 				<p class="samlab-innlegg-handlinger">
 					<button type="button" class="samlab-knapp samlab-liker" data-id="<?php echo esc_attr( (string) $samlab_innlegg->id ); ?>" aria-pressed="<?php echo $samlab_har_likt ? 'true' : 'false'; ?>">
@@ -170,6 +215,39 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 				} );
 			} );
 		}
+		// Avstemninger: stem/endre og vis resultatene etterpå.
+		document.querySelectorAll( '.samlab-stem' ).forEach( function ( knapp ) {
+			knapp.addEventListener( 'click', function () {
+				fetch( window.samlabRest.url + 'samlab/v1/stemmer', {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': window.samlabRest.nonce
+					},
+					body: JSON.stringify( {
+						innlegg_id: parseInt( knapp.dataset.id, 10 ),
+						valg: parseInt( knapp.dataset.valg, 10 )
+					} )
+				} ).then( function ( svar ) {
+					return svar.json();
+				} ).then( function ( data ) {
+					if ( ! data || ! data.counts ) {
+						return;
+					}
+					var boks = knapp.closest( '.samlab-avstemning' );
+					boks.querySelectorAll( '.samlab-stem' ).forEach( function ( b ) {
+						var antall = b.querySelector( '.samlab-stemme-antall' );
+						antall.textContent = '(' + ( data.counts[ b.dataset.valg ] || 0 ) + ')';
+						antall.hidden = false;
+						b.setAttribute( 'aria-pressed', parseInt( b.dataset.valg, 10 ) === data.valg ? 'true' : 'false' );
+					} );
+					var status = boks.querySelector( '.samlab-avstemning-status' );
+					status.textContent = status.dataset.mal.replace( '%d', data.totalt );
+					status.hidden = false;
+				} );
+			} );
+		} );
 		document.querySelectorAll( '.samlab-liker' ).forEach( function ( knapp ) {
 			knapp.addEventListener( 'click', function () {
 				fetch( window.samlabRest.url + 'samlab/v1/reaksjoner', {
