@@ -329,10 +329,17 @@ oppgave innfri sin «Ferdig når».*
   stilrekkefølgen i skallet (portal.css lenkes før
   overstyringene). Alle kontraster nå over WCAG AA; rapport i
   docs/tema-test.md. WPCS grønn.
-- [ ] **D2. i18n-gjennomgang.** Alle brukertekster gjennom
+- [x] **D2. i18n-gjennomgang.** Alle brukertekster gjennom
   `__()`/`_e()`, POT-fil generert.
   *Ferdig når:* `wp i18n make-pot` kjører rent og stikkprøver i koden
   finner ingen hardkodede strenger.
+  *Notat (2026-08-29):* `wp i18n make-pot` kjørte rent uten
+  advarsler - 136 strenger i samlab/languages/samlab.pot med
+  riktig tekstdomene. Stikkprøver (grep etter norsk tekst utenfor
+  oversettelsesfunksjoner, placeholders/labels uten esc_attr_e):
+  null funn; eneste rå echo-er er ren markup. Bevisst unntak:
+  wp-cli-meldingene i seed-kommandoen (utviklerflate) og
+  seed-demoinnholdet (data, ikke UI). WPCS grønn.
 - [ ] **D3. Sikkerhetsgjennomgang.** Systematisk sjekk av alle
   endepunkter og skjemaer: nonce, capabilities, escaping, prepared
   statements. Funn rettes; oppsummering i `docs/sikkerhet.md`.
