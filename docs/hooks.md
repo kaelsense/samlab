@@ -85,6 +85,22 @@ stemmer per alternativ (indeksert liste) og `totalt` er summen -
 resultatvisningen etter avgitt stemme. 404 uten avstemning på
 innlegget, 400 ved indeks utenfor alternativene.
 
+### `POST /wp-json/samlab/v1/assistent`
+
+Assistentens chat-endepunkt (kun når assistent-modulen er på -
+ellers finnes ikke ruten). Kaller Claude Messages API server-side;
+nøkkelen forlater aldri serveren. Krever `samlab_read_portal`.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `melding` | string | Medlemmets spørsmål, maks 4000 tegn (påkrevd) |
+| `historikk` | array | Valgfri samtalehistorikk: `[{ rolle: user\|assistant, tekst }]` - avgrenses server-side til de siste 10 |
+
+Svar: `{ svar, navn }`. Feilsvar: 503 uten API-nøkkel, 429 over
+rate-grensen (15 kall per 5 minutter per bruker), 502 ved API-feil -
+alle med generiske meldinger uten konfigurasjonsdetaljer. Spørsmål
+og svar logges aldri.
+
 ### `GET /wp-json/samlab/v1/varsler`
 
 Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller.
@@ -196,6 +212,21 @@ do_action( 'samlab_stemme_avgitt', $innlegg_id, $user_id, $valg );
 | `$innlegg_id` | int | Innlegget med avstemningen |
 | `$user_id` | int | Brukeren som stemte |
 | `$valg` | int | Alternativindeksen (0-basert) |
+
+Siden: 0.2.0.
+
+### `samlab_assistent_svarte`
+
+Kjøres etter et vellykket assistent-svar. Sender bevisst ALDRI med
+spørsmålet eller svaret - kun brukeren, til statistikkformål.
+
+```php
+do_action( 'samlab_assistent_svarte', $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$user_id` | int | Brukeren som spurte |
 
 Siden: 0.2.0.
 

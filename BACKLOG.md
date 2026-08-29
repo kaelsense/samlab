@@ -666,7 +666,7 @@ trengs i test.*
   rendres kun riktig, bygg via knappen 302 og versjonen teller
   opp, 403 uten nonce. Tom debug.log, WPCS grønn, hooks- og
   sikkerhetsdocs oppdatert.
-- [ ] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
+- [x] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
   (innlogget + portal-capability): server-side kall til Messages
   API via `wp_remote_post` med system-prompt (navn/tone +
   kunnskapsgrunnlag) markert for prompt-caching (`cache_control`
@@ -677,6 +677,25 @@ trengs i test.*
   *Ferdig når:* endepunktet svarer korrekt mot mocket API i riggen,
   avviser uinnloggede (401), håndhever rate-limit (429), og gir
   503 uten nøkkel - uten å lekke konfigurasjonsdetaljer.
+  *Notat (2026-08-29):* includes/assistent/api.php (kun lastet med
+  modulen på - av gir 404 på ruten, dokumentert valg i tråd med
+  «ingen assistent-kode når av»; 503 gjelder manglende nøkkel).
+  Systemprompt i to blokker: instruks (navn, portalnavn, bokmål,
+  «kun grunnlaget, ikke gjett», henvis til portalsidene, aldri
+  passord/persondetaljer + valgfri toneinstruks) og
+  kunnskapsgrunnlaget med cache_control ephemeral. Historikken
+  vaskes: rolle-whitelist (system-rollen avvises som
+  injeksjonsvern), sanitert og kappet tekst, maks 10 siste
+  innslag. Rate: 15 kall per 5 min per bruker via transient.
+  API-feil gir generisk 502; kun statuskoden logges, kun med
+  WP_DEBUG. Action samlab_assistent_svarte (bevisst uten innhold).
+  17 tester grønne mot pre_http_request-mock (riktig header/modell/
+  systemblokker/avgrensning, 401/503/429/502, ingen konfiglekkasje)
+  + HTTP med mu-plugin-mock og nøkkel via wp config set:
+  401 uinnlogget, 503 uten nøkkel, 200 med svar og navn, 429 over
+  grensen, 404 med modul av. Debug-loggens ene linje var den
+  bevisste statuskode-loggingen under WP_DEBUG. WPCS grønn,
+  hooks- og sikkerhetsdocs oppdatert.
 - [ ] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
   (kun når modulen er på): panel med velkomstmelding, meldingsliste,
   «skriver …»-indikator og hel-svar-levering (planens plan B).

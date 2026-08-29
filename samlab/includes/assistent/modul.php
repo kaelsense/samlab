@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/kunnskap.php';
+require_once __DIR__ . '/api.php';
 
 /**
  * Markør for at modulen er lastet - brukes av røyk-testene for å
