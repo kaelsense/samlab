@@ -38,6 +38,11 @@ const SAMLAB_ASSISTENT_RATE_VINDU = 5 * MINUTE_IN_SECONDS;
 const SAMLAB_ASSISTENT_HISTORIKK_MAKS = 10;
 
 /**
+ * Maks lengde på én meldingstekst, i tegn.
+ */
+const SAMLAB_ASSISTENT_TEKST_MAKS = 4000;
+
+/**
  * Registrerer assistent-ruten.
  *
  * @return void
@@ -55,7 +60,7 @@ function samlab_assistent_register_rest() {
 					'type'      => 'string',
 					'required'  => true,
 					'minLength' => 1,
-					'maxLength' => 4000,
+					'maxLength' => SAMLAB_ASSISTENT_TEKST_MAKS,
 				),
 				'historikk' => array(
 					'type'    => 'array',
@@ -69,13 +74,50 @@ function samlab_assistent_register_rest() {
 add_action( 'rest_api_init', 'samlab_assistent_register_rest' );
 
 /**
+ * Cache-gruppen telleren ligger i når nettstedet har et eksternt
+ * objektcache.
+ */
+const SAMLAB_ASSISTENT_RATE_GRUPPE = 'samlab_assistent';
+
+/**
+ * Nøkkelen brukerens teller ligger under.
+ *
+ * @param int $user_id Brukeren.
+ * @return string
+ */
+function samlab_assistent_rate_nokkel( $user_id ) {
+	return 'samlab_assistent_rl_' . absint( $user_id );
+}
+
+/**
  * Teller brukerens kall i vinduet og sier om dette er innenfor.
+ *
+ * Med et eksternt objektcache telles det opp med wp_cache_incr, som
+ * er atomisk - da slipper parallelle forespørsler fra samme medlem
+ * ikke forbi grensen sammen. Uten objektcache faller vi tilbake til
+ * transient: en les-sammenlign-skriv som kan la noen få samtidige
+ * kall gå gjennom. Det er en bevisst grense - en atomisk teller i
+ * options-tabellen krever direkte SQL, og grensen er en bremse mot
+ * kostnad, ikke en sikkerhetsmekanisme.
  *
  * @param int $user_id Brukeren.
  * @return bool Om kallet er innenfor grensen.
  */
 function samlab_assistent_rate_ok( $user_id ) {
-	$nokkel = 'samlab_assistent_rl_' . absint( $user_id );
+	$nokkel = samlab_assistent_rate_nokkel( $user_id );
+
+	if ( wp_using_ext_object_cache() ) {
+		wp_cache_add( $nokkel, 0, SAMLAB_ASSISTENT_RATE_GRUPPE, SAMLAB_ASSISTENT_RATE_VINDU );
+		$antall = wp_cache_incr( $nokkel, 1, SAMLAB_ASSISTENT_RATE_GRUPPE );
+		if ( false !== $antall ) {
+			return $antall <= SAMLAB_ASSISTENT_RATE_ANTALL;
+		}
+		// Incr feilet - nøkkelen er kastet ut, eller cachen svarer
+		// ikke. Da faller vi ned på transient-veien under i stedet
+		// for å slippe kallet gjennom: en teller som feiler skal
+		// ikke slå av grensen.
+	}
+
 	$antall = (int) get_transient( $nokkel );
 	if ( $antall >= SAMLAB_ASSISTENT_RATE_ANTALL ) {
 		return false;
@@ -119,8 +161,47 @@ function samlab_assistent_systemblokker() {
 }
 
 /**
+ * Saniterer og kapper én meldingstekst. Saniteringen kan tømme
+ * teksten helt (f.eks. «<hei>»), og kallerne må derfor sjekke
+ * resultatet - en tom tekstblokk avvises av API-et.
+ *
+ * @param mixed $tekst Rå tekst.
+ * @return string Sanitert tekst, kappet til grensen.
+ */
+function samlab_assistent_rens_tekst( $tekst ) {
+	return mb_substr( sanitize_textarea_field( (string) $tekst ), 0, SAMLAB_ASSISTENT_TEKST_MAKS );
+}
+
+/**
+ * Trimmer meldingslisten til formen Messages API-et krever: første
+ * melding fra brukeren, siste fra assistenten. Da kan medlemmets
+ * nye melding legges til uten to brukerturer på rad. En liste som
+ * er kappet midt i en samtale starter ellers ofte med assistenten,
+ * og API-et svarer 400.
+ *
+ * @param array $meldinger Vekslende meldingsliste.
+ * @return array Trimmet liste - kan være tom.
+ */
+function samlab_assistent_trim_meldinger( $meldinger ) {
+	while ( array() !== $meldinger && 'user' !== $meldinger[0]['role'] ) {
+		array_shift( $meldinger );
+	}
+	while ( array() !== $meldinger ) {
+		$siste = end( $meldinger );
+		if ( 'assistant' === $siste['role'] ) {
+			break;
+		}
+		array_pop( $meldinger );
+	}
+	return array_values( $meldinger );
+}
+
+/**
  * Vasker og avgrenser samtalehistorikken fra klienten: kun kjente
- * roller, tekst sanitert og kappet, maks N siste innslag.
+ * roller, tekst sanitert og kappet, maks N siste innslag - og alltid
+ * vekslende roller. Faller et innslag ut (ukjent rolle, tom tekst
+ * etter sanitering), beholdes det nyeste av to like roller på rad
+ * slik at vekslingen holder.
  *
  * @param array $historikk Rå historikk fra forespørselen.
  * @return array Meldingsliste for Messages API.
@@ -134,16 +215,21 @@ function samlab_assistent_vask_historikk( $historikk ) {
 		if ( ! in_array( $innslag['rolle'], array( 'user', 'assistant' ), true ) ) {
 			continue;
 		}
-		$tekst = mb_substr( sanitize_textarea_field( (string) $innslag['tekst'] ), 0, 4000 );
+		$tekst = samlab_assistent_rens_tekst( $innslag['tekst'] );
 		if ( '' === $tekst ) {
 			continue;
+		}
+		$siste = count( $meldinger ) - 1;
+		if ( $siste >= 0 && $meldinger[ $siste ]['role'] === $innslag['rolle'] ) {
+			array_pop( $meldinger );
 		}
 		$meldinger[] = array(
 			'role'    => $innslag['rolle'],
 			'content' => $tekst,
 		);
 	}
-	return array_slice( $meldinger, - SAMLAB_ASSISTENT_HISTORIKK_MAKS );
+
+	return samlab_assistent_trim_meldinger( array_slice( $meldinger, - SAMLAB_ASSISTENT_HISTORIKK_MAKS ) );
 }
 
 /**
@@ -202,12 +288,20 @@ function samlab_rest_assistent( $request ) {
 	if ( ! samlab_assistent_har_nokkel() ) {
 		return new WP_Error( 'samlab_assistent_utilgjengelig', __( 'Assistenten er ikke tilgjengelig ennå - kontakt verten.', 'samlab' ), array( 'status' => 503 ) );
 	}
+
+	// Saniteringen kjøres etter REST-valideringen, og kan tømme en
+	// melding som passerte minLength - da ville API-et fått en tom
+	// tekstblokk. Sjekk før rate-telleren brukes: kallet når aldri ut.
+	$melding = samlab_assistent_rens_tekst( $request['melding'] );
+	if ( '' === $melding ) {
+		return new WP_Error( 'samlab_assistent_tom_melding', __( 'Skriv et spørsmål med tekst i.', 'samlab' ), array( 'status' => 400 ) );
+	}
+
 	$user_id = get_current_user_id();
 	if ( ! samlab_assistent_rate_ok( $user_id ) ) {
 		return new WP_Error( 'samlab_assistent_grense', __( 'Rolig nå - du har sendt mange spørsmål på kort tid. Prøv igjen om noen minutter.', 'samlab' ), array( 'status' => 429 ) );
 	}
 
-	$melding     = mb_substr( sanitize_textarea_field( (string) $request['melding'] ), 0, 4000 );
 	$meldinger   = samlab_assistent_vask_historikk( $request['historikk'] );
 	$meldinger[] = array(
 		'role'    => 'user',

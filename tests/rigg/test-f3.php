@@ -24,6 +24,10 @@ if ( ! function_exists( 'samlab_rest_assistent' ) ) {
 
 $medlem = get_user_by( 'login', 'testmedlem' );
 
+// Rate-telleren kan ligge igjen fra en tidligere kjøring (vinduet er
+// fem minutter) - nullstill, ellers rate-limiteres testen selv.
+delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+
 /**
  * Hjelper: kjør et REST-kall mot assistenten.
  *
@@ -34,6 +38,26 @@ function samlab_test_assistent_kall( $params ) {
 	$request = new WP_REST_Request( 'POST', '/samlab/v1/assistent' );
 	$request->set_body_params( $params );
 	return rest_do_request( $request );
+}
+
+/**
+ * Hjelper: sjekker at meldingslisten er slik Messages API-et krever -
+ * første melding fra brukeren, deretter vekslende roller.
+ *
+ * @param array $meldinger Meldingslisten som ble sendt.
+ * @return bool
+ */
+function samlab_test_veksler( $meldinger ) {
+	if ( array() === $meldinger || 'user' !== $meldinger[0]['role'] ) {
+		return false;
+	}
+	foreach ( $meldinger as $indeks => $melding ) {
+		$ventet = 0 === $indeks % 2 ? 'user' : 'assistant';
+		if ( $ventet !== $melding['role'] ) {
+			return false;
+		}
+	}
+	return true;
 }
 
 // --- Ruten finnes når modulen er på ---
@@ -116,14 +140,82 @@ sjekk( 'instruksblokken nevner assistent- og portalnavn', false !== strpos( $fan
 sjekk( 'kunnskapsblokken har cache_control (prompt-caching)', 'ephemeral' === $fanget['body']['system'][1]['cache_control']['type'] );
 sjekk( 'kunnskapsgrunnlaget ligger i systemblokken', false !== strpos( $fanget['body']['system'][1]['text'], 'Brygga Design' ) );
 $meldinger = $fanget['body']['messages'];
-sjekk( 'historikken er avgrenset til 10 + ny melding', 11 === count( $meldinger ) );
-sjekk( 'eldste innslag er kuttet, system-rollen filtrert', 'Innslag 6' === $meldinger[0]['content'] && ! in_array( 'system', wp_list_pluck( $meldinger, 'role' ), true ) );
+sjekk( 'historikken er avgrenset til maks 10 + ny melding', count( $meldinger ) <= SAMLAB_ASSISTENT_HISTORIKK_MAKS + 1 );
+sjekk( 'eldste innslag er kuttet, system-rollen filtrert', 'Innslag 7' === $meldinger[0]['content'] && ! in_array( 'system', wp_list_pluck( $meldinger, 'role' ), true ) );
 sjekk( 'medlemmets melding er sist', 'Hvem lager nettsider i huset?' === end( $meldinger )['content'] );
+sjekk( 'listen starter med bruker og veksler rolle', samlab_test_veksler( $meldinger ) );
+
+// --- Historikk med hull veksler fortsatt riktig ---
+$hullete = array(
+	array(
+		'rolle' => 'assistant',
+		'tekst' => 'Historikken starter med assistenten',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Første spørsmål',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Andre spørsmål - svaret imellom falt ut',
+	),
+	array(
+		'rolle' => 'assistant',
+		'tekst' => 'Et svar',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Siste spørsmål, ubesvart',
+	),
+);
+$svar = samlab_test_assistent_kall(
+	array(
+		'melding'   => 'Ny melding',
+		'historikk' => $hullete,
+	)
+);
+$meldinger = $fanget['body']['messages'];
+sjekk( 'hullete historikk gir gyldig veksling', 200 === $svar->get_status() && samlab_test_veksler( $meldinger ) );
+sjekk( 'hullete historikk beholder nyeste av to like roller', 'Andre spørsmål - svaret imellom falt ut' === $meldinger[0]['content'] );
+sjekk( 'medlemmets nye melding er sist', 'Ny melding' === end( $meldinger )['content'] );
+
+// --- Melding som saniteres til tom avvises før API-kallet ---
+$fanget = null;
+$svar   = samlab_test_assistent_kall( array( 'melding' => '<hei>' ) );
+sjekk( 'melding som saniteres til tom gir 400', 400 === $svar->get_status() );
+sjekk( 'tom melding når aldri API-et', null === $fanget );
+
+// --- Rate-telleren teller hvert kall, og stopper på grensen ---
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
+$koder = array();
+for ( $i = 0; $i <= SAMLAB_ASSISTENT_RATE_ANTALL; $i++ ) {
+	$koder[] = samlab_test_assistent_kall( array( 'melding' => "Spørsmål $i" ) )->get_status();
+}
+sjekk( 'kallene innenfor grensen slipper gjennom', SAMLAB_ASSISTENT_RATE_ANTALL === count( array_keys( $koder, 200, true ) ) );
+sjekk( 'kallet over grensen stoppes', 429 === end( $koder ) );
+
+// --- Med eksternt objektcache går telleren via wp_cache_incr ---
+// (Atomisiteten kan ikke vises i en seriell test - her verifiseres at
+// grenen finnes, teller riktig og ikke faller tilbake på transient.)
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
+// Flagget er null før noe cache-oppsett - cast, ellers betyr null
+// «ikke endre», og tilbakestillingen blir en nulloperasjon.
+$var_ext_cache = (bool) wp_using_ext_object_cache( true );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
+$koder = array();
+for ( $i = 0; $i <= SAMLAB_ASSISTENT_RATE_ANTALL; $i++ ) {
+	$koder[] = samlab_test_assistent_kall( array( 'melding' => "Cache-spørsmål $i" ) )->get_status();
+}
+wp_using_ext_object_cache( $var_ext_cache );
+sjekk( 'objektcache-veien holder samme grense', SAMLAB_ASSISTENT_RATE_ANTALL === count( array_keys( $koder, 200, true ) ) && 429 === end( $koder ) );
+sjekk( 'objektcache-veien skriver ikke transient', false === get_transient( samlab_assistent_rate_nokkel( $medlem->ID ) ) );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
 
 // --- Rate-limiting: 429 over grensen ---
-set_transient( 'samlab_assistent_rl_' . $medlem->ID, SAMLAB_ASSISTENT_RATE_ANTALL, 60 );
+set_transient( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_ANTALL, 60 );
 sjekk( 'over grensen gir 429', 429 === samlab_test_assistent_kall( array( 'melding' => 'Enda et spørsmål' ) )->get_status() );
-delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
 
 // --- API-feil gir generisk 502 ---
 add_filter(
@@ -144,5 +236,5 @@ sjekk( 'API-feil gir generisk 502', 502 === $svar->get_status() && false === str
 
 // --- Rydd ---
 delete_option( 'samlab_kunnskap' );
-delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
 exit( $fail );
