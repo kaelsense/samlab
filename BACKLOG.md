@@ -127,10 +127,16 @@ oppgave innfri sin «Ferdig når».*
   samlab_edit_bedrift, alle andre do_not_allow; sletting kun
   admin/redaktør. 13 tester grønne i riggen (tests/rigg/test-b4.php),
   inkl. at meta-lagring avvises på annens bedrift. WPCS grønn.
-- [ ] **B5. CPT: behov.** `samlab_behov` med taksonomier for
+- [x] **B5. CPT: behov.** `samlab_behov` med taksonomier for
   trenger/tilbyr og behovstype, meta for frist, budsjett, kompetanse
   og kontaktform, kobling til bedrift.
   *Ferdig når:* som B3, for behov.
+  *Notat (2026-08-29):* samlab_behov i post-types.php med
+  samlab_retning (termene trenger/tilbyr seedes ved aktivering) og
+  samlab_behovstype; metaboks med frist, budsjett, kontaktform,
+  kompetanse-liste og bedriftsvelger. Kobling valideres mot
+  post-type (ikke-bedrift nulles). 17 tester grønne i riggen
+  (tests/rigg/test-b5.php), tom debug.log, WPCS grønn.
 - [ ] **B6. Egne tabeller: vegg og reaksjoner.** dbDelta-skjema for
   vegginnlegg og reaksjoner (hybridmodellen fra
   FluentCommunity-analysen) med modellklasser for CRUD.

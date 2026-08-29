@@ -62,6 +62,87 @@ function samlab_register_bedrift() {
 add_action( 'init', 'samlab_register_bedrift' );
 
 /**
+ * Registrerer post-typen samlab_behov med taksonomiene
+ * samlab_retning (trenger/tilbyr) og samlab_behovstype.
+ *
+ * @return void
+ */
+function samlab_register_behov() {
+	register_post_type(
+		'samlab_behov',
+		array(
+			'labels'              => array(
+				'name'          => __( 'Behov og tilbud', 'samlab' ),
+				'singular_name' => __( 'Behov', 'samlab' ),
+				'add_new_item'  => __( 'Legg til behov', 'samlab' ),
+				'edit_item'     => __( 'Rediger behov', 'samlab' ),
+				'search_items'  => __( 'Søk i behov', 'samlab' ),
+				'not_found'     => __( 'Ingen behov funnet', 'samlab' ),
+			),
+			'public'              => false,
+			'show_ui'             => true,
+			'show_in_menu'        => true,
+			'menu_icon'           => 'dashicons-megaphone',
+			'exclude_from_search' => true,
+			'has_archive'         => false,
+			'rewrite'             => false,
+			'show_in_rest'        => false,
+			'supports'            => array( 'title', 'editor' ),
+		)
+	);
+
+	register_taxonomy(
+		'samlab_retning',
+		'samlab_behov',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Retning', 'samlab' ),
+				'singular_name' => __( 'Retning', 'samlab' ),
+			),
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'hierarchical'      => true,
+			'rewrite'           => false,
+		)
+	);
+
+	register_taxonomy(
+		'samlab_behovstype',
+		'samlab_behov',
+		array(
+			'labels'            => array(
+				'name'          => __( 'Behovstyper', 'samlab' ),
+				'singular_name' => __( 'Behovstype', 'samlab' ),
+			),
+			'public'            => false,
+			'show_ui'           => true,
+			'show_admin_column' => true,
+			'hierarchical'      => true,
+			'rewrite'           => false,
+		)
+	);
+}
+add_action( 'init', 'samlab_register_behov' );
+
+/**
+ * Sørger for at retningstermene «Trenger» og «Tilbyr» finnes.
+ * Kalles ved aktivering (etter eksplisitt taksonomi-registrering).
+ *
+ * @return void
+ */
+function samlab_ensure_retning_terms() {
+	foreach ( array(
+		'trenger' => __( 'Trenger', 'samlab' ),
+		'tilbyr'  => __( 'Tilbyr', 'samlab' ),
+	) as $slug => $navn ) {
+		if ( ! term_exists( $slug, 'samlab_retning' ) ) {
+			wp_insert_term( $navn, 'samlab_retning', array( 'slug' => $slug ) );
+		}
+	}
+}
+
+/**
  * Håndhever at bedriftsredaktører kun kan redigere bedriften der de
  * er kontaktperson - som capability-sjekk, ikke skjult UI.
  *
@@ -359,3 +440,100 @@ function samlab_save_bedrift_meta( $post_id ) {
 	}
 }
 add_action( 'save_post_samlab_bedrift', 'samlab_save_bedrift_meta' );
+
+/**
+ * Registrerer metaboksen for behov.
+ *
+ * @return void
+ */
+function samlab_behov_meta_boxes() {
+	add_meta_box( 'samlab_behov_detaljer', __( 'Behovsdetaljer', 'samlab' ), 'samlab_render_behov_box', 'samlab_behov', 'normal', 'high' );
+}
+add_action( 'add_meta_boxes_samlab_behov', 'samlab_behov_meta_boxes' );
+
+/**
+ * Metaboks: frist, budsjett, kompetanse, kontaktform og bedrift.
+ *
+ * @param WP_Post $post Behovet som redigeres.
+ * @return void
+ */
+function samlab_render_behov_box( $post ) {
+	wp_nonce_field( 'samlab_behov_meta', 'samlab_behov_nonce' );
+
+	$felter = array(
+		'samlab_frist'       => __( 'Frist', 'samlab' ),
+		'samlab_budsjett'    => __( 'Budsjett', 'samlab' ),
+		'samlab_kontaktform' => __( 'Ønsket kontaktform', 'samlab' ),
+	);
+
+	echo '<table class="form-table" role="presentation">';
+	foreach ( $felter as $id => $label ) {
+		$value = get_post_meta( $post->ID, '_' . $id, true );
+		echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label></th>';
+		echo '<td><input type="text" class="regular-text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $id ) . '" value="' . esc_attr( $value ) . '" /></td></tr>';
+	}
+
+	$kompetanse = get_post_meta( $post->ID, '_samlab_kompetanse', true );
+	$kompetanse = is_array( $kompetanse ) ? implode( "\n", $kompetanse ) : '';
+	echo '<tr><th scope="row"><label for="samlab_kompetanse">' . esc_html__( 'Kompetanse (én per linje)', 'samlab' ) . '</label></th>';
+	echo '<td><textarea class="large-text" rows="3" id="samlab_kompetanse" name="samlab_kompetanse">' . esc_textarea( $kompetanse ) . '</textarea></td></tr>';
+
+	$valgt     = (int) get_post_meta( $post->ID, '_samlab_bedrift', true );
+	$bedrifter = get_posts(
+		array(
+			'post_type'   => 'samlab_bedrift',
+			'numberposts' => -1,
+			'orderby'     => 'title',
+			'order'       => 'ASC',
+			'post_status' => 'publish',
+		)
+	);
+	echo '<tr><th scope="row"><label for="samlab_bedrift">' . esc_html__( 'Bedrift', 'samlab' ) . '</label></th><td>';
+	echo '<select id="samlab_bedrift" name="samlab_bedrift">';
+	echo '<option value="0">' . esc_html__( '- Velg bedrift -', 'samlab' ) . '</option>';
+	foreach ( $bedrifter as $bedrift ) {
+		echo '<option value="' . esc_attr( (string) $bedrift->ID ) . '"' . selected( $valgt, $bedrift->ID, false ) . '>' . esc_html( get_the_title( $bedrift ) ) . '</option>';
+	}
+	echo '</select></td></tr>';
+	echo '</table>';
+}
+
+/**
+ * Lagrer behovs-meta med nonce- og capability-sjekk.
+ *
+ * @param int $post_id Behovets post-ID.
+ * @return void
+ */
+function samlab_save_behov_meta( $post_id ) {
+	$nonce = isset( $_POST['samlab_behov_nonce'] ) ? sanitize_key( wp_unslash( $_POST['samlab_behov_nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'samlab_behov_meta' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	foreach ( array( 'samlab_frist', 'samlab_budsjett', 'samlab_kontaktform' ) as $name ) {
+		if ( isset( $_POST[ $name ] ) ) {
+			update_post_meta( $post_id, '_' . $name, sanitize_text_field( wp_unslash( $_POST[ $name ] ) ) );
+		}
+	}
+
+	if ( isset( $_POST['samlab_kompetanse'] ) ) {
+		$linjer = explode( "\n", sanitize_textarea_field( wp_unslash( $_POST['samlab_kompetanse'] ) ) );
+		$linjer = array_values( array_filter( array_map( 'trim', $linjer ) ) );
+		update_post_meta( $post_id, '_samlab_kompetanse', $linjer );
+	}
+
+	if ( isset( $_POST['samlab_bedrift'] ) ) {
+		$bedrift_id = absint( $_POST['samlab_bedrift'] );
+		if ( $bedrift_id && 'samlab_bedrift' !== get_post_type( $bedrift_id ) ) {
+			$bedrift_id = 0; // Koblingen må peke på en bedrift.
+		}
+		update_post_meta( $post_id, '_samlab_bedrift', $bedrift_id );
+	}
+}
+add_action( 'save_post_samlab_behov', 'samlab_save_behov_meta' );

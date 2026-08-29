@@ -56,6 +56,11 @@ function samlab_activate() {
 	if ( function_exists( 'samlab_register_rewrites' ) ) {
 		samlab_register_rewrites();
 	}
+	// Aktivering skjer før init - registrer innholdstypene eksplisitt
+	// så term-seeding og flush ser dem.
+	samlab_register_bedrift();
+	samlab_register_behov();
+	samlab_ensure_retning_terms();
 	samlab_add_roles();
 	flush_rewrite_rules();
 	update_option( 'samlab_version', SAMLAB_VERSION );
