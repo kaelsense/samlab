@@ -46,14 +46,33 @@ if [ ! -f "$WPDIR/wp-content/db.php" ]; then
 fi
 
 if ! WP core is-installed 2>/dev/null; then
-	WP core install --url=http://localhost:8890 --title="Samlab testrigg" \
+	WP core install --url=http://127.0.0.1:8890 --title="Samlab testrigg" \
 		--admin_user=admin --admin_password=admin \
 		--admin_email=test@example.com --skip-email
 fi
+# wp-cli kan avlede en sti-prefikset URL fra katalogen - lås den.
+WP option update siteurl 'http://127.0.0.1:8890' > /dev/null
+WP option update home 'http://127.0.0.1:8890' > /dev/null
 
 ln -sfn "$REPO/samlab" "$WPDIR/wp-content/plugins/samlab"
 WP plugin activate samlab
 WP plugin list --fields=name,status,version
 
+# Pene permalenker (portal-rutene forutsetter det) og router for php -S.
+WP rewrite structure '/%postname%/'
+WP rewrite flush
+cat > "$WPDIR/router.php" <<'PHP'
+<?php
+$path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+if ( '/' !== $path && file_exists( __DIR__ . $path ) ) {
+	return false;
+}
+$_SERVER['SCRIPT_NAME'] = '/index.php';
+require __DIR__ . '/index.php';
+PHP
+
 echo "Testrigg klar i $WPDIR"
 echo "Kjør kommandoer med: php $RIG/wp-cli.phar --allow-root --path=$WPDIR <kommando>"
+echo "Seed demodata:       php $RIG/wp-cli.phar --allow-root --path=$WPDIR samlab seed"
+echo "Start server:        php -S 127.0.0.1:8890 -t $WPDIR $WPDIR/router.php"
+echo "Portal:              http://127.0.0.1:8890/portal/  (admin / admin)"

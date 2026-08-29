@@ -353,12 +353,20 @@ oppgave innfri sin «Ferdig når».*
   offentlighet og navn-i-meny dokumentert som akseptert restrisiko.
   docs/sikkerhet.md lister alle 17 flater med bekreftet status.
   WPCS grønn.
-- [ ] **D4. Driftskrav-dokumentasjon.** `README.md` med krav
+- [x] **D4. Driftskrav-dokumentasjon.** `README.md` med krav
   (WordPress/PHP-versjon, cron), installasjon, wp-env-oppskrift og
   lenke til hooks-dokumentasjonen (Infohub-analysens
   driftsdokumentasjons-lærdom).
   *Ferdig når:* en utvikler som ikke kjenner prosjektet kan gå fra
   klone til kjørende portal med seed-data kun via README.
+  *Notat (2026-08-29):* README omskrevet: krav (WP 6.4+/PHP 8.2+,
+  cron-notat), produksjonsinstallasjon steg for steg, klone-til-
+  portal via bin/testrigg.sh (som nå også setter permalenker,
+  router og låst site-URL og skriver neste-steg til terminalen),
+  wp-env-alternativ, verifisering (lint + røyk-tester) og lenker
+  til hooks/sikkerhet/tema-test. Løypa verifisert ende til ende i
+  helt fersk rigg: klone → script → seed → server → portal 200 med
+  demodata, håndbok-vern aktivt. MVP-MILEPÆLEN ER NÅDD.
 
 **Milepæl: MVP.** Når D4 er krysset av er fase 1-2 fra planen levert
 og Lius-piloten kan settes opp. Fase 3-4 (kontrollpanel, matching,
