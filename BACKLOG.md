@@ -173,12 +173,20 @@ oppgave innfri sin «Ferdig når».*
   $wp->request. HTTP-verifisert: utlogget 302 med korrekt
   redirect_to, innlogget (logged_in-cookie) 200 med skallet,
   resten av nettstedet åpent. WPCS grønn.
-- [ ] **B9. Token-CSS.** Portalens stilark bygget på
+- [x] **B9. Token-CSS.** Portalens stilark bygget på
   `--wp--preset--*`-variabler med nøytrale fallbacks, portert
   strukturelt fra `prototype-kilde/styles/global.css` (kort, chips,
   avatarer, statuskjede - fargene fra temaet).
   *Ferdig når:* portalen skifter farger/fonter når temaet byttes
   mellom Twenty Twenty-Four og ett annet theme.json-tema i wp-env.
+  *Notat (2026-08-29):* assets/css/portal.css med samlab-tokens på
+  preset-variabler + struktur (topp/nav, kort, chips, avatar,
+  statuskjede, knapper, festet-ramme). Skallet skriver ut temaets
+  variabler (wp_get_global_stylesheet) + bro fra wp_get_global_styles
+  for font/farge uansett preset-slugs, og aksent-overstyring fra
+  innstilling (sanitize_hex_color). Verifisert i riggen: TT24 vs
+  TT25 gir ulike fonter (body/heading vs manrope) og farger
+  (#cfcabe vs #FFEE58). WPCS grønn.
 - [ ] **B10. Innstillingsside.** wp-admin-side for portalnavn,
   portal-sti, flatenavn (vegg/behov/håndbok), valgfri
   aksentfarge-overstyring og logo.
