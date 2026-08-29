@@ -92,12 +92,18 @@ oppgave innfri sin «Ferdig når».*
   flush, versjons-option) og `samlab_deactivate()` (flush) i
   samlab.php per planens bootstrap-rolle. To fulle sykluser i
   testriggen: tom debug.log. WPCS grønn.
-- [ ] **B2. Roller og capabilities.** Roller for medlem,
+- [x] **B2. Roller og capabilities.** Roller for medlem,
   bedriftsredaktør og moderator med capabilities per planens
   kapittel 3.2, lagt til ved aktivering og fjernet ved avinstallering
   (`uninstall.php`).
   *Ferdig når:* rollene vises i wp-admin, og en testbruker per rolle
   kan opprettes via wp-cli uten feil.
+  *Notat (2026-08-29):* includes/roles.php med samlab_member,
+  samlab_company_editor, samlab_moderator og samlab_*-caps;
+  admin/redaktør får alle. uninstall.php fjerner roller, caps og
+  options (innhold beholdes). Verifisert i riggen: roller listet,
+  én testbruker per rolle via wp-cli, caps riktige, uninstall
+  rydder, tom debug.log. WPCS grønn.
 - [ ] **B3. CPT: bedrift.** `samlab_bedrift` med taksonomi
   `samlab_kategori`, fremhevet bilde, og metabokser for kort
   beskrivelse, plass, nettside, kontaktperson (brukervelger),

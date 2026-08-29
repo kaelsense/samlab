@@ -38,8 +38,9 @@ add_action( 'init', 'samlab_load_textdomain' );
 
 /*
  * Modulene i includes/ registreres her etter hvert som de bygges
- * (post-types, roles, rewrites, rest-api, access - se planens kap. 3).
+ * (post-types, rewrites, rest-api, access - se planens kap. 3).
  */
+require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
 
 /**
  * Aktivering: registrer pluginens rewrite-regler og flush dem én gang.
@@ -54,6 +55,7 @@ function samlab_activate() {
 	if ( function_exists( 'samlab_register_rewrites' ) ) {
 		samlab_register_rewrites();
 	}
+	samlab_add_roles();
 	flush_rewrite_rules();
 	update_option( 'samlab_version', SAMLAB_VERSION );
 }
