@@ -69,6 +69,8 @@ forretning skapes.
 | --- | --- |
 | `HANDOVER.md` | Dette dokumentet |
 | `CLAUDE.md` | Ferdig prosjektinstruks for det nye repoet - legg den i rot, så har neste Claude-chat riktig kontekst og regler fra start |
+| `BACKLOG.md` | **Loop-klar arbeidsliste** for fase 1-2: 26 oppgaver (A1-D4) med «Ferdig når»-kontrakt per oppgave, loop-prompten som skal limes inn, og rundereglene. Tilstanden bor i filen, ikke i chatten |
+| `AVKLARINGER.md` | Tom liste der loop-rundene parkerer spørsmål og veivalg til menneskelig beslutning |
 | `docs/forslag-wordpress-utvidelse.md` | **Hoveddokumentet**: den vedtatte planen - arkitektur, datamodell, roller, app-skall, kontrollpanel, assistent, sikkerhet, pakketering, faseplan |
 | `docs/forslag-b2b-community-os.md` | Konseptet/kravspesifikasjonen: intensjonsprofiler, behov/tilbud, introduksjonsflyt, måleparametre, MVP-liste, forskningsgrunnlag |
 | `docs/forslag-chatbot-lius-intern.md` | Assistent-modulen: RAG-arkitektur (alt-i-kontekst med prompt-caching), systemprompt-utkast, kostnadsestimat, personvern |
@@ -154,6 +156,11 @@ i Lius' installasjon).
 3. Første melding kan være så enkel som: *«Les HANDOVER.md og
    docs/forslag-wordpress-utvidelse.md. Vi starter med fase 0 -
    avklar lisensmodellen og sett opp plugin-skjelettet for Samlab.»*
+4. For autonom bygging: opprett branchen `utvikling`, sørg for en
+   tillatelsesmodus som lar Claude redigere og kjøre kommandoer uten
+   å spørre, og start loopen med prompten som står øverst i
+   `BACKLOG.md`. Du reviewer branchen og tømmer `AVKLARINGER.md` i
+   vanlige økter.
 
 `CLAUDE.md` i pakken bærer prinsippene (ingen Lius-hardkoding,
 tema-design som standard, sikkerhetsregler, språkregler), så de
