@@ -435,3 +435,61 @@
 	object-fit: cover;
 	border-radius: var(--samlab-radius-sm);
 }
+
+/* Behov-flaten og skjemaer */
+.samlab-melding {
+	padding: 0.625rem 1rem;
+	border-radius: var(--samlab-radius-sm);
+	border: 1px solid var(--samlab-linje);
+}
+
+.samlab-melding.er-suksess {
+	border-color: var(--samlab-aksent);
+}
+
+.samlab-melding.er-feil {
+	border-color: #b3261e;
+}
+
+.samlab-behov-merker {
+	margin: 0 0 0.5rem;
+	display: flex;
+	gap: 0.375rem;
+	flex-wrap: wrap;
+}
+
+.samlab-chip.er-tilbyr {
+	background: var(--samlab-fg);
+	color: var(--samlab-bg);
+}
+
+.samlab-skjema input[type="text"],
+.samlab-skjema textarea,
+.samlab-skjema select {
+	width: 100%;
+	max-width: 28rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+	box-sizing: border-box;
+}
+
+.samlab-skjema label {
+	font-weight: 600;
+	font-size: 0.9375rem;
+}
+
+.samlab-skjema fieldset {
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	margin: 0 0 1rem;
+	max-width: 28rem;
+}
+
+.samlab-skjema fieldset label {
+	font-weight: 400;
+	margin-right: 1rem;
+}

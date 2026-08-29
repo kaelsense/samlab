@@ -244,10 +244,20 @@ oppgave innfri sin «Ferdig når».*
   testbedrift: alle seksjoner, 404 for ukjent slug, null
   Lius-forekomster. Galleri-seksjonen er betinget og verifiseres
   med bilder i C6-runden. WPCS grønn.
-- [ ] **C3. Behov & tilbud.** Kortene med trenger/tilbyr-merker,
+- [x] **C3. Behov & tilbud.** Kortene med trenger/tilbyr-merker,
   filtre og «nytt behov»-skjema (frontend-innsending med nonce).
   *Ferdig når:* et medlem kan opprette et behov fra portalen, og det
   vises korrekt med alle metafelter.
+  *Notat (2026-08-29):* flater/behov.php (kort med retning/type-
+  merker, kompetanse-chips, metalinje, bedriftslenke; filtre for
+  retning og behovstype; skjema kun for samlab_create_behov) +
+  includes/forms.php (post/redirect/get på template_redirect,
+  nonce + capability, feltvis sanitering, bedriftskobling begrenset
+  til bedrifter brukeren er kontaktperson for,
+  samlab_behov_opprettet-action - dokumentert i docs/hooks.md).
+  HTTP-verifisert som medlem i riggen: opprettelse ende til ende
+  med alle felter, XSS strippet, filtre riktige, 403 ved ugyldig
+  nonce og for abonnent, feilmelding uten tittel. WPCS grønn.
 - [ ] **C4. Veggen.** Feed fra B6-tabellene: innlegg med tekst/bilde,
   reaksjoner via REST, WordPress-kommentarer, festede oppslag med
   hel ramme (kun moderator+ kan feste).

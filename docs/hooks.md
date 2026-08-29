@@ -61,6 +61,22 @@ do_action( 'samlab_reaksjon_endret', $type, $obj_id, $user_id, $reaction, $react
 
 Siden: 0.1.0.
 
+### `samlab_behov_opprettet`
+
+Kjøres når et behov er opprettet fra portalens «nytt behov»-skjema
+(ikke ved opprettelse i wp-admin).
+
+```php
+do_action( 'samlab_behov_opprettet', $behov_id, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$behov_id` | int | Behovets post-ID |
+| `$user_id` | int | Innsenderen |
+
+Siden: 0.1.0.
+
 ## Filters
 
 *(ingen ennå)*
