@@ -1,0 +1,2 @@
+<?php
+// Stillhet er gull.
