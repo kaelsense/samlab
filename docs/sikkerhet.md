@@ -61,6 +61,27 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
    dag pga. `sanitize_text_field` og capability-krav). **Rettet**
    til `esc_html( get_the_title() )` for konsistens.
 
+## Trusselnotat: assistenten (fase F)
+
+- **Prompt-injeksjon fra portalinnhold.** Kunnskapsgrunnlaget
+  bygges av innhold medlemmene selv skriver (behov, bedriftsfelter,
+  håndbok) og av eksterne kilder - en ondsinnet tekst kan forsøke å
+  instruere modellen («ignorer instruksene …»). Dette kan ikke
+  utelukkes med filtrering, så vernet ligger i konsekvensbegrensning:
+  assistenten har **aldri skrivetilgang** - ingen verktøy, ingen
+  WordPress-API-er, ingen handlinger; den produserer kun tekst.
+  Svaret escapes i widgeten (textContent), så heller ikke HTML/JS i
+  et manipulert svar kan kjøre. Instruksblokken ligger først i
+  systemprompten og ber modellen holde seg til grunnlaget. Verste
+  realistiske utfall er et villedende svar til et innlogget medlem -
+  synlig, rapporterbart og rettbart ved å fjerne kildeinnholdet og
+  bygge grunnlaget på nytt.
+- **Assistenten er kun for innloggede.** Endepunktet krever
+  `samlab_read_portal`; kunnskapsgrunnlaget inneholder kun det
+  portalmedlemmer uansett ser, og grunnlaget viser til innloggede
+  sider for detaljer. Nøkkelen bor i wp-config.php og forlater
+  aldri serveren; spørsmål og svar logges aldri.
+
 ## Aksepterte restrisikoer (trusselmodell)
 
 - **Mediefiler er offentlige.** Bilder på veggen (og bedriftslogoer)

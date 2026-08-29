@@ -53,12 +53,62 @@ Arbeidslisten ligger i [BACKLOG.md](BACKLOG.md); åpne spørsmål i
    flatene i bruk:
 
    ```
-   wp samlab seed        # 4 bedrifter, 5 behov, vegg og håndbok
+   wp samlab seed        # bedrifter, behov, vegg m/avstemning, håndbok, arrangementer, koblinger
    wp samlab seed --slett  # fjerner alt demoinnhold sporløst
    ```
 
 Distribusjon skjer via egen oppdaterings-URL, ikke wordpress.org
 (ennå).
+
+### Assistenten (valgfri KI-modul)
+
+Portalen fungerer fullt ut uten assistenten - modulen er av som
+standard, og når den er av lastes ingen assistent-kode. Slik slås
+den på:
+
+1. Legg API-nøkkelen i `wp-config.php` (aldri i databasen - dette
+   er eneste sted pluginen leser den fra):
+
+   ```php
+   define( 'SAMLAB_CLAUDE_API_KEY', 'sk-ant-…' );
+   ```
+
+   Nøkkel opprettes på [console.anthropic.com](https://console.anthropic.com).
+2. Slå på modulen under Innstillinger → Samlab → «Assistenten», og
+   sett gjerne navn, velkomstmelding, tone og eksterne kilder.
+   Statusraden viser om nøkkelen er funnet - aldri selve verdien.
+3. Bygg kunnskapsgrunnlaget med «Bygg nå»-knappen (eller
+   `wp samlab kunnskap`). Det bygges deretter automatisk hver dag,
+   fra portalinnholdet og kildene - aldri passord eller innhold
+   utenfor portalen.
+4. Chat-knappen dukker opp nede til høyre i portalen for innloggede
+   medlemmer.
+
+**Kostnad:** hvert spørsmål går mot Claude API og betales per bruk
+hos Anthropic (modell velges i innstillingene, standard
+`claude-opus-5`). Pluginen begrenser kostnadene med prompt-caching
+av kunnskapsgrunnlaget og en rate-grense per medlem (15 spørsmål
+per 5 minutter). Å slå av modulen stopper all bruk umiddelbart.
+
+**Verifisering uten nøkkel og nett** (f.eks. i testriggen): legg en
+mu-plugin som mocker API-et, så svarer assistenten uten at noe
+forlater maskinen:
+
+```php
+<?php // wp-content/mu-plugins/mock-claude.php
+add_filter( 'pre_http_request', function ( $ignorert, $args, $url ) {
+    if ( false === strpos( $url, 'api.anthropic.com' ) ) {
+        return $ignorert;
+    }
+    return array(
+        'response' => array( 'code' => 200 ),
+        'body'     => wp_json_encode( array( 'content' => array( array( 'type' => 'text', 'text' => 'Mock-svar.' ) ) ) ),
+    );
+}, 10, 3 );
+```
+
+Med mocken på plass holder en hvilken som helst verdi i konstanten
+(f.eks. `define( 'SAMLAB_CLAUDE_API_KEY', 'mock' );`).
 
 ## Fra klone til kjørende portal (utviklere)
 
@@ -100,10 +150,19 @@ composer lint      # WPCS over samlab/
 composer lint:fix  # autoretting
 ```
 
-Røyk-testene i `tests/rigg/` kjøres mot riggen med
-`$WP eval-file tests/rigg/test-b3.php` (osv. for b4, b5, b6). CI
-(GitHub Actions) kjører `php -l` og `composer lint` på hver push og
-PR.
+Røyk-testene i `tests/rigg/` kjøres samlet mot riggen med
+
+```
+tests/rigg/kjor-alle.sh [riggmappe]   # standard /tmp/samlab-testrigg
+```
+
+Scriptet orkestrerer modul-tilstanden selv (assistent-testene
+trenger modulen henholdsvis av og på) og avslutter med samlet
+exit-kode. Enkelttester kjøres med `$WP eval-file
+tests/rigg/test-e4.php` (osv.); `tests/rigg/test-f4-flyt.js` er en
+valgfri nettlesertest av chat-widgeten (Playwright - se
+kommentaren i filen). CI (GitHub Actions) kjører `php -l` og
+`composer lint` på hver push og PR.
 
 ## Dokumentasjon
 

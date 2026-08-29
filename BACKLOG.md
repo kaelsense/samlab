@@ -723,7 +723,7 @@ trengs i test.*
   overstyrte hidden-attributtet - rettet med [hidden]-regel.
   Widget fraværende over HTTP med modul av. Tom debug.log, WPCS
   grønn, sikkerhetstabellen oppdatert.
-- [ ] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
+- [x] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
   (tests/rigg/) som dekker F1-F4 med mock; docs/sikkerhet.md
   utvides med assistentflatene (inkl. trusselnotat om
   prompt-injeksjon fra portalinnhold i kunnskapsgrunnlaget og at
@@ -731,6 +731,22 @@ trengs i test.*
   installasjonsavsnitt for modulen (konstanten, kostnad, av/på).
   *Ferdig når:* fersk rigg demonstrerer assistenten mot mock kun
   via README-stegene, og sikkerhetstabellen dekker alle nye flater.
+  *Notat (2026-08-29):* Nytt tests/rigg/kjor-alle.sh kjører alle
+  17 riggtestene samlet og orkestrerer modultilstanden selv (f1
+  krever av, f2-f4 på) - 271 sjekker grønne i helt fersk rigg.
+  README fikk assistent-avsnitt (konstanten i wp-config, av/på,
+  kunnskapsbygging, kostnad med prompt-caching og rate-grense, og
+  mock-mu-plugin-oppskrift for verifisering uten nøkkel/nett) og
+  oppdatert verifiseringsseksjon. Sikkerhetsdocs fikk trusselnotat:
+  prompt-injeksjon fra portalinnhold kan ikke filtreres bort, så
+  vernet er konsekvensbegrensning - assistenten har aldri
+  skrivetilgang (ingen verktøy/API-er, kun tekst), svar escapes i
+  widgeten, verste utfall er et synlig, rettbart villedende svar.
+  Hovedverifisering i helt fersk rigg KUN via README-stegene:
+  mock-mu-pluginen trukket ordrett ut av README (syntaks-sjekket),
+  konstant med mock-verdi, modul på, wp samlab kunnskap, chat-knapp
+  til stede i portalen og spørsmål besvart med mock-svar over REST.
+  Tom debug.log, WPCS grønn. Fase F - og hele backloggen - komplett.
 
 **Milepæl: Full pakke.** Når F5 er krysset av er hele planens fase
 0-4 levert. Neste beslutningspunkt (interaktivt): LLM-assistert
