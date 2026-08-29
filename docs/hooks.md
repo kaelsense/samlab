@@ -102,6 +102,24 @@ do_action( 'samlab_innlegg_opprettet', $innlegg_id, $user_id );
 
 Siden: 0.1.0.
 
+### `samlab_kobling_status_endret`
+
+Kjøres når en kobling/introduksjon endrer status i statuskjeden
+(foreslått → godkjent → introdusert → fulgt opp, eller avvist).
+
+```php
+do_action( 'samlab_kobling_status_endret', $kobling_id, $status, $gammel, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$kobling_id` | int | Koblingens post-ID |
+| `$status` | string | Ny status-slug |
+| `$gammel` | string | Forrige status (tom streng ved opprettelse) |
+| `$user_id` | int | Hvem som endret (0 = system/cron) |
+
+Siden: 0.2.0.
+
 ## Filters
 
 *(ingen ennå)*

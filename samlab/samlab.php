@@ -42,6 +42,7 @@ add_action( 'init', 'samlab_load_textdomain' );
  */
 require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/post-types.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/koblinger.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rewrites.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/access.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/forms.php';

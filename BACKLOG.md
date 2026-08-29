@@ -382,7 +382,7 @@ koblinger og varsler først (kontrollpanelet og matchingen bygger på
 dem). Verifisering skjer i testriggen som før; cron-jobber testes
 med `wp cron event run`.*
 
-- [ ] **E1. CPT: kobling/introduksjon.** `samlab_kobling` (ikke
+- [x] **E1. CPT: kobling/introduksjon.** `samlab_kobling` (ikke
   offentlig, ingen egen portalflate): to parter (bedrift og/eller
   bruker), begrunnelse, kilde (manuell/matching) og statuskjeden som
   meta (foreslått → godkjent → introdusert → fulgt opp). Synlig kun
@@ -390,6 +390,16 @@ med `wp cron event run`.*
   *Ferdig når:* koblinger kan opprettes og flyttes gjennom
   statuskjeden via wp-admin/wp-cli, og en part kan lese men ikke
   endre andres koblinger - verifisert med røyk-test i riggen.
+  *Notat (2026-08-29):* includes/koblinger.php: CPT med egne
+  capability-primitiver (edit_samlab_koblinger m.fl. til
+  moderator+/admin via roles.php - aldri vanlige post-caps),
+  statuskjede med avvist-terminal, statuslogg og
+  samlab_kobling_status_endret-action (dokumentert), part-helpere
+  med validering, metaboks med status/kilde/parter, og
+  map_meta_cap-lesetilgang for parter (bruker direkte eller
+  kontaktperson for part-bedrift). 27 røyk-tester grønne i riggen
+  (tests/rigg/test-e1.php) etter reaktivering, tom debug.log,
+  sikkerhetstabellen oppdatert. WPCS grønn.
 - [ ] **E2. In-app-varsler.** Egen tabell (hybridmodellen) med
   modellklasse, varsler ved mention, kommentar/reaksjon på eget
   innlegg, svar på eget behov og kobling der en er part.
