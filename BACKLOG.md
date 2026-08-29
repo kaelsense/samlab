@@ -316,11 +316,19 @@ oppgave innfri sin «Ferdig når».*
 
 ## Fase D: Kvalitet og MVP-lukking
 
-- [ ] **D1. Temakompatibilitet.** Full gjennomgang mot to temaer
+- [x] **D1. Temakompatibilitet.** Full gjennomgang mot to temaer
   (Twenty Twenty-Four + ett klassisk tema uten theme.json) med
   skjermbilder i `docs/tema-test.md`.
   *Ferdig når:* ingen uleselige kontraster eller ødelagt layout i
   noen av temaene; avvik er rettet.
+  *Notat (2026-08-29):* Testet TT24, Twenty Twenty (klassisk) og
+  TT25 med Chromium-skjermbilder (15 stk i docs/tema-test/) og
+  målte kontraster via getComputedStyle. Tre avvik funnet og
+  rettet: luminansbasert aksent-kontrast (samlab_portal_accent),
+  nytt --samlab-aksent-tekst-token for aksent som ren tekst, og
+  stilrekkefølgen i skallet (portal.css lenkes før
+  overstyringene). Alle kontraster nå over WCAG AA; rapport i
+  docs/tema-test.md. WPCS grønn.
 - [ ] **D2. i18n-gjennomgang.** Alle brukertekster gjennom
   `__()`/`_e()`, POT-fil generert.
   *Ferdig når:* `wp i18n make-pot` kjører rent og stikkprøver i koden

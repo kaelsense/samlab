@@ -331,7 +331,7 @@
 .samlab-kort-kategori {
 	margin: 0 0 0.375rem;
 	font-size: 0.8125rem;
-	color: var(--samlab-aksent);
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
 	font-weight: 600;
 }
 
@@ -526,7 +526,7 @@
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
-	color: var(--samlab-aksent);
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
 }
 
 .samlab-innlegg-hode {
@@ -731,7 +731,7 @@
 }
 
 .samlab-mention {
-	color: var(--samlab-aksent);
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
 	font-weight: 600;
 	text-decoration: none;
 }

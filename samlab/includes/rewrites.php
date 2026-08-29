@@ -96,6 +96,57 @@ function samlab_portal_url( $view = 'hjem', $item = '' ) {
 }
 
 /**
+ * Portalens aksentfarge med lesbar kontrastfarge.
+ *
+ * Prioritet: innstillingen, deretter temaets accent-1/accent-preset.
+ * Kontrastfargen (tekst på aksent) velges ut fra fargens luminans
+ * slik at lyse aksentfarger får mørk tekst.
+ *
+ * @return array{aksent: string, kontrast: string}|null Null når
+ *         temaets preset skal stå urørt (ingen kjent aksent).
+ */
+function samlab_portal_accent() {
+	$aksent = sanitize_hex_color( samlab_get_setting( 'aksentfarge' ) );
+
+	if ( ! $aksent ) {
+		$palett = wp_get_global_settings( array( 'color', 'palette' ) );
+		$farger = array();
+		foreach ( (array) $palett as $gruppe ) {
+			foreach ( (array) $gruppe as $farge ) {
+				if ( isset( $farge['slug'], $farge['color'] ) ) {
+					$farger[ $farge['slug'] ] = $farge['color'];
+				}
+			}
+		}
+		foreach ( array( 'accent-1', 'accent' ) as $slug ) {
+			if ( isset( $farger[ $slug ] ) && sanitize_hex_color( $farger[ $slug ] ) ) {
+				$aksent = sanitize_hex_color( $farger[ $slug ] );
+				break;
+			}
+		}
+	}
+
+	if ( ! $aksent ) {
+		return null;
+	}
+
+	$heks = ltrim( $aksent, '#' );
+	if ( 3 === strlen( $heks ) ) {
+		$heks = $heks[0] . $heks[0] . $heks[1] . $heks[1] . $heks[2] . $heks[2];
+	}
+	$rgb      = array( hexdec( substr( $heks, 0, 2 ) ), hexdec( substr( $heks, 2, 2 ) ), hexdec( substr( $heks, 4, 2 ) ) );
+	$luminans = ( 299 * $rgb[0] + 587 * $rgb[1] + 114 * $rgb[2] ) / 1000;
+
+	return array(
+		'aksent'   => $aksent,
+		'kontrast' => $luminans >= 140 ? '#111111' : '#ffffff',
+		// Aksent brukt som ren tekst på bakgrunnen: lyse aksenter
+		// faller tilbake til vanlig tekstfarge for lesbarhet.
+		'tekst'    => $luminans >= 140 ? 'var(--samlab-fg)' : $aksent,
+	);
+}
+
+/**
  * Registrerer rewrite-reglene for portalen. Kalles på init og ved
  * aktivering (før flush).
  *
