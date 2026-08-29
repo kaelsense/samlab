@@ -117,6 +117,22 @@ do_action( 'samlab_innlegg_opprettet', $innlegg_id, $user_id );
 
 Siden: 0.1.0.
 
+### `samlab_arrangement_opprettet`
+
+Kjøres når et arrangement er opprettet fra portalens «nytt
+arrangement»-skjema (ikke ved opprettelse i wp-admin).
+
+```php
+do_action( 'samlab_arrangement_opprettet', $arrangement_id, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$arrangement_id` | int | Arrangementets post-ID |
+| `$user_id` | int | Innsenderen |
+
+Siden: 0.2.0.
+
 ### `samlab_kobling_status_endret`
 
 Kjøres når en kobling/introduksjon endrer status i statuskjeden

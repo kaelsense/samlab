@@ -18,69 +18,77 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function samlab_settings_fields() {
 	return array(
-		'portal_navn'       => array(
+		'portal_navn'        => array(
 			'label' => __( 'Portalnavn', 'samlab' ),
 			'type'  => 'text',
 			'help'  => __( 'Vises i toppen av portalen. Standard: «Portalen».', 'samlab' ),
 		),
-		'portal_sti'        => array(
+		'portal_sti'         => array(
 			'label' => __( 'Portal-sti', 'samlab' ),
 			'type'  => 'slug',
 			'help'  => __( 'URL-stien portalen bor under. Standard: «portal».', 'samlab' ),
 		),
-		'navn_vegg'         => array(
+		'navn_vegg'          => array(
 			'label' => __( 'Navn på veggen', 'samlab' ),
 			'type'  => 'text',
 		),
-		'slug_vegg'         => array(
+		'slug_vegg'          => array(
 			'label' => __( 'Slug for veggen', 'samlab' ),
 			'type'  => 'slug',
 		),
-		'navn_behov'        => array(
+		'navn_behov'         => array(
 			'label' => __( 'Navn på behovsflaten', 'samlab' ),
 			'type'  => 'text',
 		),
-		'slug_behov'        => array(
+		'slug_behov'         => array(
 			'label' => __( 'Slug for behovsflaten', 'samlab' ),
 			'type'  => 'slug',
 		),
-		'navn_bedrifter'    => array(
+		'navn_bedrifter'     => array(
 			'label' => __( 'Navn på bedriftskatalogen', 'samlab' ),
 			'type'  => 'text',
 		),
-		'slug_bedrifter'    => array(
+		'slug_bedrifter'     => array(
 			'label' => __( 'Slug for bedriftskatalogen', 'samlab' ),
 			'type'  => 'slug',
 		),
-		'navn_handbok'      => array(
+		'navn_arrangementer' => array(
+			'label' => __( 'Navn på arrangementsflaten', 'samlab' ),
+			'type'  => 'text',
+		),
+		'slug_arrangementer' => array(
+			'label' => __( 'Slug for arrangementsflaten', 'samlab' ),
+			'type'  => 'slug',
+		),
+		'navn_handbok'       => array(
 			'label' => __( 'Navn på håndboken', 'samlab' ),
 			'type'  => 'text',
 		),
-		'slug_handbok'      => array(
+		'slug_handbok'       => array(
 			'label' => __( 'Slug for håndboken', 'samlab' ),
 			'type'  => 'slug',
 		),
-		'aksentfarge'       => array(
+		'aksentfarge'        => array(
 			'label' => __( 'Aksentfarge', 'samlab' ),
 			'type'  => 'farge',
 			'help'  => __( 'Valgfri overstyring som heksverdi, f.eks. #3a5a40. Tom = temaets aksentfarge.', 'samlab' ),
 		),
-		'logo'              => array(
+		'logo'               => array(
 			'label' => __( 'Logo-URL', 'samlab' ),
 			'type'  => 'url',
 			'help'  => __( 'Valgfri. Last opp i mediebiblioteket og lim inn URL-en her.', 'samlab' ),
 		),
-		'ukesbrev_aktiv'    => array(
+		'ukesbrev_aktiv'     => array(
 			'label' => __( 'Ukesbrev', 'samlab' ),
 			'type'  => 'avkryssing',
 			'help'  => __( 'Send et ukentlig oppsummerings-brev på e-post til medlemmene. Medlemmer kan reservere seg på profilsiden sin.', 'samlab' ),
 		),
-		'ukesbrev_ukedag'   => array(
+		'ukesbrev_ukedag'    => array(
 			'label' => __( 'Ukesbrevets ukedag', 'samlab' ),
 			'type'  => 'ukedag',
 			'help'  => __( 'Dagen brevet sendes. Standard: mandag.', 'samlab' ),
 		),
-		'ukesbrev_avsender' => array(
+		'ukesbrev_avsender'  => array(
 			'label' => __( 'Ukesbrevets avsendernavn', 'samlab' ),
 			'type'  => 'text',
 			'help'  => __( 'Navnet e-posten sendes fra. Tom = portalnavnet.', 'samlab' ),
@@ -176,7 +184,7 @@ function samlab_sanitize_settings( $input ) {
  * @return void
  */
 function samlab_settings_updated( $old_value, $value ) {
-	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_handbok' );
+	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_arrangementer', 'slug_handbok' );
 	$gammel     = is_array( $old_value ) ? array_intersect_key( $old_value, array_flip( $sti_felter ) ) : array();
 	$ny         = is_array( $value ) ? array_intersect_key( $value, array_flip( $sti_felter ) ) : array();
 	if ( $gammel === $ny ) {

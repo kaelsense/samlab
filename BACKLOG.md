@@ -487,12 +487,27 @@ med `wp cron event run`.*
   funksjons-scope, så exit-koden var alltid 0 - alle riggtester
   binder nå $fail globalt (verifisert med negativ probe). Tom
   debug.log, WPCS grønn, hooks- og sikkerhetsdocs oppdatert.
-- [ ] **E6. CPT: arrangement.** `samlab_arrangement` med dato/tid,
+- [x] **E6. CPT: arrangement.** `samlab_arrangement` med dato/tid,
   sted, arrangør (bedriftskobling valgfri) og beskrivelse; egen
   portalflate (kommende først) som ny standardflate i nav og søk;
   medlemmer med egen capability kan opprette fra portalen (som C3).
   *Ferdig når:* som B5/C3: komplett arrangement fra wp-admin og
   portal, listet riktig, i globalt søk, WPCS grønn.
+  *Notat (2026-08-29):* includes/arrangementer.php: CPT med
+  metaboks (start/slutt som datetime-local mot strengt lagret
+  «Y-m-d H:i»-format, sted, arrangør-bedrift), hjelpere for
+  kommende (nærmeste først) og tidligere, tidsvisning med
+  intervall. Ny flate arrangementer i nav/hjem/søk (navn og slug
+  er innstillinger som de andre flatene), template med kommende-
+  kort, tidligere-liste og skjema bak ny cap
+  samlab_create_arrangement (alle samlab-roller). Skjema-handler i
+  forms.php med arrangør validert mot kontaktperson-eierskap;
+  action samlab_arrangement_opprettet. Kommende arrangementer inn
+  i ukesbrevet via E5-filteret. 16 tester grønne + HTTP: anonym
+  til innlogging, innlogget flate 200 med skjema, POST oppretter
+  med riktig meta/forfatter og vises på flate + i globalt søk,
+  feil nonce 403. Tom debug.log, WPCS grønn, hooks- og
+  sikkerhetsdocs oppdatert.
 - [ ] **E7. Avstemninger.** Enkel avstemning på vegginnlegg
   (spørsmål + 2-5 alternativer, egen tabell for stemmer, én stemme
   per medlem, endring tillatt), stemming via REST med

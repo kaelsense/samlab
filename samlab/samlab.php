@@ -42,6 +42,7 @@ add_action( 'init', 'samlab_load_textdomain' );
  */
 require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/post-types.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/arrangementer.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/koblinger.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rewrites.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/access.php';
@@ -79,6 +80,7 @@ function samlab_activate() {
 	// så term-seeding og flush ser dem.
 	samlab_register_bedrift();
 	samlab_register_behov();
+	samlab_register_arrangement();
 	samlab_ensure_retning_terms();
 	samlab_create_tables();
 	samlab_add_roles();

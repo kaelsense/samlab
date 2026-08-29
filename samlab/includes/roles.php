@@ -23,11 +23,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function samlab_get_roles() {
 	$member_caps = array(
-		'read'                => true,
-		'upload_files'        => true,
-		'samlab_read_portal'  => true,
-		'samlab_post_wall'    => true,
-		'samlab_create_behov' => true,
+		'read'                      => true,
+		'upload_files'              => true,
+		'samlab_read_portal'        => true,
+		'samlab_post_wall'          => true,
+		'samlab_create_behov'       => true,
+		'samlab_create_arrangement' => true,
 	);
 
 	$company_editor_caps = array_merge(
