@@ -79,6 +79,10 @@ function samlab_rest_finn_brukere( $request ) {
 			'search_columns' => array( 'user_login', 'display_name', 'user_nicename' ),
 			'number'         => 8,
 			'orderby'        => 'display_name',
+			// Kun portaldeltakere skal kunne nevnes - og kontoer utenfor
+			// portalen (f.eks. rene admin-kontoer) skal ikke kunne
+			// høstes via forslagene.
+			'capability'     => 'samlab_read_portal',
 		)
 	);
 

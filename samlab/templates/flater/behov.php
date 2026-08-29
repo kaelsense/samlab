@@ -122,7 +122,7 @@ $samlab_mine_bedrifter = is_user_logged_in() ? samlab_behov_bedrifter_for( get_c
 						<span class="samlab-chip"><?php echo esc_html( $samlab_type ); ?></span>
 					<?php endif; ?>
 				</p>
-				<h2><?php the_title(); ?></h2>
+				<h2><?php echo esc_html( get_the_title() ); ?></h2>
 				<?php if ( '' !== trim( get_the_content() ) ) : ?>
 					<p class="samlab-kort-tekst"><?php echo esc_html( wp_trim_words( get_the_content(), 30 ) ); ?></p>
 				<?php endif; ?>

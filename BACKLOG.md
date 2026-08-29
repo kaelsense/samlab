@@ -340,10 +340,19 @@ oppgave innfri sin «Ferdig når».*
   null funn; eneste rå echo-er er ren markup. Bevisst unntak:
   wp-cli-meldingene i seed-kommandoen (utviklerflate) og
   seed-demoinnholdet (data, ikke UI). WPCS grønn.
-- [ ] **D3. Sikkerhetsgjennomgang.** Systematisk sjekk av alle
+- [x] **D3. Sikkerhetsgjennomgang.** Systematisk sjekk av alle
   endepunkter og skjemaer: nonce, capabilities, escaping, prepared
   statements. Funn rettes; oppsummering i `docs/sikkerhet.md`.
   *Ferdig når:* dokumentet lister hver flate med bekreftet status.
+  *Notat (2026-08-29):* Adversariell gjennomgang av hele pluginen
+  med uavhengig verifisering per funn. Ingen høyalvorlige funn;
+  tre rettet: håndbok-sider var offentlige utenfor portalen
+  (301 til portalruten + ute av sitemap/søk/anonym REST -
+  HTTP-verifisert), brukeroppramsing i /brukere (capability-
+  avgrenset), uescaped behovstittel (esc_html). Uploads-
+  offentlighet og navn-i-meny dokumentert som akseptert restrisiko.
+  docs/sikkerhet.md lister alle 17 flater med bekreftet status.
+  WPCS grønn.
 - [ ] **D4. Driftskrav-dokumentasjon.** `README.md` med krav
   (WordPress/PHP-versjon, cron), installasjon, wp-env-oppskrift og
   lenke til hooks-dokumentasjonen (Infohub-analysens
