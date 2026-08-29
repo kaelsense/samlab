@@ -354,11 +354,18 @@ Siden: 0.2.0.
 
 Filtrerer hvor lenge kunnskapsbygget bruker på å hente eksterne
 kilder. Hentingen er seriell, og bygget kjøres av wp-cron over HTTP
-der `max_execution_time` gjelder - når budsjettet er brukt opp,
-stopper hentingen, og kildene som ikke ble forsøkt havner i
-`kilder_feilet` og prøves igjen ved neste bygg. Standard er halve
-`max_execution_time` minus timeouten for én kilde (minimum den
-timeouten), eller 45 sekunder når PHP ikke har noen kjøretidsgrense.
+der `max_execution_time` gjelder. Budsjettet måles fra bygget
+starter, og hver kilde får det minste av kildetimeouten og tiden som
+er igjen. Standard er 60 % av `max_execution_time`, eller 45 sekunder
+når PHP ikke har noen kjøretidsgrense.
+
+Når budsjettet tar slutt, starter neste bygg hentingen der dette
+stoppet, slik at et fast budsjett ikke sulter ut de samme kildene
+bygg etter bygg. Teksten fra forrige henting ligger i sin egen
+option (`samlab_kunnskap_kilder`) og brukes for kilder som ikke
+rekkes eller feiler - grunnlaget mister ikke innhold det allerede
+hadde. En kilde uten tekst i grunnlaget rapporteres i
+`kilder_feilet`.
 
 ```php
 apply_filters( 'samlab_kunnskap_tidsbudsjett', $budsjett );

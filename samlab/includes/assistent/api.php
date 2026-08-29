@@ -109,13 +109,13 @@ function samlab_assistent_rate_ok( $user_id ) {
 	if ( wp_using_ext_object_cache() ) {
 		wp_cache_add( $nokkel, 0, SAMLAB_ASSISTENT_RATE_GRUPPE, SAMLAB_ASSISTENT_RATE_VINDU );
 		$antall = wp_cache_incr( $nokkel, 1, SAMLAB_ASSISTENT_RATE_GRUPPE );
-		// Nøkkelen kan ha løpt ut mellom add og incr - da er dette
-		// kallet det første i et nytt vindu.
-		if ( false === $antall ) {
-			wp_cache_set( $nokkel, 1, SAMLAB_ASSISTENT_RATE_GRUPPE, SAMLAB_ASSISTENT_RATE_VINDU );
-			return true;
+		if ( false !== $antall ) {
+			return $antall <= SAMLAB_ASSISTENT_RATE_ANTALL;
 		}
-		return $antall <= SAMLAB_ASSISTENT_RATE_ANTALL;
+		// Incr feilet - nøkkelen er kastet ut, eller cachen svarer
+		// ikke. Da faller vi ned på transient-veien under i stedet
+		// for å slippe kallet gjennom: en teller som feiler skal
+		// ikke slå av grensen.
 	}
 
 	$antall = (int) get_transient( $nokkel );
