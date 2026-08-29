@@ -187,11 +187,17 @@ oppgave innfri sin «Ferdig når».*
   innstilling (sanitize_hex_color). Verifisert i riggen: TT24 vs
   TT25 gir ulike fonter (body/heading vs manrope) og farger
   (#cfcabe vs #FFEE58). WPCS grønn.
-- [ ] **B10. Innstillingsside.** wp-admin-side for portalnavn,
+- [x] **B10. Innstillingsside.** wp-admin-side for portalnavn,
   portal-sti, flatenavn (vegg/behov/håndbok), valgfri
   aksentfarge-overstyring og logo.
   *Ferdig når:* endring av portal-sti og flatenavn slår gjennom på
   frontend uten manuell flush.
+  *Notat (2026-08-29):* admin/settings.php med Settings API
+  (manage_options), feltvis sanitering (sanitize_title/hex_color/
+  esc_url_raw) og auto-flush på update_option når sti/slugs endres.
+  Logo vises i skallet. HTTP-verifisert i riggen: siden 200 i
+  wp-admin, XSS/ugyldig farge/js-URL forkastes, ny sti+slug svarer
+  200 uten manuell flush og gammel gir 404. WPCS grønn.
 - [ ] **B11. REST-navnerom.** `samlab/v1` registrert med første
   endepunkt (`/reaksjoner`, POST med cookie+nonce og
   capability-sjekk), og en `docs/hooks.md` som starter

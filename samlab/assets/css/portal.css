@@ -262,3 +262,9 @@
 .samlab-kort.er-festet {
 	border: 2px solid var(--samlab-aksent);
 }
+
+.samlab-logo {
+	max-height: 2.25rem;
+	width: auto;
+	display: block;
+}

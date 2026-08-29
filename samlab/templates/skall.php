@@ -63,7 +63,14 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 
 	<header class="samlab-topp">
 		<div class="samlab-topp-indre">
-			<a href="<?php echo esc_url( samlab_portal_url() ); ?>" class="samlab-merke"><?php echo esc_html( $samlab_navn ); ?></a>
+			<a href="<?php echo esc_url( samlab_portal_url() ); ?>" class="samlab-merke">
+				<?php $samlab_logo = samlab_get_setting( 'logo' ); ?>
+				<?php if ( '' !== $samlab_logo ) : ?>
+					<img src="<?php echo esc_url( $samlab_logo ); ?>" alt="<?php echo esc_attr( $samlab_navn ); ?>" class="samlab-logo" />
+				<?php else : ?>
+					<?php echo esc_html( $samlab_navn ); ?>
+				<?php endif; ?>
+			</a>
 			<nav class="samlab-nav" aria-label="<?php esc_attr_e( 'Portalmeny', 'samlab' ); ?>">
 				<ul>
 					<?php foreach ( $samlab_views as $samlab_key => $samlab_flate ) : ?>
