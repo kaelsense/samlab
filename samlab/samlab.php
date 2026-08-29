@@ -51,6 +51,10 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/database.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-innlegg.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
 
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-cli-command.php';
+}
+
 /**
  * Aktivering: registrer pluginens rewrite-regler og flush dem én gang.
  *

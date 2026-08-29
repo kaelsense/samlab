@@ -286,11 +286,19 @@ oppgave innfri sin «Ferdig når».*
   details-blokk som FAQ. Kun merkede sider nås via håndboken;
   umerkede og ukjente slugs gir 404 fra rutingen. HTTP-verifisert
   i riggen med to Gutenberg-sider inkl. details-blokk. WPCS grønn.
-- [ ] **C6. Seed-kommando.** `wp samlab seed` med nøytrale
+- [x] **C6. Seed-kommando.** `wp samlab seed` med nøytrale
   demobedrifter, behov, vegginnlegg og en håndbok-side (mal:
   `prototype-kilde/data/intern.ts`, men uten Lius-navn).
   *Ferdig når:* kommandoen fyller en tom installasjon slik at C1-C5
   kan demonstreres umiddelbart; `wp samlab seed --slett` rydder.
+  *Notat (2026-08-29):* includes/class-samlab-cli-command.php:
+  4 fiktive bedrifter med GD-genererte logoer og galleri, 4
+  demo-brukere, 3+3 termer, 5 behov, 4 vegginnlegg (ett festet,
+  reaksjoner + kommentar) og 2 håndbok-sider med FAQ. Alt merket
+  _samlab_seed; --slett fjerner alt sporløst, dobbel seed avvises.
+  Verifisert i riggen: C1 (katalog med logoer), C2 (profil med
+  galleri), C3, C4 (festet + kommentar), C5 vises korrekt fra
+  seed-data; slett ga 0 rester. WPCS grønn.
 - [ ] **C7. Mentions og globalt søk.** @navn-forslag i vegg-innlegg og
   et søk som dekker bedrifter, behov og håndbok (fra
   FluentCommunity-analysens MVP-liste).
