@@ -101,6 +101,20 @@ rate-grensen (15 kall per 5 minutter per bruker), 502 ved API-feil -
 alle med generiske meldinger uten konfigurasjonsdetaljer. Spørsmål
 og svar logges aldri.
 
+**Mulig oppgradering: SSE-streaming.** Widgeten leverer i dag hele
+svaret i ett (planens plan B). Streaming ville gitt ord-for-ord-
+visning: sett `"stream": true` i Messages API-kallet, les
+`text/event-stream`-svaret server-side og videresend deltaene til
+klienten som Server-Sent Events (`Content-Type: text/event-stream`,
+`X-Accel-Buffering: no`, flush per delta; klienten bytter fetch mot
+`EventSource`/`ReadableStream`). Krever at webhotellet ikke bufrer:
+**testoppskrift** - legg en midlertidig PHP-fil på serveren som
+sender `echo "data: $i\n\n"; flush();` ti ganger med ett sekunds
+mellomrom; kommer tallene enkeltvis i nettleseren støtter oppsettet
+SSE, kommer alle på én gang bufrer proxy/FastCGI (typisk fiks:
+`fastcgi_buffering off`/`X-Accel-Buffering: no` i nginx, eller
+`output_buffering = Off` i PHP-FPM). Bygges ikke nå.
+
 ### `GET /wp-json/samlab/v1/varsler`
 
 Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller.
@@ -229,6 +243,18 @@ do_action( 'samlab_assistent_svarte', $user_id );
 | `$user_id` | int | Brukeren som spurte |
 
 Siden: 0.2.0.
+
+### `samlab_portal_bunn`
+
+Kjøres nederst i portalskallet, før footeren - for innhold som skal
+ligge på alle portalflater. Assistentens chat-widget hekter seg på
+her når modulen er på.
+
+```php
+do_action( 'samlab_portal_bunn' );
+```
+
+Ingen parametre. Siden: 0.2.0.
 
 ### `samlab_kunnskap_bygget`
 

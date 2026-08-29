@@ -696,7 +696,7 @@ trengs i test.*
   grensen, 404 med modul av. Debug-loggens ene linje var den
   bevisste statuskode-loggingen under WP_DEBUG. WPCS grønn,
   hooks- og sikkerhetsdocs oppdatert.
-- [ ] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
+- [x] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
   (kun når modulen er på): panel med velkomstmelding, meldingsliste,
   «skriver …»-indikator og hel-svar-levering (planens plan B).
   SSE-streaming dokumenteres som mulig oppgradering i docs/hooks.md
@@ -704,6 +704,25 @@ trengs i test.*
   *Ferdig når:* hele samtaleflyten virker i riggen mot mocket API,
   widgeten er fraværende for utloggede og når modulen er av,
   og all output escapes.
+  *Notat (2026-08-29):* includes/assistent/widget.php hektet på ny
+  action samlab_portal_bunn i skallet (dokumentert); rendres kun
+  for innloggede med modulen på. Panel med velkomst fra
+  innstillingen, bobler, skriver-indikator og skjema; JS holder
+  historikk (siste 10) og poster mot F3-endepunktet; all
+  DOM-skriving via textContent, PHP-output escaped. Widget-CSS på
+  portal-tokens. SSE dokumentert i docs/hooks.md med
+  bufring-testoppskrift for webhotellet. 9 eval-tester grønne
+  (hekting, fravær utlogget, escaped navn/velkomst, ingen
+  innerHTML) + HELE samtaleflyten verifisert i ekte nettleser
+  (Playwright/Chromium mot riggen med mu-plugin-mock,
+  tests/rigg/test-f4-flyt.js): åpne/lukke, velkomst, melding →
+  skriver-indikator → mock-svar i boble, HTML i svar og
+  XSS-forsøk i melding vises som ren tekst og tolkes aldri, andre
+  melding bærer historikken (API-et mottok 3 meldinger).
+  Nettlesertesten fanget en ekte feil: panel-CSS-ens display:flex
+  overstyrte hidden-attributtet - rettet med [hidden]-regel.
+  Widget fraværende over HTTP med modul av. Tom debug.log, WPCS
+  grønn, sikkerhetstabellen oppdatert.
 - [ ] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
   (tests/rigg/) som dekker F1-F4 med mock; docs/sikkerhet.md
   utvides med assistentflatene (inkl. trusselnotat om
