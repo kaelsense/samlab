@@ -143,6 +143,24 @@ function samlab_ensure_retning_terms() {
 }
 
 /**
+ * Finner en publisert bedrift på slug.
+ *
+ * @param string $slug Bedriftens post_name.
+ * @return WP_Post|null
+ */
+function samlab_get_bedrift_by_slug( $slug ) {
+	$treff = get_posts(
+		array(
+			'post_type'      => 'samlab_bedrift',
+			'post_status'    => 'publish',
+			'name'           => sanitize_title( $slug ),
+			'posts_per_page' => 1,
+		)
+	);
+	return array() === $treff ? null : $treff[0];
+}
+
+/**
  * Håndhever at bedriftsredaktører kun kan redigere bedriften der de
  * er kontaktperson - som capability-sjekk, ikke skjult UI.
  *

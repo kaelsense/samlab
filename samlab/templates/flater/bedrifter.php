@@ -10,6 +10,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Med undersides-slug vises profilen i stedet for katalogen.
+if ( isset( $samlab_item ) && '' !== $samlab_item ) {
+	require __DIR__ . '/bedrift-profil.php';
+	return;
+}
+
 $samlab_flate = samlab_portal_views()['bedrifter'];
 
 // Lesefiltre fra URL-en (ingen tilstandsendring - nonce er ikke påkrevd).

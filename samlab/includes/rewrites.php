@@ -167,7 +167,7 @@ function samlab_route_portal() {
 	header( 'X-Robots-Tag: noindex, nofollow' );
 	nocache_headers();
 
-	if ( '' === $view ) {
+	if ( '' === $view || ( 'bedrifter' === $view && '' !== $item && ! samlab_get_bedrift_by_slug( $item ) ) ) {
 		status_header( 404 );
 		samlab_render_portal( '404', $item );
 		exit;

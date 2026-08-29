@@ -230,11 +230,20 @@ oppgave innfri sin «Ferdig når».*
   riggen med tre manuelle testbedrifter: visning, filter, søk,
   tom-tilstand. Kjøres på nytt mot ekte seed-data i C6-runden.
   WPCS grønn.
-- [ ] **C2. Bedriftsprofilen.** Full profilside: logo, intensjonene
+- [x] **C2. Bedriftsprofilen.** Full profilside: logo, intensjonene
   («Dette ser vi etter»), tjenester, folkene, galleri, aktive behov,
   kontaktperson.
   *Ferdig når:* profilen viser alle felter fra B3/B5-data og
   ingenting hardkodet Lius.
+  *Notat (2026-08-29):* flater/bedrift-profil.php rutes fra
+  bedrifter.php på undersides-slug; ukjent slug gir ekte 404 fra
+  rutingen. Hode med logo/avatar, om-tekst (the_content-filteret),
+  intensjons-dl med «Åpne for»-chips, tjenestekort, kontaktperson
+  under Folkene, galleri fra vedlagte bilder, aktive behov via
+  bedriftskoblingen. HTTP-verifisert i riggen med fullt utfylt
+  testbedrift: alle seksjoner, 404 for ukjent slug, null
+  Lius-forekomster. Galleri-seksjonen er betinget og verifiseres
+  med bilder i C6-runden. WPCS grønn.
 - [ ] **C3. Behov & tilbud.** Kortene med trenger/tilbyr-merker,
   filtre og «nytt behov»-skjema (frontend-innsending med nonce).
   *Ferdig når:* et medlem kan opprette et behov fra portalen, og det

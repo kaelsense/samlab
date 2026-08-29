@@ -357,3 +357,81 @@
 	overflow: hidden;
 	clip-path: inset(50%);
 }
+
+/* Bedriftsprofilen */
+.samlab-tilbake a {
+	color: var(--samlab-demp);
+	text-decoration: none;
+}
+
+.samlab-profil-hode {
+	display: flex;
+	gap: 1.25rem;
+	align-items: flex-start;
+	margin-bottom: 1.5rem;
+}
+
+.samlab-profil-hode h1 {
+	margin: 0 0 0.25rem;
+}
+
+.samlab-avatar-stor {
+	width: 4.5rem;
+	height: 4.5rem;
+	font-size: 1.5rem;
+}
+
+.samlab-profil-del {
+	margin-bottom: 2rem;
+}
+
+.samlab-profil-del h2 {
+	font-family: var(--samlab-font-heading);
+	font-size: 1.25rem;
+	margin: 0 0 0.75rem;
+}
+
+.samlab-intensjoner {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: 1rem;
+	margin: 0 0 1rem;
+}
+
+.samlab-intensjoner dt {
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.samlab-intensjoner dd {
+	margin: 0.125rem 0 0;
+	color: var(--samlab-demp);
+}
+
+.samlab-person {
+	display: flex;
+	gap: 0.875rem;
+	align-items: center;
+	max-width: 24rem;
+}
+
+.samlab-person-navn {
+	margin: 0;
+	font-weight: 600;
+}
+
+.samlab-galleri {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.samlab-galleri img {
+	width: 100%;
+	height: 9rem;
+	object-fit: cover;
+	border-radius: var(--samlab-radius-sm);
+}
