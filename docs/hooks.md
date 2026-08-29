@@ -77,6 +77,21 @@ do_action( 'samlab_behov_opprettet', $behov_id, $user_id );
 
 Siden: 0.1.0.
 
+### `samlab_innlegg_opprettet`
+
+Kjøres når et vegginnlegg er opprettet fra portalen.
+
+```php
+do_action( 'samlab_innlegg_opprettet', $innlegg_id, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$innlegg_id` | int | Innleggets ID i samlab_innlegg-tabellen |
+| `$user_id` | int | Forfatteren |
+
+Siden: 0.1.0.
+
 ## Filters
 
 *(ingen ennå)*

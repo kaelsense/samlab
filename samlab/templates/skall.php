@@ -96,6 +96,15 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 		?>
 	</main>
 
+	<?php if ( is_user_logged_in() ) : ?>
+		<script>
+			window.samlabRest = {
+				url: <?php echo wp_json_encode( esc_url_raw( rest_url() ) ); ?>,
+				nonce: <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>
+			};
+		</script>
+	<?php endif; ?>
+
 	<footer class="samlab-bunn">
 		<p><?php echo esc_html( $samlab_navn ); ?> - <?php esc_html_e( 'internt innhold, ikke offentlig', 'samlab' ); ?></p>
 	</footer>

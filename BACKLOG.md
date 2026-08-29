@@ -258,11 +258,22 @@ oppgave innfri sin «Ferdig når».*
   HTTP-verifisert som medlem i riggen: opprettelse ende til ende
   med alle felter, XSS strippet, filtre riktige, 403 ved ugyldig
   nonce og for abonnent, feilmelding uten tittel. WPCS grønn.
-- [ ] **C4. Veggen.** Feed fra B6-tabellene: innlegg med tekst/bilde,
+- [x] **C4. Veggen.** Feed fra B6-tabellene: innlegg med tekst/bilde,
   reaksjoner via REST, WordPress-kommentarer, festede oppslag med
   hel ramme (kun moderator+ kan feste).
   *Ferdig når:* innlegg, reaksjon og kommentar fungerer ende til ende
   i wp-env for en medlem-bruker.
+  *Notat (2026-08-29):* flater/vegg.php (feed fra Samlab_Innlegg,
+  like-knapp mot samlab/v1/reaksjoner med vanilla JS og
+  X-WP-Nonce fra skallet, kommentarer som WP-kommentarer av type
+  samlab_innlegg via comment-meta, festet-ramme og -merke) +
+  handlere i forms.php for innlegg (tekst + bildeopplasting),
+  kommentar og moderering (fest/løsne/skjul med
+  samlab_pin_posts/samlab_hide_content). Ny action
+  samlab_innlegg_opprettet dokumentert. HTTP-verifisert som medlem:
+  innlegg med og uten bilde, XSS strippet, reaksjon telte og vistes,
+  kommentar synlig, 403 for medlems festeforsøk, moderator festet
+  med hel ramme. WPCS grønn.
 - [ ] **C5. Håndboken.** Sidegruppe under portalen (vanlige
   WordPress-sider merket som portal-innhold) med ankernavigasjon og
   FAQ-blokk (details/summary-mønsteret fra prototypen).

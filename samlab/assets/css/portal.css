@@ -493,3 +493,114 @@
 	font-weight: 400;
 	margin-right: 1rem;
 }
+
+/* Veggen */
+.samlab-vegg {
+	list-style: none;
+	margin: 1.5rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	max-width: 42rem;
+}
+
+.samlab-vegg-skjema {
+	max-width: 42rem;
+}
+
+.samlab-vegg-skjema textarea {
+	max-width: none;
+}
+
+.samlab-vegg-verktoy {
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.samlab-festet-merke {
+	margin: 0 0 0.5rem;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--samlab-aksent);
+}
+
+.samlab-innlegg-hode {
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+	margin-bottom: 0.5rem;
+}
+
+.samlab-innlegg-hode .samlab-kort-meta {
+	margin: 0;
+}
+
+.samlab-innlegg-tekst p {
+	margin: 0 0 0.5rem;
+}
+
+.samlab-innlegg-bilde {
+	margin: 0.5rem 0;
+}
+
+.samlab-innlegg-bilde img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--samlab-radius-sm);
+}
+
+.samlab-innlegg-handlinger {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	margin: 0.75rem 0 0;
+	flex-wrap: wrap;
+}
+
+.samlab-liker[aria-pressed="true"] {
+	background: var(--samlab-aksent);
+	border-color: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+.samlab-moderer {
+	display: inline-flex;
+	gap: 0.5rem;
+}
+
+.samlab-kommentarer {
+	list-style: none;
+	margin: 0.75rem 0 0;
+	padding: 0.75rem 0 0;
+	border-top: 1px solid var(--samlab-linje);
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	font-size: 0.9375rem;
+}
+
+.samlab-kommentarer .samlab-person-navn {
+	display: inline;
+	margin-right: 0.375rem;
+}
+
+.samlab-kommentar-skjema {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+
+.samlab-kommentar-skjema input[type="text"] {
+	flex: 1;
+	padding: 0.4rem 0.75rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+}
