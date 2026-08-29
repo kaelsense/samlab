@@ -31,8 +31,12 @@ $post_id = wp_insert_post(
 );
 sjekk( 'Bedrift opprettet', $post_id > 0 );
 
-$term = wp_insert_term( 'Rådgivning', 'samlab_kategori' );
-wp_set_object_terms( $post_id, array( $term['term_id'] ), 'samlab_kategori' );
+// Termen kan finnes fra før (gjentatt kjøring) - gjenbruk i så fall.
+$term = term_exists( 'Rådgivning', 'samlab_kategori' );
+if ( ! $term ) {
+	$term = wp_insert_term( 'Rådgivning', 'samlab_kategori' );
+}
+wp_set_object_terms( $post_id, array( (int) $term['term_id'] ), 'samlab_kategori' );
 $terms = wp_get_object_terms( $post_id, 'samlab_kategori', array( 'fields' => 'names' ) );
 sjekk( 'Kategori tilordnet', array( 'Rådgivning' ) === $terms );
 

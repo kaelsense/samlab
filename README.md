@@ -2,11 +2,14 @@
 
 WordPress-plugin: en intern community-portal for coworking-hus og
 kontorfellesskap - bedriftskatalog med profiler, behov og tilbud,
-vegg med reaksjoner og kommentarer, håndbok og globalt søk. Portalen
-bor bak innlogging på en egen sti (standard `/portal/`), kler seg i
-temaets designtokens, og alt av navn, stier og farger er
-innstillinger - ingen kundeverdier i kode. Digitelle AS eier
-produktet.
+vegg med reaksjoner, kommentarer, avstemninger og lesebekreftelser,
+arrangementer, håndbok og globalt søk. Fasiliteringslaget gir
+koblinger/introduksjoner med kontrollpanel for verten, in-app-
+varsler, regelbasert matching, ukesbrev på e-post og en infoskjerm
+med nøkkel-URL. Portalen bor bak innlogging på en egen sti
+(standard `/portal/`), kler seg i temaets designtokens, og alt av
+navn, stier og farger er innstillinger - ingen kundeverdier i kode.
+Digitelle AS eier produktet.
 
 Se `handover/HANDOVER.md` og
 `handover/docs/forslag-wordpress-utvidelse.md` for plan og konsept.
@@ -18,9 +21,17 @@ Arbeidslisten ligger i [BACKLOG.md](BACKLOG.md); åpne spørsmål i
 - WordPress 6.4 eller nyere (testet mot nyeste stabile, WordPress 7.1)
 - PHP 8.2 eller nyere (utvidelsene som følger standard WP-drift;
   GD anbefales for seed-kommandoens demobilder)
-- WP-Cron i normal drift (standardoppsettet holder; planlagte
-  funksjoner som matching og ukesbrev kommer i senere faser og vil
-  bruke `wp_schedule_event`)
+- WP-Cron i normal drift. Pluginen planlegger to daglige jobber ved
+  aktivering (og rydder dem ved deaktivering): `samlab_matching`
+  (regelbasert matching av behov mot bedrifter) og
+  `samlab_ukesbrev` (som selv sjekker innstilt ukedag før
+  utsending). Standardoppsettet med WP-Cron holder så lenge
+  nettstedet har jevnlig trafikk; på stille nettsteder anbefales
+  ekte cron mot `wp-cron.php` (f.eks. hvert 15. minutt) med
+  `DISABLE_WP_CRON` satt. Jobbene kan også kjøres manuelt med
+  `wp samlab match` og `wp samlab ukesbrev [--vis]`.
+- Utgående e-post (`wp_mail`) for ukesbrevet og eventuelle
+  varslings-e-poster - sett opp SMTP der serveren ikke har sendmail
 - Ingen betal-avhengigheter og ingen runtime-avhengigheter utover
   WordPress selv
 

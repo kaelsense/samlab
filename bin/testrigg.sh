@@ -58,6 +58,14 @@ ln -sfn "$REPO/samlab" "$WPDIR/wp-content/plugins/samlab"
 WP plugin activate samlab
 WP plugin list --fields=name,status,version
 
+# Testbrukere som røyk-testene i tests/rigg/ forventer.
+WP user get testmod > /dev/null 2>&1 || \
+	WP user create testmod testmod@example.com \
+		--role=samlab_moderator --user_pass="$(head -c 24 /dev/urandom | base64 | tr -dc a-zA-Z0-9)" > /dev/null
+WP user get testmedlem > /dev/null 2>&1 || \
+	WP user create testmedlem testmedlem@example.com \
+		--role=samlab_member --user_pass="$(head -c 24 /dev/urandom | base64 | tr -dc a-zA-Z0-9)" > /dev/null
+
 # Pene permalenker (portal-rutene forutsetter det) og router for php -S.
 WP rewrite structure '/%postname%/'
 WP rewrite flush

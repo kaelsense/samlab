@@ -17,7 +17,7 @@ function sjekk( $navn, $ok ) {
 
 global $wpdb;
 sjekk( 'varseltabellen finnes', null !== $wpdb->get_var( 'SELECT COUNT(*) FROM ' . samlab_table( 'varsler' ) ) );
-sjekk( 'db-versjon er 2', '2' === get_option( 'samlab_db_version' ) );
+sjekk( 'db-versjon matcher koden', SAMLAB_DB_VERSION === get_option( 'samlab_db_version' ) );
 
 $kari  = get_user_by( 'login', 'kari.demo' );
 $jonas = get_user_by( 'login', 'jonas.demo' );

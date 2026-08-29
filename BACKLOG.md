@@ -575,13 +575,31 @@ med `wp cron event run`.*
   skjermen av, seksjonen vises på innstillingssiden. Restrisikoen
   (nøkkel i URL) dokumentert i sikkerhetsdocs. Tom debug.log,
   WPCS grønn.
-- [ ] **E10. Seed og dokumentasjon for fase E.** Seed-kommandoen
+- [x] **E10. Seed og dokumentasjon for fase E.** Seed-kommandoen
   utvides med arrangementer, koblinger i ulike statuser, varsler og
   en avstemning; docs/hooks.md og docs/sikkerhet.md-tabellen
   oppdateres med alle nye endepunkter/flater; README nevner
   cron-kravene.
   *Ferdig når:* fersk rigg + seed demonstrerer E1-E9, og
   sikkerhetstabellen dekker alle nye flater med bekreftet status.
+  *Notat (2026-08-29):* Seed gir nå også 3 arrangementer (2
+  kommende + 1 tidligere), 4 koblinger i statusene foreslått/
+  godkjent/introdusert/avvist (statusløftene utløser E2-varsler til
+  partene) og en avstemning med stemmer fra tre medlemmer;
+  --slett rydder de nye typene (kaskadene tar varsler/stemmer).
+  Hooks- og sikkerhetsdocs var ført løpende per runde og dekker
+  E1-E9; README-kravene beskriver nå de to daglige cron-jobbene,
+  ekte cron-anbefaling for stille nettsteder, wp samlab-kommandoene
+  og utgående e-post. Verifisert i HELT fersk rigg
+  (bin/testrigg.sh, som nå også lager testbrukerne): seed + alle
+  13 riggtester grønne (225 sjekker) to ganger på rad, og
+  E-flatene demonstrert over HTTP (avstemning og festet oppslag på
+  veggen, arrangementer med tidligere-seksjon, varsler via REST,
+  koblingskø, skjerm av som standard). Fersk-rigg-kjøringen
+  avdekket og rettet tre skjøre tester: b3/b5 tålte ikke at termer
+  alt fantes (seed/gjentatt kjøring), b4 forutsatte en manuelt
+  opprettet bruker, e2 hardkodet db-versjonen. Tom debug.log,
+  WPCS grønn. Fase E komplett.
 
 ## Fase F: Assistenten (planens fase 4)
 
