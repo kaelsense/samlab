@@ -611,7 +611,7 @@ innstilling med standard `claude-opus-5`. Verifisering i riggen
 mocker API-et med `pre_http_request`-filteret, så ingen nøkkel
 trengs i test.*
 
-- [ ] **F1. Modulinnstillinger.** Egen seksjon på innstillingssiden:
+- [x] **F1. Modulinnstillinger.** Egen seksjon på innstillingssiden:
   modul av/på (standard av), assistentnavn, velkomstmelding,
   toneinstruks, modell (standard `claude-opus-5`), eksterne kilder
   (URL-liste), og statusvisning (nøkkel funnet i wp-config: ja/nei -
@@ -619,7 +619,23 @@ trengs i test.*
   av.
   *Ferdig når:* innstillingene lagres sanitert, av/på styrer
   faktisk lasting, status vises riktig med/uten konstant i riggen.
-- [ ] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
+  *Notat (2026-08-29):* includes/assistent.php (bootstrap som
+  alltid lastes: helpers med nøytrale standarder + av/på-bryteren)
+  og includes/assistent/modul.php (lastes KUN når modulen er på -
+  hjemmet for F2-F4). Innstillingssiden fikk fire nye felttyper:
+  overskrift (seksjonsrad), status (visning via callback, tar
+  aldri imot POST), tekstfelt (textarea) og urlliste (kun
+  http(s)-URL-er overlever, javascript:/ftp: forkastes); modell-ID
+  vaskes til [a-z0-9.-]. Nøkkelhelperen leser kun konstanten og
+  statusteksten røper aldri verdien. 21 tester grønne (sanitering,
+  standarder, nøkkelstatus med/uten konstant, modul ikke lastet
+  når av) + prosess-verifisering av at av/på faktisk styrer
+  lastingen (function_exists false/true/false over tre wp-kall) og
+  HTTP: seksjonen rendres, «Ikke funnet» uten konstant, «Funnet» med
+  konstant satt via wp config set - og aldri nøkkelverdien i
+  HTML-en. Tom debug.log, WPCS grønn, sikkerhetstabellen
+  oppdatert.
+- [x] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
   fra portalinnholdet (bedrifter med intensjoner, behov, håndbok,
   arrangementer) pluss de eksterne URL-ene (hentet og strippet til
   tekst). Hemmelighetsprinsippet: aldri passord/sensitive detaljer;
@@ -629,7 +645,28 @@ trengs i test.*
   *Ferdig når:* grunnlaget bygges korrekt fra seed-data i riggen,
   eksterne kilder hentes (mocket), og innhold fra ikke-portal-sider
   havner ikke i grunnlaget.
-- [ ] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
+  *Notat (2026-08-29):* includes/assistent/kunnskap.php (lastes kun
+  via modulen): seksjoner for bedrifter med intensjoner/tjenester/
+  kontaktperson, behov med retning og detaljer, kommende
+  arrangementer og håndbok-merkede sider - alle med portallenker
+  for detaljer. Hemmelighetsprinsippet håndhevet: kun
+  håndbok-MERKEDE sider, passordbeskyttet innhold hoppes alltid
+  over. Eksterne kilder via wp_remote_get, strippet (inkl.
+  script/style) med 20 000-tegns tak per kilde; feilede kilder
+  registreres og navngis i statusen. Lagres i samlab_kunnskap-
+  option (autoload av) med inkrementell versjon, tidsstempel og
+  størrelse; status på innstillingssiden (vises også når modulen
+  er av) + «Bygg nå»-knapp bak manage_options + nonce. Daglig cron
+  samlab_assistent_kunnskap planlegges når modulen er på og ryddes
+  ved av-slåing og deaktivering; `wp samlab kunnskap [--vis]` med
+  vakt når modulen er av. Action samlab_kunnskap_bygget. 17 tester
+  grønne med pre_http_request-mock (portalinnhold med, tidligere
+  arrangement/ikke-portal-side/passordside IKKE med, HTML-fritt,
+  404-kilde registrert, versjonstelling) + HTTP: status og knapp
+  rendres kun riktig, bygg via knappen 302 og versjonen teller
+  opp, 403 uten nonce. Tom debug.log, WPCS grønn, hooks- og
+  sikkerhetsdocs oppdatert.
+- [x] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
   (innlogget + portal-capability): server-side kall til Messages
   API via `wp_remote_post` med system-prompt (navn/tone +
   kunnskapsgrunnlag) markert for prompt-caching (`cache_control`
@@ -640,7 +677,26 @@ trengs i test.*
   *Ferdig når:* endepunktet svarer korrekt mot mocket API i riggen,
   avviser uinnloggede (401), håndhever rate-limit (429), og gir
   503 uten nøkkel - uten å lekke konfigurasjonsdetaljer.
-- [ ] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
+  *Notat (2026-08-29):* includes/assistent/api.php (kun lastet med
+  modulen på - av gir 404 på ruten, dokumentert valg i tråd med
+  «ingen assistent-kode når av»; 503 gjelder manglende nøkkel).
+  Systemprompt i to blokker: instruks (navn, portalnavn, bokmål,
+  «kun grunnlaget, ikke gjett», henvis til portalsidene, aldri
+  passord/persondetaljer + valgfri toneinstruks) og
+  kunnskapsgrunnlaget med cache_control ephemeral. Historikken
+  vaskes: rolle-whitelist (system-rollen avvises som
+  injeksjonsvern), sanitert og kappet tekst, maks 10 siste
+  innslag. Rate: 15 kall per 5 min per bruker via transient.
+  API-feil gir generisk 502; kun statuskoden logges, kun med
+  WP_DEBUG. Action samlab_assistent_svarte (bevisst uten innhold).
+  17 tester grønne mot pre_http_request-mock (riktig header/modell/
+  systemblokker/avgrensning, 401/503/429/502, ingen konfiglekkasje)
+  + HTTP med mu-plugin-mock og nøkkel via wp config set:
+  401 uinnlogget, 503 uten nøkkel, 200 med svar og navn, 429 over
+  grensen, 404 med modul av. Debug-loggens ene linje var den
+  bevisste statuskode-loggingen under WP_DEBUG. WPCS grønn,
+  hooks- og sikkerhetsdocs oppdatert.
+- [x] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
   (kun når modulen er på): panel med velkomstmelding, meldingsliste,
   «skriver …»-indikator og hel-svar-levering (planens plan B).
   SSE-streaming dokumenteres som mulig oppgradering i docs/hooks.md
@@ -648,7 +704,26 @@ trengs i test.*
   *Ferdig når:* hele samtaleflyten virker i riggen mot mocket API,
   widgeten er fraværende for utloggede og når modulen er av,
   og all output escapes.
-- [ ] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
+  *Notat (2026-08-29):* includes/assistent/widget.php hektet på ny
+  action samlab_portal_bunn i skallet (dokumentert); rendres kun
+  for innloggede med modulen på. Panel med velkomst fra
+  innstillingen, bobler, skriver-indikator og skjema; JS holder
+  historikk (siste 10) og poster mot F3-endepunktet; all
+  DOM-skriving via textContent, PHP-output escaped. Widget-CSS på
+  portal-tokens. SSE dokumentert i docs/hooks.md med
+  bufring-testoppskrift for webhotellet. 9 eval-tester grønne
+  (hekting, fravær utlogget, escaped navn/velkomst, ingen
+  innerHTML) + HELE samtaleflyten verifisert i ekte nettleser
+  (Playwright/Chromium mot riggen med mu-plugin-mock,
+  tests/rigg/test-f4-flyt.js): åpne/lukke, velkomst, melding →
+  skriver-indikator → mock-svar i boble, HTML i svar og
+  XSS-forsøk i melding vises som ren tekst og tolkes aldri, andre
+  melding bærer historikken (API-et mottok 3 meldinger).
+  Nettlesertesten fanget en ekte feil: panel-CSS-ens display:flex
+  overstyrte hidden-attributtet - rettet med [hidden]-regel.
+  Widget fraværende over HTTP med modul av. Tom debug.log, WPCS
+  grønn, sikkerhetstabellen oppdatert.
+- [x] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
   (tests/rigg/) som dekker F1-F4 med mock; docs/sikkerhet.md
   utvides med assistentflatene (inkl. trusselnotat om
   prompt-injeksjon fra portalinnhold i kunnskapsgrunnlaget og at
@@ -656,6 +731,22 @@ trengs i test.*
   installasjonsavsnitt for modulen (konstanten, kostnad, av/på).
   *Ferdig når:* fersk rigg demonstrerer assistenten mot mock kun
   via README-stegene, og sikkerhetstabellen dekker alle nye flater.
+  *Notat (2026-08-29):* Nytt tests/rigg/kjor-alle.sh kjører alle
+  17 riggtestene samlet og orkestrerer modultilstanden selv (f1
+  krever av, f2-f4 på) - 271 sjekker grønne i helt fersk rigg.
+  README fikk assistent-avsnitt (konstanten i wp-config, av/på,
+  kunnskapsbygging, kostnad med prompt-caching og rate-grense, og
+  mock-mu-plugin-oppskrift for verifisering uten nøkkel/nett) og
+  oppdatert verifiseringsseksjon. Sikkerhetsdocs fikk trusselnotat:
+  prompt-injeksjon fra portalinnhold kan ikke filtreres bort, så
+  vernet er konsekvensbegrensning - assistenten har aldri
+  skrivetilgang (ingen verktøy/API-er, kun tekst), svar escapes i
+  widgeten, verste utfall er et synlig, rettbart villedende svar.
+  Hovedverifisering i helt fersk rigg KUN via README-stegene:
+  mock-mu-pluginen trukket ordrett ut av README (syntaks-sjekket),
+  konstant med mock-verdi, modul på, wp samlab kunnskap, chat-knapp
+  til stede i portalen og spørsmål besvart med mock-svar over REST.
+  Tom debug.log, WPCS grønn. Fase F - og hele backloggen - komplett.
 
 **Milepæl: Full pakke.** Når F5 er krysset av er hele planens fase
 0-4 levert. Neste beslutningspunkt (interaktivt): LLM-assistert

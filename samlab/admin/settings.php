@@ -98,6 +98,51 @@ function samlab_settings_fields() {
 			'type'  => 'text',
 			'help'  => __( 'Navnet e-posten sendes fra. Tom = portalnavnet.', 'samlab' ),
 		),
+		'assistent_seksjon'  => array(
+			'label' => __( 'Assistenten', 'samlab' ),
+			'type'  => 'overskrift',
+			'help'  => __( 'Valgfri KI-modul - portalen fungerer fullt ut uten. Kall går server-side mot Claude API.', 'samlab' ),
+		),
+		'assistent_aktiv'    => array(
+			'label' => __( 'Assistent på', 'samlab' ),
+			'type'  => 'avkryssing',
+			'help'  => __( 'Standard av. Når modulen er av, lastes ingen assistent-kode.', 'samlab' ),
+		),
+		'assistent_nokkel'   => array(
+			'label'     => __( 'Claude API-nøkkel', 'samlab' ),
+			'type'      => 'status',
+			'status_cb' => 'samlab_assistent_nokkel_status',
+		),
+		'assistent_kunnskap' => array(
+			'label'     => __( 'Kunnskapsgrunnlag', 'samlab' ),
+			'type'      => 'status',
+			'status_cb' => 'samlab_assistent_kunnskap_status',
+		),
+		'assistent_navn'     => array(
+			'label' => __( 'Assistentens navn', 'samlab' ),
+			'type'  => 'text',
+			'help'  => __( 'Standard: «Assistenten».', 'samlab' ),
+		),
+		'assistent_velkomst' => array(
+			'label' => __( 'Velkomstmelding', 'samlab' ),
+			'type'  => 'tekstfelt',
+			'help'  => __( 'Meldingen som møter medlemmene i chatten.', 'samlab' ),
+		),
+		'assistent_tone'     => array(
+			'label' => __( 'Toneinstruks', 'samlab' ),
+			'type'  => 'tekstfelt',
+			'help'  => __( 'Hvordan assistenten skal svare, f.eks. «kortfattet og uformell, på bokmål».', 'samlab' ),
+		),
+		'assistent_modell'   => array(
+			'label' => __( 'Modell', 'samlab' ),
+			'type'  => 'modell',
+			'help'  => __( 'Claude-modell-ID. Standard: claude-opus-5.', 'samlab' ),
+		),
+		'assistent_kilder'   => array(
+			'label' => __( 'Eksterne kilder', 'samlab' ),
+			'type'  => 'urlliste',
+			'help'  => __( 'Én URL per linje - hentes inn i kunnskapsgrunnlaget av den daglige jobben. Aldri sider med passord eller sensitivt innhold.', 'samlab' ),
+		),
 	);
 }
 
@@ -150,6 +195,10 @@ function samlab_sanitize_settings( $input ) {
 
 	$ren = array();
 	foreach ( samlab_settings_fields() as $key => $felt ) {
+		// Rene visningsrader tar aldri imot verdier.
+		if ( in_array( $felt['type'], array( 'overskrift', 'status' ), true ) ) {
+			continue;
+		}
 		if ( ! isset( $input[ $key ] ) || ! is_string( $input[ $key ] ) ) {
 			continue;
 		}
@@ -169,6 +218,23 @@ function samlab_sanitize_settings( $input ) {
 			case 'ukedag':
 				$dag   = (int) $input[ $key ];
 				$verdi = ( $dag >= 1 && $dag <= 7 ) ? (string) $dag : '';
+				break;
+			case 'tekstfelt':
+				$verdi = sanitize_textarea_field( $input[ $key ] );
+				break;
+			case 'modell':
+				$verdi = preg_replace( '/[^a-z0-9.\-]/', '', strtolower( sanitize_text_field( $input[ $key ] ) ) );
+				break;
+			case 'urlliste':
+				$linjer = explode( "\n", sanitize_textarea_field( $input[ $key ] ) );
+				$urler  = array();
+				foreach ( $linjer as $linje ) {
+					$url = esc_url_raw( trim( $linje ), array( 'http', 'https' ) );
+					if ( '' !== $url ) {
+						$urler[] = $url;
+					}
+				}
+				$verdi = implode( "\n", $urler );
 				break;
 			default:
 				$verdi = sanitize_text_field( $input[ $key ] );
@@ -234,13 +300,35 @@ function samlab_render_settings_page() {
 			<?php settings_fields( 'samlab_settings_group' ); ?>
 			<table class="form-table" role="presentation">
 				<?php foreach ( samlab_settings_fields() as $key => $felt ) : ?>
+					<?php if ( 'overskrift' === $felt['type'] ) : ?>
+						<tr>
+							<th scope="row" colspan="2" style="padding-bottom:0;">
+								<h2 style="margin-bottom:0;"><?php echo esc_html( $felt['label'] ); ?></h2>
+								<?php if ( ! empty( $felt['help'] ) ) : ?>
+									<p class="description" style="font-weight:normal;"><?php echo esc_html( $felt['help'] ); ?></p>
+								<?php endif; ?>
+							</th>
+						</tr>
+						<?php continue; ?>
+					<?php endif; ?>
+					<?php if ( 'status' === $felt['type'] ) : ?>
+						<tr>
+							<th scope="row"><?php echo esc_html( $felt['label'] ); ?></th>
+							<td><p><?php echo esc_html( call_user_func( $felt['status_cb'] ) ); ?></p></td>
+						</tr>
+						<?php continue; ?>
+					<?php endif; ?>
 					<tr>
 						<th scope="row">
 							<label for="samlab-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $felt['label'] ); ?></label>
 						</th>
 						<td>
 							<?php $verdi = isset( $settings[ $key ] ) ? $settings[ $key ] : ''; ?>
-							<?php if ( 'avkryssing' === $felt['type'] ) : ?>
+							<?php if ( in_array( $felt['type'], array( 'tekstfelt', 'urlliste' ), true ) ) : ?>
+								<textarea class="large-text" rows="3"
+									id="samlab-<?php echo esc_attr( $key ); ?>"
+									name="samlab_settings[<?php echo esc_attr( $key ); ?>]"><?php echo esc_textarea( $verdi ); ?></textarea>
+							<?php elseif ( 'avkryssing' === $felt['type'] ) : ?>
 								<input type="checkbox" value="1"
 									id="samlab-<?php echo esc_attr( $key ); ?>"
 									name="samlab_settings[<?php echo esc_attr( $key ); ?>]"
@@ -268,6 +356,7 @@ function samlab_render_settings_page() {
 			<?php submit_button(); ?>
 		</form>
 		<?php samlab_skjerm_settings_seksjon(); ?>
+		<?php samlab_assistent_settings_seksjon(); ?>
 	</div>
 	<?php
 }

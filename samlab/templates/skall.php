@@ -179,6 +179,16 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 		</script>
 	<?php endif; ?>
 
+	<?php
+	/**
+	 * Kjøres nederst i portalskallet, før footeren - assistentens
+	 * chat-widget (F4) hekter seg på her når modulen er på.
+	 *
+	 * @since 0.2.0
+	 */
+	do_action( 'samlab_portal_bunn' );
+	?>
+
 	<footer class="samlab-bunn">
 		<p><?php echo esc_html( $samlab_navn ); ?> - <?php esc_html_e( 'internt innhold, ikke offentlig', 'samlab' ); ?></p>
 	</footer>

@@ -85,6 +85,36 @@ stemmer per alternativ (indeksert liste) og `totalt` er summen -
 resultatvisningen etter avgitt stemme. 404 uten avstemning på
 innlegget, 400 ved indeks utenfor alternativene.
 
+### `POST /wp-json/samlab/v1/assistent`
+
+Assistentens chat-endepunkt (kun når assistent-modulen er på -
+ellers finnes ikke ruten). Kaller Claude Messages API server-side;
+nøkkelen forlater aldri serveren. Krever `samlab_read_portal`.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `melding` | string | Medlemmets spørsmål, maks 4000 tegn (påkrevd) |
+| `historikk` | array | Valgfri samtalehistorikk: `[{ rolle: user\|assistant, tekst }]` - avgrenses server-side til de siste 10 |
+
+Svar: `{ svar, navn }`. Feilsvar: 503 uten API-nøkkel, 429 over
+rate-grensen (15 kall per 5 minutter per bruker), 502 ved API-feil -
+alle med generiske meldinger uten konfigurasjonsdetaljer. Spørsmål
+og svar logges aldri.
+
+**Mulig oppgradering: SSE-streaming.** Widgeten leverer i dag hele
+svaret i ett (planens plan B). Streaming ville gitt ord-for-ord-
+visning: sett `"stream": true` i Messages API-kallet, les
+`text/event-stream`-svaret server-side og videresend deltaene til
+klienten som Server-Sent Events (`Content-Type: text/event-stream`,
+`X-Accel-Buffering: no`, flush per delta; klienten bytter fetch mot
+`EventSource`/`ReadableStream`). Krever at webhotellet ikke bufrer:
+**testoppskrift** - legg en midlertidig PHP-fil på serveren som
+sender `echo "data: $i\n\n"; flush();` ti ganger med ett sekunds
+mellomrom; kommer tallene enkeltvis i nettleseren støtter oppsettet
+SSE, kommer alle på én gang bufrer proxy/FastCGI (typisk fiks:
+`fastcgi_buffering off`/`X-Accel-Buffering: no` i nginx, eller
+`output_buffering = Off` i PHP-FPM). Bygges ikke nå.
+
 ### `GET /wp-json/samlab/v1/varsler`
 
 Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller.
@@ -196,6 +226,49 @@ do_action( 'samlab_stemme_avgitt', $innlegg_id, $user_id, $valg );
 | `$innlegg_id` | int | Innlegget med avstemningen |
 | `$user_id` | int | Brukeren som stemte |
 | `$valg` | int | Alternativindeksen (0-basert) |
+
+Siden: 0.2.0.
+
+### `samlab_assistent_svarte`
+
+Kjøres etter et vellykket assistent-svar. Sender bevisst ALDRI med
+spørsmålet eller svaret - kun brukeren, til statistikkformål.
+
+```php
+do_action( 'samlab_assistent_svarte', $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$user_id` | int | Brukeren som spurte |
+
+Siden: 0.2.0.
+
+### `samlab_portal_bunn`
+
+Kjøres nederst i portalskallet, før footeren - for innhold som skal
+ligge på alle portalflater. Assistentens chat-widget hekter seg på
+her når modulen er på.
+
+```php
+do_action( 'samlab_portal_bunn' );
+```
+
+Ingen parametre. Siden: 0.2.0.
+
+### `samlab_kunnskap_bygget`
+
+Kjøres etter at assistentens kunnskapsgrunnlag er bygget (daglig
+cron `samlab_assistent_kunnskap`, «Bygg nå»-knappen eller `wp
+samlab kunnskap`). Kun tilgjengelig når assistent-modulen er på.
+
+```php
+do_action( 'samlab_kunnskap_bygget', $grunnlag );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$grunnlag` | array | `versjon`, `bygget` (timestamp), `storrelse`, `tekst`, `kilder_ok`, `kilder_feilet` |
 
 Siden: 0.2.0.
 

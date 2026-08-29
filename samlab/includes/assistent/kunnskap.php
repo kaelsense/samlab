@@ -1,0 +1,330 @@
+<?php
+/**
+ * Kunnskapsgrunnlaget (F2): daglig cron (og «bygg nå»-knapp) som
+ * bygger assistentens grunnlag fra portalinnholdet - bedrifter med
+ * intensjoner, åpne behov, kommende arrangementer og håndboken -
+ * pluss eksterne URL-er fra innstillingene, hentet server-side og
+ * strippet til ren tekst.
+ *
+ * Hemmelighetsprinsippet: grunnlaget skal aldri inneholde passord
+ * eller sensitive detaljer. Kun håndbok-MERKEDE sider tas med
+ * (aldri andre sider/innlegg), passordbeskyttet innhold hoppes
+ * alltid over, og persondata begrenses til det portalmedlemmene
+ * uansett ser (visningsnavn på kontaktpersoner). Grunnlaget viser
+ * til de innloggede portalsidene for detaljer.
+ *
+ * Lastes kun via modul.php (modulen på).
+ *
+ * @package Samlab
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Maks antall tegn som hentes fra én ekstern kilde.
+ */
+const SAMLAB_KUNNSKAP_KILDEGRENSE = 20000;
+
+/**
+ * Det lagrede kunnskapsgrunnlaget.
+ *
+ * @return array{versjon: int, bygget: int, storrelse: int, tekst: string, kilder_ok: int, kilder_feilet: string[]}|null
+ */
+function samlab_assistent_kunnskap() {
+	$grunnlag = get_option( 'samlab_kunnskap', null );
+	return is_array( $grunnlag ) && isset( $grunnlag['tekst'] ) ? $grunnlag : null;
+}
+
+/**
+ * Strippet ren tekst fra post-innhold (blokker rendres først).
+ *
+ * @param string $innhold Rått post_content.
+ * @return string
+ */
+function samlab_kunnskap_tekst( $innhold ) {
+	$tekst = wp_strip_all_tags( do_blocks( (string) $innhold ) );
+	return trim( preg_replace( '/\n{3,}/', "\n\n", $tekst ) );
+}
+
+/**
+ * Bedriftsseksjonen: katalogen med intensjoner og tjenester.
+ *
+ * @return string
+ */
+function samlab_kunnskap_bedrifter() {
+	$bedrifter = get_posts(
+		array(
+			'post_type'      => 'samlab_bedrift',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		)
+	);
+	if ( array() === $bedrifter ) {
+		return '';
+	}
+
+	$ut = '## ' . __( 'Bedriftene i huset', 'samlab' ) . "\n\n";
+	foreach ( $bedrifter as $bedrift ) {
+		if ( '' !== $bedrift->post_password ) {
+			continue;
+		}
+		$ut     .= '### ' . $bedrift->post_title . "\n";
+		$felt    = array(
+			__( 'Kort', 'samlab' )           => get_post_meta( $bedrift->ID, '_samlab_kort', true ),
+			__( 'Plass', 'samlab' )          => get_post_meta( $bedrift->ID, '_samlab_plass', true ),
+			__( 'Leverer', 'samlab' )        => get_post_meta( $bedrift->ID, '_samlab_leverer', true ),
+			__( 'Kjøper', 'samlab' )         => get_post_meta( $bedrift->ID, '_samlab_kjoper', true ),
+			/* translators: intensjonsfeltet «Trenger nå». */
+			__( 'Trenger nå', 'samlab' )     => get_post_meta( $bedrift->ID, '_samlab_trenger_na', true ),
+			__( 'Ideelle kunder', 'samlab' ) => get_post_meta( $bedrift->ID, '_samlab_idealkunder', true ),
+		);
+		$kontakt = get_userdata( (int) get_post_meta( $bedrift->ID, '_samlab_kontaktperson', true ) );
+		if ( $kontakt ) {
+			$felt[ __( 'Kontaktperson', 'samlab' ) ] = $kontakt->display_name;
+		}
+		foreach ( $felt as $navn => $verdi ) {
+			if ( is_string( $verdi ) && '' !== $verdi ) {
+				$ut .= $navn . ': ' . $verdi . "\n";
+			}
+		}
+		$tjenester = get_post_meta( $bedrift->ID, '_samlab_tjenester', true );
+		if ( is_array( $tjenester ) ) {
+			foreach ( $tjenester as $tjeneste ) {
+				if ( empty( $tjeneste['tittel'] ) ) {
+					continue;
+				}
+				$punkter = isset( $tjeneste['punkter'] ) && is_array( $tjeneste['punkter'] ) ? implode( ', ', $tjeneste['punkter'] ) : '';
+				$ut     .= __( 'Tjeneste', 'samlab' ) . ': ' . $tjeneste['tittel'] . ( '' !== $punkter ? ' (' . $punkter . ')' : '' ) . "\n";
+			}
+		}
+		$ut .= __( 'Profil', 'samlab' ) . ': ' . samlab_portal_url( 'bedrifter', $bedrift->post_name ) . "\n\n";
+	}
+	return $ut;
+}
+
+/**
+ * Behovsseksjonen: åpne behov og tilbud.
+ *
+ * @return string
+ */
+function samlab_kunnskap_behov() {
+	$behov_liste = get_posts(
+		array(
+			'post_type'      => 'samlab_behov',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+		)
+	);
+	if ( array() === $behov_liste ) {
+		return '';
+	}
+
+	$ut = '## ' . __( 'Åpne behov og tilbud', 'samlab' ) . "\n\n";
+	foreach ( $behov_liste as $behov ) {
+		if ( '' !== $behov->post_password ) {
+			continue;
+		}
+		$retning = get_the_terms( $behov->ID, 'samlab_retning' );
+		$retning = $retning && ! is_wp_error( $retning ) ? $retning[0]->name : '';
+		$ut     .= '- ' . ( '' !== $retning ? '[' . $retning . '] ' : '' ) . $behov->post_title;
+
+		$detaljer = array();
+		$bedrift  = (int) get_post_meta( $behov->ID, '_samlab_bedrift', true );
+		if ( $bedrift && 'publish' === get_post_status( $bedrift ) ) {
+			$detaljer[] = get_the_title( $bedrift );
+		}
+		$komp = get_post_meta( $behov->ID, '_samlab_kompetanse', true );
+		if ( is_array( $komp ) && array() !== $komp ) {
+			$detaljer[] = implode( ', ', $komp );
+		}
+		$frist = get_post_meta( $behov->ID, '_samlab_frist', true );
+		if ( '' !== $frist ) {
+			/* translators: %s: fristen slik den er skrevet inn. */
+			$detaljer[] = sprintf( __( 'frist %s', 'samlab' ), $frist );
+		}
+		if ( array() !== $detaljer ) {
+			$ut .= ' (' . implode( '; ', $detaljer ) . ')';
+		}
+		$ut .= "\n";
+	}
+	return $ut . "\n" . __( 'Detaljer og kontakt', 'samlab' ) . ': ' . samlab_portal_url( 'behov' ) . "\n\n";
+}
+
+/**
+ * Arrangementsseksjonen: kommende arrangementer.
+ *
+ * @return string
+ */
+function samlab_kunnskap_arrangementer() {
+	$kommende = samlab_kommende_arrangementer( 20 );
+	if ( array() === $kommende ) {
+		return '';
+	}
+
+	$ut = '## ' . __( 'Kommende arrangementer', 'samlab' ) . "\n\n";
+	foreach ( $kommende as $arrangement ) {
+		if ( '' !== $arrangement->post_password ) {
+			continue;
+		}
+		$deler = array( samlab_arrangement_tid_visning( $arrangement->ID ) );
+		$sted  = (string) get_post_meta( $arrangement->ID, '_samlab_sted', true );
+		if ( '' !== $sted ) {
+			$deler[] = $sted;
+		}
+		$ut .= '- ' . $arrangement->post_title . ' (' . implode( ', ', array_filter( $deler ) ) . ')' . "\n";
+	}
+	return $ut . "\n" . __( 'Påmelding og detaljer', 'samlab' ) . ': ' . samlab_portal_url( 'arrangementer' ) . "\n\n";
+}
+
+/**
+ * Håndbokseksjonen: KUN sider merket som håndbok-innhold, og aldri
+ * passordbeskyttede - andre sider på nettstedet havner aldri her.
+ *
+ * @return string
+ */
+function samlab_kunnskap_handbok() {
+	$sider = samlab_get_handbok_pages();
+	if ( array() === $sider ) {
+		return '';
+	}
+
+	$ut = '## ' . __( 'Håndboken', 'samlab' ) . "\n\n";
+	foreach ( $sider as $side ) {
+		if ( '' !== $side->post_password ) {
+			continue;
+		}
+		$ut .= '### ' . $side->post_title . "\n";
+		$ut .= samlab_kunnskap_tekst( $side->post_content ) . "\n";
+		$ut .= __( 'Les mer', 'samlab' ) . ': ' . samlab_portal_url( 'handbok', $side->post_name ) . "\n\n";
+	}
+	return $ut;
+}
+
+/**
+ * Henter én ekstern kilde og stripper den til tekst.
+ *
+ * @param string $url Kilden.
+ * @return string|WP_Error Teksten, eller WP_Error ved feil.
+ */
+function samlab_kunnskap_hent_kilde( $url ) {
+	$svar = wp_remote_get( $url, array( 'timeout' => 15 ) );
+	if ( is_wp_error( $svar ) ) {
+		return $svar;
+	}
+	$kode = wp_remote_retrieve_response_code( $svar );
+	if ( 200 !== $kode ) {
+		/* translators: %d: HTTP-statuskoden. */
+		return new WP_Error( 'samlab_kilde_feilet', sprintf( __( 'HTTP %d', 'samlab' ), $kode ) );
+	}
+	$tekst = wp_strip_all_tags( preg_replace( '#<(script|style)[^>]*>.*?</\1>#si', '', wp_remote_retrieve_body( $svar ) ) );
+	$tekst = trim( preg_replace( '/\s{3,}/', "\n", $tekst ) );
+	return mb_substr( $tekst, 0, SAMLAB_KUNNSKAP_KILDEGRENSE );
+}
+
+/**
+ * Seksjonen for eksterne kilder.
+ *
+ * @param string[] $feilet Fylles med URL-er som ikke kunne hentes.
+ * @return array{tekst: string, ok: int}
+ */
+function samlab_kunnskap_kilder( &$feilet ) {
+	$kilder = samlab_assistent_kilder();
+	if ( array() === $kilder ) {
+		return array(
+			'tekst' => '',
+			'ok'    => 0,
+		);
+	}
+
+	$ut = '';
+	$ok = 0;
+	foreach ( $kilder as $url ) {
+		$tekst = samlab_kunnskap_hent_kilde( $url );
+		if ( is_wp_error( $tekst ) || '' === $tekst ) {
+			$feilet[] = $url;
+			continue;
+		}
+		$ut .= '## ' . sprintf( /* translators: %s: kildens URL. */ __( 'Fra %s', 'samlab' ), $url ) . "\n\n" . $tekst . "\n\n";
+		++$ok;
+	}
+	return array(
+		'tekst' => $ut,
+		'ok'    => $ok,
+	);
+}
+
+/**
+ * Bygger og lagrer kunnskapsgrunnlaget. Versjonen teller opp for
+ * hvert bygg, med tidsstempel og størrelse til statusvisningen.
+ *
+ * @return array Det lagrede grunnlaget.
+ */
+function samlab_assistent_bygg_kunnskap() {
+	$tekst  = '# ' . sprintf( /* translators: %s: portalnavnet. */ __( 'Kunnskapsgrunnlag for %s', 'samlab' ), samlab_portal_name() ) . "\n\n";
+	$tekst .= __( 'Grunnlaget er bygget fra portalens eget innhold. Detaljer og kontakt skjer på de innloggede portalsidene.', 'samlab' ) . "\n\n";
+	$tekst .= samlab_kunnskap_bedrifter();
+	$tekst .= samlab_kunnskap_behov();
+	$tekst .= samlab_kunnskap_arrangementer();
+	$tekst .= samlab_kunnskap_handbok();
+
+	$feilet = array();
+	$kilder = samlab_kunnskap_kilder( $feilet );
+	$tekst .= $kilder['tekst'];
+
+	$forrige  = samlab_assistent_kunnskap();
+	$grunnlag = array(
+		'versjon'       => $forrige ? (int) $forrige['versjon'] + 1 : 1,
+		'bygget'        => time(),
+		'storrelse'     => strlen( $tekst ),
+		'tekst'         => $tekst,
+		'kilder_ok'     => $kilder['ok'],
+		'kilder_feilet' => $feilet,
+	);
+	update_option( 'samlab_kunnskap', $grunnlag, false );
+
+	/**
+	 * Kjøres etter at kunnskapsgrunnlaget er bygget.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param array $grunnlag versjon, bygget, storrelse, kilder_ok, kilder_feilet, tekst.
+	 */
+	do_action( 'samlab_kunnskap_bygget', $grunnlag );
+
+	return $grunnlag;
+}
+add_action( 'samlab_assistent_kunnskap', 'samlab_assistent_bygg_kunnskap' );
+
+/**
+ * Planlegger den daglige byggingen når modulen er på (denne filen
+ * lastes kun da). Avplanlegging når modulen slås av skjer i
+ * bootstrapen (assistent.php).
+ *
+ * @return void
+ */
+function samlab_kunnskap_planlegg() {
+	if ( ! wp_next_scheduled( 'samlab_assistent_kunnskap' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'samlab_assistent_kunnskap' );
+	}
+}
+add_action( 'init', 'samlab_kunnskap_planlegg' );
+
+/**
+ * «Bygg nå»-knappen: admin-post med nonce, kun manage_options.
+ *
+ * @return void
+ */
+function samlab_kunnskap_bygg_handler() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_die( esc_html__( 'Du har ikke tilgang til dette.', 'samlab' ), '', 403 );
+	}
+	check_admin_referer( 'samlab_bygg_kunnskap' );
+	samlab_assistent_bygg_kunnskap();
+	wp_safe_redirect( admin_url( 'options-general.php?page=samlab' ) );
+	exit;
+}
+add_action( 'admin_post_samlab_bygg_kunnskap', 'samlab_kunnskap_bygg_handler' );

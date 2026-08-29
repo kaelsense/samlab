@@ -58,6 +58,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-stemme.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-varsel.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/varsler.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/assistent.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/matching.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/ukesbrev.php';
 
@@ -108,6 +109,7 @@ register_activation_hook( __FILE__, 'samlab_activate' );
 function samlab_deactivate() {
 	wp_clear_scheduled_hook( 'samlab_matching' );
 	wp_clear_scheduled_hook( 'samlab_ukesbrev' );
+	wp_clear_scheduled_hook( 'samlab_assistent_kunnskap' );
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'samlab_deactivate' );

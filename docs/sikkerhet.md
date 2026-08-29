@@ -21,6 +21,10 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
 | REST `GET samlab/v1/brukere` | Samme auth; **rettet:** avgrenset med `capability => samlab_read_portal` så kontoer utenfor portalen ikke kan høstes | OK (rettet) |
 | Håndbok-sider utenfor portalen | **Rettet:** permalenke 301-er til portalruten (bak porten), utelatt fra sitemap, offentlig søk og anonym REST (liste + 401 på enkeltoppslag) | OK (rettet) |
 | Innstillingsside | `manage_options`, Settings API-nonce, feltvis sanitering (`sanitize_title`/`sanitize_hex_color`/`esc_url_raw`) | OK |
+| Assistentinnstillinger (F1) | Samme Settings API-vern som resten av siden (`manage_options` + nonce, feltvis sanitering: modell-ID til trygt tegnsett, kilder kun http(s)-URL-er); API-nøkkelen leses KUN fra `SAMLAB_CLAUDE_API_KEY` i wp-config.php - aldri databasen, statusvisningen sier kun funnet/ikke funnet og røper aldri verdien (HTTP-verifisert med konstant satt); status-/overskriftsrader tar aldri imot POST-verdier; ingen assistent-kode lastes når modulen er av | OK |
+| Chat-widgeten (F4) | Rendres kun for innloggede med modulen på (fraværende ellers, HTTP-verifisert); all PHP-output escaped (`esc_html`/`esc_attr`), all JS-DOM-skriving via `textContent` - aldri `innerHTML` med data; verifisert i ekte nettleser: HTML i API-svar og XSS-forsøk i meldinger vises som ren tekst og tolkes aldri | OK |
+| REST `POST samlab/v1/assistent` (F3) | Kun når modulen er på (ellers 404); cookie + nonce + `samlab_read_portal` (401/403); nøkkelen kun server-side som header mot API-et, aldri i svar; transient-basert rate-limit per bruker (429); historikk vaskes (rolle-whitelist - `system` avvises, tekst sanitert og kappet, maks 10 innslag); generiske feilmeldinger uten konfigdetaljer (503/502, HTTP-verifisert); spørsmål/svar logges aldri - ved API-feil kun statuskoden, kun med WP_DEBUG | OK |
+| Kunnskaps-cron (F2) | Lastes kun når modulen er på; bygger utelukkende fra publisert portalinnhold - kun håndbok-MERKEDE sider (aldri andre sider), passordbeskyttet innhold hoppes alltid over, persondata begrenset til kontaktpersoners visningsnavn; eksterne kilder hentes server-side og strippes til tekst (inkl. script/style) med størrelsestak; «bygg nå» bak `manage_options` + nonce (403 uten, HTTP-verifisert); grunnlaget viser til innloggede sider for detaljer | OK |
 | Infoskjermen (E9) | Nøkkel-URL uten innlogging (bevisst): 24-tegns tilfeldig nøkkel sammenlignet med `hash_equals`, feil/manglende nøkkel gir 404 (aldri videresending til innlogging), av som standard og av ved fjernet nøkkel; regenerering/fjerning bak `manage_options` + nonce (admin-post); noindex som header og meta; viser kun det veggen selv viser | OK |
 | Kobling-CPT (E1) | Egne capability-primitiver (`edit_samlab_koblinger` m.fl., kun moderator+); parter mappes til ren lesing via `map_meta_cap`, andre `do_not_allow`; metaboks med nonce + `edit_post`; partvalidering mot post-type/bruker | OK |
 | REST `POST samlab/v1/lest` + lest-krav (E8) | Samme auth som reaksjoner; 404 uten lest-krav på oppslaget; én bekreftelse per medlem (UNIQUE-nøkkel), idempotent og kan aldri trekkes tilbake - `lest`-nøkkelen er sperret i toggle-endepunktet (400); krev/fjern-handlingen bak nonce + `samlab_pin_posts`, kun på festede oppslag; oversikten bak `edit_samlab_koblinger` (medlem 403, HTTP-verifisert) | OK |
@@ -56,6 +60,27 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
 3. **Uescaped tittel på behovskortet** (lav; 3/10 - ikke utnyttbar i
    dag pga. `sanitize_text_field` og capability-krav). **Rettet**
    til `esc_html( get_the_title() )` for konsistens.
+
+## Trusselnotat: assistenten (fase F)
+
+- **Prompt-injeksjon fra portalinnhold.** Kunnskapsgrunnlaget
+  bygges av innhold medlemmene selv skriver (behov, bedriftsfelter,
+  håndbok) og av eksterne kilder - en ondsinnet tekst kan forsøke å
+  instruere modellen («ignorer instruksene …»). Dette kan ikke
+  utelukkes med filtrering, så vernet ligger i konsekvensbegrensning:
+  assistenten har **aldri skrivetilgang** - ingen verktøy, ingen
+  WordPress-API-er, ingen handlinger; den produserer kun tekst.
+  Svaret escapes i widgeten (textContent), så heller ikke HTML/JS i
+  et manipulert svar kan kjøre. Instruksblokken ligger først i
+  systemprompten og ber modellen holde seg til grunnlaget. Verste
+  realistiske utfall er et villedende svar til et innlogget medlem -
+  synlig, rapporterbart og rettbart ved å fjerne kildeinnholdet og
+  bygge grunnlaget på nytt.
+- **Assistenten er kun for innloggede.** Endepunktet krever
+  `samlab_read_portal`; kunnskapsgrunnlaget inneholder kun det
+  portalmedlemmer uansett ser, og grunnlaget viser til innloggede
+  sider for detaljer. Nøkkelen bor i wp-config.php og forlater
+  aldri serveren; spørsmål og svar logges aldri.
 
 ## Aksepterte restrisikoer (trusselmodell)
 
