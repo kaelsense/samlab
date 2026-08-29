@@ -46,6 +46,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/arrangementer.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/koblinger.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rewrites.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/access.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/skjerm.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/forms.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rest-api.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/search.php';

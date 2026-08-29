@@ -551,7 +551,7 @@ med `wp cron event run`.*
   + idempotent gjenkall, toggle-vakt 400, oversikten viser riktige
   navn og medlem får 403 på siden. Tom debug.log, WPCS grønn,
   hooks- og sikkerhetsdocs oppdatert.
-- [ ] **E9. Infoskjerm.** Read-only rute (`/portal-sti/skjerm/` e.l.)
+- [x] **E9. Infoskjerm.** Read-only rute (`/portal-sti/skjerm/` e.l.)
   med hemmelig nøkkel i URL-en (innstilling, regenererbar) som
   viser festede oppslag, siste vegginnlegg og kommende
   arrangementer i storskjerm-layout med auto-oppdatering.
@@ -559,6 +559,22 @@ med `wp cron event run`.*
   det veggen viser.
   *Ferdig når:* riktig nøkkel gir 200 med innhold og auto-refresh,
   feil/manglende nøkkel gir 404, og flaten er noindex.
+  *Notat (2026-08-29):* includes/skjerm.php: rute
+  /portal-sti/skjerm/<nøkkel>/ håndteres FØR innloggingsporten
+  (prioritet 7) og svarer selv - riktig nøkkel (hash_equals mot
+  24-tegns lagret nøkkel) gir skjermen, alt annet 404, aldri
+  videresending til innlogging. Av som standard; generer/regenerer/
+  fjern-knapper på innstillingssiden bak manage_options + nonce
+  (admin-post), og slug for ruten er innstilling (standard
+  «skjerm»). templates/skjerm.php: standalone storskjerm-layout
+  (festede oppslag, siste 6 fra veggen, 6 kommende arrangementer)
+  med meta-refresh 60 s, noindex som meta + X-Robots-Tag, og
+  tokens med nøytrale fallbacks. 6 helpertester grønne + HTTP:
+  404 uten/med feil nøkkel, 200 med innhold/refresh/noindex,
+  regenerering dreper gammel URL umiddelbart, fjerning slår
+  skjermen av, seksjonen vises på innstillingssiden. Restrisikoen
+  (nøkkel i URL) dokumentert i sikkerhetsdocs. Tom debug.log,
+  WPCS grønn.
 - [ ] **E10. Seed og dokumentasjon for fase E.** Seed-kommandoen
   utvides med arrangementer, koblinger i ulike statuser, varsler og
   en avstemning; docs/hooks.md og docs/sikkerhet.md-tabellen

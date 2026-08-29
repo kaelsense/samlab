@@ -68,6 +68,11 @@ function samlab_settings_fields() {
 			'label' => __( 'Slug for håndboken', 'samlab' ),
 			'type'  => 'slug',
 		),
+		'slug_skjerm'        => array(
+			'label' => __( 'Slug for infoskjermen', 'samlab' ),
+			'type'  => 'slug',
+			'help'  => __( 'URL-delen før nøkkelen. Standard: «skjerm».', 'samlab' ),
+		),
 		'aksentfarge'        => array(
 			'label' => __( 'Aksentfarge', 'samlab' ),
 			'type'  => 'farge',
@@ -262,6 +267,7 @@ function samlab_render_settings_page() {
 			</table>
 			<?php submit_button(); ?>
 		</form>
+		<?php samlab_skjerm_settings_seksjon(); ?>
 	</div>
 	<?php
 }

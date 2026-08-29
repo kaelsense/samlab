@@ -21,6 +21,7 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
 | REST `GET samlab/v1/brukere` | Samme auth; **rettet:** avgrenset med `capability => samlab_read_portal` så kontoer utenfor portalen ikke kan høstes | OK (rettet) |
 | Håndbok-sider utenfor portalen | **Rettet:** permalenke 301-er til portalruten (bak porten), utelatt fra sitemap, offentlig søk og anonym REST (liste + 401 på enkeltoppslag) | OK (rettet) |
 | Innstillingsside | `manage_options`, Settings API-nonce, feltvis sanitering (`sanitize_title`/`sanitize_hex_color`/`esc_url_raw`) | OK |
+| Infoskjermen (E9) | Nøkkel-URL uten innlogging (bevisst): 24-tegns tilfeldig nøkkel sammenlignet med `hash_equals`, feil/manglende nøkkel gir 404 (aldri videresending til innlogging), av som standard og av ved fjernet nøkkel; regenerering/fjerning bak `manage_options` + nonce (admin-post); noindex som header og meta; viser kun det veggen selv viser | OK |
 | Kobling-CPT (E1) | Egne capability-primitiver (`edit_samlab_koblinger` m.fl., kun moderator+); parter mappes til ren lesing via `map_meta_cap`, andre `do_not_allow`; metaboks med nonce + `edit_post`; partvalidering mot post-type/bruker | OK |
 | REST `POST samlab/v1/lest` + lest-krav (E8) | Samme auth som reaksjoner; 404 uten lest-krav på oppslaget; én bekreftelse per medlem (UNIQUE-nøkkel), idempotent og kan aldri trekkes tilbake - `lest`-nøkkelen er sperret i toggle-endepunktet (400); krev/fjern-handlingen bak nonce + `samlab_pin_posts`, kun på festede oppslag; oversikten bak `edit_samlab_koblinger` (medlem 403, HTTP-verifisert) | OK |
 | REST `POST samlab/v1/stemmer` (E7) | Samme auth som reaksjoner (cookie + nonce + `samlab_read_portal`); innlegg må være publisert med avstemning (404), valg-indeks validert mot alternativene (400); én rad per medlem håndhevet med UNIQUE-nøkkel; avstemningsfelter saniteres i modellen (2-5 alternativer); HTTP-verifisert: 401 utlogget, 400/404, endring flytter tallet | OK |
@@ -68,6 +69,11 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
   menyen (f.eks. TT25s sideliste) viser håndbok-sidens *tittel*;
   lenken går til innlogging. Unngås ved å holde håndbok-sider ute av
   menyer, eller aksepteres.
+- **Infoskjermens nøkkel står i URL-en.** Bevisst avveining for
+  innloggingsfrie skjermenheter: nøkkelen kan havne i nettleser-
+  historikk og serverlogger. Skjermen viser kun veggens eget
+  innhold, er av som standard, og nøkkelen regenereres med ett
+  klikk (gamle URL-er dør umiddelbart). Del den kun med skjermen.
 - **Brukernavn er halve legitimasjonen.** Portalmedlemmer ser
   hverandres visningsnavn og brukernavn (mentions) - etter
   utformingen. Bruk sterke passord/2FA for admin-kontoer.
