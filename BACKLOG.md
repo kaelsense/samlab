@@ -75,9 +75,12 @@ oppgave innfri sin «Ferdig når».*
   *Notat (2026-08-29):* `.github/workflows/ci.yml` med php -l over
   `samlab/` og `composer lint` på push og PR (PHP 8.2). YAML
   validert og begge stegene kjørt grønt lokalt før push.
-- [ ] **A5. AVKLARINGER.md.** Opprett filen med en kort forklaring og
+- [x] **A5. AVKLARINGER.md.** Opprett filen med en kort forklaring og
   tom liste.
   *Ferdig når:* filen finnes og er lenket fra README.
+  *Notat (2026-08-29):* Filen fantes fra handover-committen og er
+  allerede i bruk (3 punkter, 2 avgjort). README-omtalen gjort om
+  til ekte markdown-lenke.
 
 ## Fase B: Plugin-kjerne
 

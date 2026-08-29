@@ -6,7 +6,8 @@ vegg og håndbok. Digitelle AS eier produktet.
 
 Se `HANDOVER.md` og `handover/docs/forslag-wordpress-utvidelse.md`
 for plan og konsept. Arbeidslisten for autonome utviklingsrunder
-ligger i `BACKLOG.md`; åpne spørsmål og veivalg i `AVKLARINGER.md`.
+ligger i [BACKLOG.md](BACKLOG.md); åpne spørsmål og veivalg i
+[AVKLARINGER.md](AVKLARINGER.md).
 
 ## Utviklingsmiljø (wp-env)
 
