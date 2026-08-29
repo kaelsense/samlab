@@ -36,6 +36,7 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 				<label class="screen-reader-text" for="samlab-innhold"><?php esc_html_e( 'Hva skjer?', 'samlab' ); ?></label>
 				<textarea id="samlab-innhold" name="samlab_innhold" rows="3" placeholder="<?php esc_attr_e( 'Del noe med huset …', 'samlab' ); ?>" required></textarea>
 			</p>
+			<ul id="samlab-mention-forslag" class="samlab-mention-forslag" hidden></ul>
 			<p class="samlab-vegg-verktoy">
 				<label for="samlab-bilde"><?php esc_html_e( 'Bilde (valgfritt)', 'samlab' ); ?></label>
 				<input type="file" id="samlab-bilde" name="samlab_bilde" accept="image/*" />
@@ -83,7 +84,7 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 						</p>
 					</div>
 				</div>
-				<div class="samlab-innlegg-tekst"><?php echo wp_kses_post( wpautop( $samlab_innlegg->content ) ); ?></div>
+				<div class="samlab-innlegg-tekst"><?php echo wp_kses_post( samlab_render_mentions( wpautop( $samlab_innlegg->content ) ) ); ?></div>
 				<?php if ( $samlab_innlegg->image_id ) : ?>
 					<figure class="samlab-innlegg-bilde"><?php echo wp_get_attachment_image( (int) $samlab_innlegg->image_id, 'large' ); ?></figure>
 				<?php endif; ?>
@@ -131,6 +132,43 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 	( function () {
 		if ( ! window.samlabRest ) {
 			return;
+		}
+
+		// @-mentions: forslag mens man skriver i nytt innlegg-feltet.
+		var felt    = document.getElementById( 'samlab-innhold' );
+		var forslag = document.getElementById( 'samlab-mention-forslag' );
+		if ( felt && forslag ) {
+			felt.addEventListener( 'input', function () {
+				var tekst = felt.value.slice( 0, felt.selectionStart );
+				var treff = tekst.match( /@([a-zA-Z0-9._-]{1,})$/ );
+				if ( ! treff ) {
+					forslag.hidden = true;
+					return;
+				}
+				fetch( window.samlabRest.url + 'samlab/v1/brukere?sok=' + encodeURIComponent( treff[1] ), {
+					credentials: 'same-origin',
+					headers: { 'X-WP-Nonce': window.samlabRest.nonce }
+				} ).then( function ( svar ) {
+					return svar.json();
+				} ).then( function ( brukere ) {
+					forslag.innerHTML = '';
+					forslag.hidden = ! brukere.length;
+					brukere.forEach( function ( bruker ) {
+						var li = document.createElement( 'li' );
+						var knapp = document.createElement( 'button' );
+						knapp.type = 'button';
+						knapp.textContent = bruker.navn + ' (@' + bruker.login + ')';
+						knapp.addEventListener( 'click', function () {
+							var start = felt.value.slice( 0, felt.selectionStart ).replace( /@[a-zA-Z0-9._-]*$/, '@' + bruker.login + ' ' );
+							felt.value = start + felt.value.slice( felt.selectionStart );
+							forslag.hidden = true;
+							felt.focus();
+						} );
+						li.appendChild( knapp );
+						forslag.appendChild( li );
+					} );
+				} );
+			} );
 		}
 		document.querySelectorAll( '.samlab-liker' ).forEach( function ( knapp ) {
 			knapp.addEventListener( 'click', function () {

@@ -46,6 +46,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/rewrites.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/access.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/forms.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rest-api.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/search.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/settings.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/database.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-innlegg.php';

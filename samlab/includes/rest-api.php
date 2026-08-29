@@ -45,8 +45,52 @@ function samlab_register_rest_routes() {
 			),
 		)
 	);
+	register_rest_route(
+		'samlab/v1',
+		'/brukere',
+		array(
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => 'samlab_rest_finn_brukere',
+			'permission_callback' => 'samlab_rest_can_react',
+			'args'                => array(
+				'sok' => array(
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				),
+			),
+		)
+	);
 }
 add_action( 'rest_api_init', 'samlab_register_rest_routes' );
+
+/**
+ * Brukerforslag til @-mentions.
+ *
+ * @param WP_REST_Request $request Forespørselen.
+ * @return WP_REST_Response
+ */
+function samlab_rest_finn_brukere( $request ) {
+	$sok = (string) $request['sok'];
+
+	$brukere = get_users(
+		array(
+			'search'         => '*' . $sok . '*',
+			'search_columns' => array( 'user_login', 'display_name', 'user_nicename' ),
+			'number'         => 8,
+			'orderby'        => 'display_name',
+		)
+	);
+
+	$svar = array();
+	foreach ( $brukere as $bruker ) {
+		$svar[] = array(
+			'login' => $bruker->user_login,
+			'navn'  => $bruker->display_name,
+		);
+	}
+	return rest_ensure_response( $svar );
+}
 
 /**
  * Reagere krever innlogging og portaltilgang.

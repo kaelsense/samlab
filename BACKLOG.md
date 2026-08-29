@@ -299,11 +299,20 @@ oppgave innfri sin «Ferdig når».*
   Verifisert i riggen: C1 (katalog med logoer), C2 (profil med
   galleri), C3, C4 (festet + kommentar), C5 vises korrekt fra
   seed-data; slett ga 0 rester. WPCS grønn.
-- [ ] **C7. Mentions og globalt søk.** @navn-forslag i vegg-innlegg og
+- [x] **C7. Mentions og globalt søk.** @navn-forslag i vegg-innlegg og
   et søk som dekker bedrifter, behov og håndbok (fra
   FluentCommunity-analysens MVP-liste).
   *Ferdig når:* mention lagres og rendres som lenke; søket gir treff
   på seed-data fra alle tre innholdstypene.
+  *Notat (2026-08-29):* includes/search.php (samlab_global_search
+  over tre innholdstyper, mention-rendring som lenker til
+  bedriftsprofil eller søk) + GET samlab/v1/brukere for
+  @-forslag (dokumentert i docs/hooks.md) + vanilla JS-autocomplete
+  i vegg-skjemaet + søkefelt i skallet med resultater gruppert på
+  hjem-flaten. HTTP-verifisert mot seed-data: mention @kari.demo
+  rendret som lenke til bedriftsprofilen, forslag-endepunktet
+  auth-beskyttet (401 utlogget), og søk traff bedrifter
+  (regnskap), behov (fotograf) og håndbok (møterom). WPCS grønn.
 
 ## Fase D: Kvalitet og MVP-lukking
 

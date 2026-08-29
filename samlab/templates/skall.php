@@ -84,6 +84,10 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 					<?php endforeach; ?>
 				</ul>
 			</nav>
+			<form class="samlab-globalsok" method="get" action="<?php echo esc_url( samlab_portal_url() ); ?>" role="search">
+				<label class="screen-reader-text" for="samlab-globalsok-felt"><?php esc_html_e( 'Søk i portalen', 'samlab' ); ?></label>
+				<input type="search" id="samlab-globalsok-felt" name="sok" placeholder="<?php esc_attr_e( 'Søk …', 'samlab' ); ?>" />
+			</form>
 		</div>
 	</header>
 

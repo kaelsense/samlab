@@ -41,6 +41,16 @@ fetch('/wp-json/samlab/v1/reaksjoner', {
 } ).then( ( r ) => r.json() ).then( console.log );
 ```
 
+### `GET /wp-json/samlab/v1/brukere`
+
+Brukerforslag til @-mentions. Krever `samlab_read_portal`.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `sok` | string | Søkestreng mot brukernavn og visningsnavn (påkrevd) |
+
+Svar: liste av `{ login, navn }`, maks 8.
+
 ## Actions
 
 ### `samlab_reaksjon_endret`
