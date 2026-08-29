@@ -25,6 +25,20 @@
 		</properties>
 	</rule>
 
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="samlab_read_portal"/>
+				<element value="samlab_post_wall"/>
+				<element value="samlab_create_behov"/>
+				<element value="samlab_edit_bedrift"/>
+				<element value="samlab_approve_members"/>
+				<element value="samlab_hide_content"/>
+				<element value="samlab_pin_posts"/>
+			</property>
+		</properties>
+	</rule>
+
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
 			<property name="prefixes" type="array">

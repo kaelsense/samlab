@@ -198,12 +198,21 @@ oppgave innfri sin «Ferdig når».*
   Logo vises i skallet. HTTP-verifisert i riggen: siden 200 i
   wp-admin, XSS/ugyldig farge/js-URL forkastes, ny sti+slug svarer
   200 uten manuell flush og gammel gir 404. WPCS grønn.
-- [ ] **B11. REST-navnerom.** `samlab/v1` registrert med første
+- [x] **B11. REST-navnerom.** `samlab/v1` registrert med første
   endepunkt (`/reaksjoner`, POST med cookie+nonce og
   capability-sjekk), og en `docs/hooks.md` som starter
   dokumentasjonen av actions/filters.
   *Ferdig når:* endepunktet fungerer via nettleser-konsollen i
   wp-env, avviser uinnloggede, WPCS grønn.
+  *Notat (2026-08-29):* includes/rest-api.php: POST /reaksjoner som
+  toggler via Samlab_Reaksjon, med permission_callback
+  (innlogget + samlab_read_portal), objektvalidering og
+  samlab_reaksjon_endret-action. docs/hooks.md startet med
+  navnekonvensjon, endepunkt- og hook-dokumentasjon.
+  HTTP-verifisert i riggen med ekte cookie+nonce-flyt: 401
+  utlogget/uten nonce, toggle på/av med counts, 404 ukjent objekt,
+  403 uten capability. WPCS grønn (custom caps registrert i
+  phpcs-regelsettet).
 
 ## Fase C: Kjerneflatene
 
