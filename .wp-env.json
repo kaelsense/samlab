@@ -1,0 +1,6 @@
+{
+	"core": null,
+	"phpVersion": "8.2",
+	"plugins": [ "./samlab" ],
+	"themes": [ "https://downloads.wordpress.org/theme/twentytwentyfour.latest-stable.zip" ]
+}

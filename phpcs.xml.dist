@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<ruleset name="Samlab">
+	<description>WordPress-Coding-Standards for Samlab-pluginen.</description>
+
+	<!-- Kun plugin-koden - ikke handover-materiale eller verktoy. -->
+	<file>samlab</file>
+
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+
+	<arg value="sp"/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+	<arg name="parallel" value="8"/>
+
+	<rule ref="WordPress">
+		<!-- Filnavn folger plugin-konvensjonen samlab.php, ikke class-*.php enna. -->
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="samlab"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="samlab_read_portal"/>
+				<element value="samlab_post_wall"/>
+				<element value="samlab_create_behov"/>
+				<element value="samlab_edit_bedrift"/>
+				<element value="samlab_approve_members"/>
+				<element value="samlab_hide_content"/>
+				<element value="samlab_pin_posts"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="samlab"/>
+				<element value="SAMLAB"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Minstekrav fra plugin-headeren. -->
+	<config name="minimum_wp_version" value="6.4"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+	<config name="testVersion" value="8.2-"/>
+</ruleset>

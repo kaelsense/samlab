@@ -1,0 +1,771 @@
+/**
+ * Portalens stilark - bygget på temaets designtokens.
+ *
+ * Fargene og fontene leses fra WordPress' preset-variabler
+ * (--wp--preset--*) med nøytrale fallbacks; strukturen er portert
+ * fra prototypens global.css. Ingen kundefarger her - temaet eier
+ * paletten, og aksentfargen kan overstyres i innstillingene (B10).
+ */
+
+.samlab-portal {
+	/* Tokens: temaets presets med nøytrale fallbacks. */
+	--samlab-bg: var(--wp--preset--color--base, #ffffff);
+	--samlab-fg: var(--wp--preset--color--contrast, #16181d);
+	--samlab-flate: var(--wp--preset--color--base-2, var(--wp--preset--color--accent-6, #eef1f4));
+	--samlab-aksent: var(--wp--preset--color--accent-1, var(--wp--preset--color--accent, #3a5a40));
+	--samlab-linje: #d5dae0;
+	--samlab-linje: color-mix(in srgb, var(--samlab-fg) 16%, transparent);
+	--samlab-demp: #5c6470;
+	--samlab-demp: color-mix(in srgb, var(--samlab-fg) 62%, var(--samlab-bg));
+	--samlab-aksent-kontrast: #ffffff;
+
+	--samlab-font: var(--wp--preset--font-family--body, var(--wp--preset--font-family--system-font, system-ui, -apple-system, sans-serif));
+	--samlab-font-heading: var(--wp--preset--font-family--heading, var(--samlab-font));
+
+	--samlab-radius-sm: 0.5rem;
+	--samlab-radius-md: 0.75rem;
+	--samlab-radius-pill: 9999px;
+	--samlab-skygge: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.04);
+	--samlab-innhold: 72rem;
+
+	margin: 0;
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font-family: var(--samlab-font);
+	line-height: 1.6;
+}
+
+/* Hopp-lenke */
+.samlab-hopp {
+	position: absolute;
+	left: -9999px;
+	top: 0;
+	background: var(--samlab-fg);
+	color: var(--samlab-bg);
+	padding: 0.5rem 1rem;
+	border-radius: var(--samlab-radius-sm);
+	z-index: 100;
+}
+
+.samlab-hopp:focus {
+	left: 0.5rem;
+	top: 0.5rem;
+}
+
+/* Topp og navigasjon */
+.samlab-topp {
+	position: sticky;
+	top: 0;
+	background: var(--samlab-bg);
+	border-bottom: 1px solid var(--samlab-linje);
+	z-index: 10;
+}
+
+.samlab-topp-indre {
+	max-width: var(--samlab-innhold);
+	margin: 0 auto;
+	padding: 0.75rem 1rem;
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex-wrap: wrap;
+}
+
+.samlab-merke {
+	font-family: var(--samlab-font-heading);
+	font-weight: 700;
+	font-size: 1.125rem;
+	color: var(--samlab-fg);
+	text-decoration: none;
+}
+
+.samlab-nav ul {
+	display: flex;
+	gap: 0.25rem;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	flex-wrap: wrap;
+}
+
+.samlab-nav-lenke {
+	display: inline-block;
+	padding: 0.375rem 0.875rem;
+	border-radius: var(--samlab-radius-pill);
+	color: var(--samlab-demp);
+	text-decoration: none;
+	font-size: 0.9375rem;
+	transition: background 150ms ease, color 150ms ease;
+}
+
+.samlab-nav-lenke:hover,
+.samlab-nav-lenke:focus {
+	background: var(--samlab-flate);
+	color: var(--samlab-fg);
+}
+
+.samlab-nav-lenke.er-aktiv {
+	background: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+/* Hovedflate og bunn */
+.samlab-hoved {
+	max-width: var(--samlab-innhold);
+	margin: 0 auto;
+	padding: 2rem 1rem 4rem;
+}
+
+.samlab-hoved h1 {
+	font-family: var(--samlab-font-heading);
+	line-height: 1.2;
+}
+
+.samlab-bunn {
+	border-top: 1px solid var(--samlab-linje);
+	color: var(--samlab-demp);
+	font-size: 0.875rem;
+}
+
+.samlab-bunn p {
+	max-width: var(--samlab-innhold);
+	margin: 0 auto;
+	padding: 1.5rem 1rem;
+}
+
+/* Kort (bedrifter, behov, innlegg) */
+.samlab-kort {
+	background: var(--samlab-bg);
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-md);
+	box-shadow: var(--samlab-skygge);
+	padding: 1.25rem;
+}
+
+.samlab-kort-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+	gap: 1rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Chips (kategorier, kompetanse, filtre) */
+.samlab-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.375rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.samlab-chip {
+	display: inline-block;
+	padding: 0.2rem 0.7rem;
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-flate);
+	color: var(--samlab-fg);
+	font-size: 0.8125rem;
+	text-decoration: none;
+}
+
+.samlab-chip.er-aktiv {
+	background: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+/* Avatar med initialer */
+.samlab-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border-radius: 50%;
+	background: var(--samlab-flate);
+	color: var(--samlab-fg);
+	font-weight: 600;
+	font-size: 0.875rem;
+	flex-shrink: 0;
+}
+
+.samlab-avatar.er-aksent {
+	background: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+/* Statuskjede (f.eks. introduksjoner: foreslått → godkjent → ...) */
+.samlab-status-kjede {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-size: 0.8125rem;
+	color: var(--samlab-demp);
+	flex-wrap: wrap;
+}
+
+.samlab-status-kjede li {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.samlab-status-kjede li:not(:last-child)::after {
+	content: "";
+	width: 1.25rem;
+	height: 1px;
+	background: var(--samlab-linje);
+}
+
+.samlab-status-kjede .er-naadd {
+	color: var(--samlab-fg);
+	font-weight: 600;
+}
+
+/* Knapper */
+.samlab-knapp {
+	display: inline-block;
+	padding: 0.5rem 1.125rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font-family: inherit;
+	font-size: 0.9375rem;
+	text-decoration: none;
+	cursor: pointer;
+	transition: background 150ms ease;
+}
+
+.samlab-knapp:hover,
+.samlab-knapp:focus {
+	background: var(--samlab-flate);
+}
+
+.samlab-knapp.er-primar {
+	background: var(--samlab-aksent);
+	border-color: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+.samlab-knapp.er-primar:hover,
+.samlab-knapp.er-primar:focus {
+	filter: brightness(0.92);
+}
+
+/* Festet oppslag: hel ramme i aksentfargen */
+.samlab-kort.er-festet {
+	border: 2px solid var(--samlab-aksent);
+}
+
+.samlab-logo {
+	max-height: 2.25rem;
+	width: auto;
+	display: block;
+}
+
+/* Flatehoder og katalog */
+.samlab-flate-hode h1 {
+	margin-bottom: 0.5rem;
+}
+
+.samlab-flate-hode p {
+	color: var(--samlab-demp);
+	max-width: 62ch;
+	margin-top: 0;
+}
+
+.samlab-sok {
+	display: flex;
+	gap: 0.5rem;
+	margin: 1.25rem 0 1rem;
+	flex-wrap: wrap;
+}
+
+.samlab-sok input[type="search"] {
+	flex: 1 1 16rem;
+	padding: 0.5rem 0.875rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+}
+
+.samlab-katalog-filter {
+	margin: 0 0 1.5rem;
+}
+
+.samlab-kort-lenke {
+	display: flex;
+	gap: 1rem;
+	color: inherit;
+	text-decoration: none;
+	height: 100%;
+	transition: box-shadow 150ms ease;
+}
+
+.samlab-kort-lenke:hover,
+.samlab-kort-lenke:focus {
+	box-shadow: 0 4px 10px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+.samlab-kort-logo img {
+	width: 3rem;
+	height: 3rem;
+	object-fit: contain;
+	border-radius: var(--samlab-radius-sm);
+}
+
+.samlab-kort-innhold h2 {
+	margin: 0 0 0.25rem;
+	font-size: 1.0625rem;
+	font-family: var(--samlab-font-heading);
+}
+
+.samlab-kort-kategori {
+	margin: 0 0 0.375rem;
+	font-size: 0.8125rem;
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
+	font-weight: 600;
+}
+
+.samlab-kort-tekst {
+	margin: 0 0 0.375rem;
+	font-size: 0.9375rem;
+}
+
+.samlab-kort-meta {
+	margin: 0;
+	font-size: 0.8125rem;
+	color: var(--samlab-demp);
+}
+
+.samlab-tom {
+	color: var(--samlab-demp);
+}
+
+.screen-reader-text {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+}
+
+/* Bedriftsprofilen */
+.samlab-tilbake a {
+	color: var(--samlab-demp);
+	text-decoration: none;
+}
+
+.samlab-profil-hode {
+	display: flex;
+	gap: 1.25rem;
+	align-items: flex-start;
+	margin-bottom: 1.5rem;
+}
+
+.samlab-profil-hode h1 {
+	margin: 0 0 0.25rem;
+}
+
+.samlab-avatar-stor {
+	width: 4.5rem;
+	height: 4.5rem;
+	font-size: 1.5rem;
+}
+
+.samlab-profil-del {
+	margin-bottom: 2rem;
+}
+
+.samlab-profil-del h2 {
+	font-family: var(--samlab-font-heading);
+	font-size: 1.25rem;
+	margin: 0 0 0.75rem;
+}
+
+.samlab-intensjoner {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: 1rem;
+	margin: 0 0 1rem;
+}
+
+.samlab-intensjoner dt {
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.samlab-intensjoner dd {
+	margin: 0.125rem 0 0;
+	color: var(--samlab-demp);
+}
+
+.samlab-person {
+	display: flex;
+	gap: 0.875rem;
+	align-items: center;
+	max-width: 24rem;
+}
+
+.samlab-person-navn {
+	margin: 0;
+	font-weight: 600;
+}
+
+.samlab-galleri {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+	gap: 0.75rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.samlab-galleri img {
+	width: 100%;
+	height: 9rem;
+	object-fit: cover;
+	border-radius: var(--samlab-radius-sm);
+}
+
+/* Behov-flaten og skjemaer */
+.samlab-melding {
+	padding: 0.625rem 1rem;
+	border-radius: var(--samlab-radius-sm);
+	border: 1px solid var(--samlab-linje);
+}
+
+.samlab-melding.er-suksess {
+	border-color: var(--samlab-aksent);
+}
+
+.samlab-melding.er-feil {
+	border-color: #b3261e;
+}
+
+.samlab-behov-merker {
+	margin: 0 0 0.5rem;
+	display: flex;
+	gap: 0.375rem;
+	flex-wrap: wrap;
+}
+
+.samlab-chip.er-tilbyr {
+	background: var(--samlab-fg);
+	color: var(--samlab-bg);
+}
+
+.samlab-skjema input[type="text"],
+.samlab-skjema textarea,
+.samlab-skjema select {
+	width: 100%;
+	max-width: 28rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+	box-sizing: border-box;
+}
+
+.samlab-skjema label {
+	font-weight: 600;
+	font-size: 0.9375rem;
+}
+
+.samlab-skjema fieldset {
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	margin: 0 0 1rem;
+	max-width: 28rem;
+}
+
+.samlab-skjema fieldset label {
+	font-weight: 400;
+	margin-right: 1rem;
+}
+
+/* Veggen */
+.samlab-vegg {
+	list-style: none;
+	margin: 1.5rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	max-width: 42rem;
+}
+
+.samlab-vegg-skjema {
+	max-width: 42rem;
+}
+
+.samlab-vegg-skjema textarea {
+	max-width: none;
+}
+
+.samlab-vegg-verktoy {
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+	flex-wrap: wrap;
+}
+
+.samlab-festet-merke {
+	margin: 0 0 0.5rem;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
+}
+
+.samlab-innlegg-hode {
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+	margin-bottom: 0.5rem;
+}
+
+.samlab-innlegg-hode .samlab-kort-meta {
+	margin: 0;
+}
+
+.samlab-innlegg-tekst p {
+	margin: 0 0 0.5rem;
+}
+
+.samlab-innlegg-bilde {
+	margin: 0.5rem 0;
+}
+
+.samlab-innlegg-bilde img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--samlab-radius-sm);
+}
+
+.samlab-innlegg-handlinger {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	margin: 0.75rem 0 0;
+	flex-wrap: wrap;
+}
+
+.samlab-liker[aria-pressed="true"] {
+	background: var(--samlab-aksent);
+	border-color: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+.samlab-moderer {
+	display: inline-flex;
+	gap: 0.5rem;
+}
+
+.samlab-kommentarer {
+	list-style: none;
+	margin: 0.75rem 0 0;
+	padding: 0.75rem 0 0;
+	border-top: 1px solid var(--samlab-linje);
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	font-size: 0.9375rem;
+}
+
+.samlab-kommentarer .samlab-person-navn {
+	display: inline;
+	margin-right: 0.375rem;
+}
+
+.samlab-kommentar-skjema {
+	display: flex;
+	gap: 0.5rem;
+	margin-top: 0.75rem;
+}
+
+.samlab-kommentar-skjema input[type="text"] {
+	flex: 1;
+	padding: 0.4rem 0.75rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+}
+
+/* Håndboken */
+.samlab-handbok {
+	display: grid;
+	grid-template-columns: 14rem 1fr;
+	gap: 2rem;
+	align-items: start;
+}
+
+@media (max-width: 48rem) {
+	.samlab-handbok {
+		grid-template-columns: 1fr;
+	}
+}
+
+.samlab-handbok-nav {
+	position: sticky;
+	top: 4.5rem;
+}
+
+.samlab-handbok-nav ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
+.samlab-handbok-nav a {
+	display: block;
+	padding: 0.375rem 0.75rem;
+	border-radius: var(--samlab-radius-sm);
+	color: var(--samlab-demp);
+	text-decoration: none;
+}
+
+.samlab-handbok-nav a:hover,
+.samlab-handbok-nav a:focus {
+	background: var(--samlab-flate);
+	color: var(--samlab-fg);
+}
+
+.samlab-handbok-nav a.er-aktiv {
+	background: var(--samlab-aksent);
+	color: var(--samlab-aksent-kontrast);
+}
+
+.samlab-handbok-innhold h2 {
+	font-family: var(--samlab-font-heading);
+	margin-top: 0;
+}
+
+.samlab-ankere {
+	background: var(--samlab-flate);
+	border-radius: var(--samlab-radius-md);
+	padding: 0.875rem 1.25rem;
+	font-size: 0.9375rem;
+	margin-bottom: 1.5rem;
+}
+
+.samlab-ankere ul {
+	list-style: none;
+	margin: 0.375rem 0 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem 1rem;
+}
+
+.samlab-ankere a {
+	color: var(--samlab-fg);
+}
+
+/* FAQ: details/summary-mønsteret (Gutenbergs details-blokk) */
+.samlab-prosa details {
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	padding: 0.75rem 1rem;
+	margin-bottom: 0.5rem;
+}
+
+.samlab-prosa summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.samlab-prosa details[open] summary {
+	margin-bottom: 0.5rem;
+}
+
+.samlab-prosa img {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--samlab-radius-sm);
+}
+
+/* Globalt søk og mentions */
+.samlab-globalsok {
+	margin-left: auto;
+}
+
+.samlab-globalsok input[type="search"] {
+	padding: 0.375rem 0.875rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-pill);
+	background: var(--samlab-bg);
+	color: var(--samlab-fg);
+	font: inherit;
+	width: 11rem;
+}
+
+.samlab-sokeliste {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.samlab-sokeliste a {
+	font-weight: 600;
+	color: var(--samlab-fg);
+}
+
+.samlab-mention {
+	color: var(--samlab-aksent-tekst, var(--samlab-aksent));
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.samlab-mention:hover,
+.samlab-mention:focus {
+	text-decoration: underline;
+}
+
+.samlab-mention-forslag {
+	list-style: none;
+	margin: 0;
+	padding: 0.25rem;
+	border: 1px solid var(--samlab-linje);
+	border-radius: var(--samlab-radius-sm);
+	background: var(--samlab-bg);
+	box-shadow: var(--samlab-skygge);
+	max-width: 20rem;
+}
+
+.samlab-mention-forslag button {
+	display: block;
+	width: 100%;
+	text-align: left;
+	padding: 0.375rem 0.625rem;
+	border: 0;
+	background: none;
+	color: var(--samlab-fg);
+	font: inherit;
+	cursor: pointer;
+	border-radius: var(--samlab-radius-sm);
+}
+
+.samlab-mention-forslag button:hover,
+.samlab-mention-forslag button:focus {
+	background: var(--samlab-flate);
+}

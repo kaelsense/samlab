@@ -1,0 +1,593 @@
+# Copyright (C) 2026 Digitelle AS
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Samlab 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/samlab\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-08-29T16:49:06+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: samlab\n"
+
+#. Plugin Name of the plugin
+#: samlab.php
+#: admin/settings.php:159
+#: admin/settings.php:160
+msgid "Samlab"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: samlab.php
+msgid "https://digitelle.no/samlab"
+msgstr ""
+
+#. Description of the plugin
+#: samlab.php
+msgid "Intern community-portal for coworking-hus og kontorfellesskap - katalog, behov og tilbud, vegg og håndbok."
+msgstr ""
+
+#. Author of the plugin
+#: samlab.php
+msgid "Digitelle AS"
+msgstr ""
+
+#. Author URI of the plugin
+#: samlab.php
+msgid "https://digitelle.no"
+msgstr ""
+
+#: admin/settings.php:22
+msgid "Portalnavn"
+msgstr ""
+
+#: admin/settings.php:24
+msgid "Vises i toppen av portalen. Standard: «Portalen»."
+msgstr ""
+
+#: admin/settings.php:27
+msgid "Portal-sti"
+msgstr ""
+
+#: admin/settings.php:29
+msgid "URL-stien portalen bor under. Standard: «portal»."
+msgstr ""
+
+#: admin/settings.php:32
+msgid "Navn på veggen"
+msgstr ""
+
+#: admin/settings.php:36
+msgid "Slug for veggen"
+msgstr ""
+
+#: admin/settings.php:40
+msgid "Navn på behovsflaten"
+msgstr ""
+
+#: admin/settings.php:44
+msgid "Slug for behovsflaten"
+msgstr ""
+
+#: admin/settings.php:48
+msgid "Navn på bedriftskatalogen"
+msgstr ""
+
+#: admin/settings.php:52
+msgid "Slug for bedriftskatalogen"
+msgstr ""
+
+#: admin/settings.php:56
+msgid "Navn på håndboken"
+msgstr ""
+
+#: admin/settings.php:60
+msgid "Slug for håndboken"
+msgstr ""
+
+#: admin/settings.php:64
+msgid "Aksentfarge"
+msgstr ""
+
+#: admin/settings.php:66
+msgid "Valgfri overstyring som heksverdi, f.eks. #3a5a40. Tom = temaets aksentfarge."
+msgstr ""
+
+#: admin/settings.php:69
+msgid "Logo-URL"
+msgstr ""
+
+#: admin/settings.php:71
+msgid "Valgfri. Last opp i mediebiblioteket og lim inn URL-en her."
+msgstr ""
+
+#: admin/settings.php:180
+msgid "Samlab-innstillinger"
+msgstr ""
+
+#: includes/forms.php:48
+#: includes/forms.php:133
+#: includes/forms.php:193
+#: includes/forms.php:239
+msgid "Ugyldig eller utløpt skjema - gå tilbake og prøv igjen."
+msgstr ""
+
+#: includes/forms.php:51
+msgid "Du har ikke tilgang til å opprette behov."
+msgstr ""
+
+#: includes/forms.php:70
+msgid "Kunne ikke lagre behovet."
+msgstr ""
+
+#: includes/forms.php:136
+msgid "Du har ikke tilgang til å poste på veggen."
+msgstr ""
+
+#: includes/forms.php:196
+#: includes/rest-api.php:105
+msgid "Du har ikke tilgang til portalen."
+msgstr ""
+
+#: includes/forms.php:251
+msgid "Kun moderatorer kan feste oppslag."
+msgstr ""
+
+#: includes/forms.php:256
+msgid "Kun moderatorer kan skjule innhold."
+msgstr ""
+
+#: includes/post-types.php:27
+#: includes/rewrites.php:68
+msgid "Bedrifter"
+msgstr ""
+
+#: includes/post-types.php:28
+#: includes/post-types.php:594
+#: templates/flater/behov.php:197
+msgid "Bedrift"
+msgstr ""
+
+#: includes/post-types.php:29
+msgid "Legg til bedrift"
+msgstr ""
+
+#: includes/post-types.php:30
+msgid "Rediger bedrift"
+msgstr ""
+
+#: includes/post-types.php:31
+#: templates/flater/bedrifter.php:64
+msgid "Søk i bedrifter"
+msgstr ""
+
+#: includes/post-types.php:32
+msgid "Ingen bedrifter funnet"
+msgstr ""
+
+#: includes/post-types.php:51
+msgid "Kategorier"
+msgstr ""
+
+#: includes/post-types.php:52
+msgid "Kategori"
+msgstr ""
+
+#: includes/post-types.php:75
+#: includes/rewrites.php:64
+msgid "Behov og tilbud"
+msgstr ""
+
+#: includes/post-types.php:76
+msgid "Behov"
+msgstr ""
+
+#: includes/post-types.php:77
+msgid "Legg til behov"
+msgstr ""
+
+#: includes/post-types.php:78
+msgid "Rediger behov"
+msgstr ""
+
+#: includes/post-types.php:79
+msgid "Søk i behov"
+msgstr ""
+
+#: includes/post-types.php:80
+msgid "Ingen behov funnet"
+msgstr ""
+
+#: includes/post-types.php:99
+#: includes/post-types.php:100
+#: templates/flater/behov.php:164
+msgid "Retning"
+msgstr ""
+
+#: includes/post-types.php:115
+msgid "Behovstyper"
+msgstr ""
+
+#: includes/post-types.php:116
+msgid "Behovstype"
+msgstr ""
+
+#: includes/post-types.php:136
+#: templates/flater/behov.php:75
+#: templates/flater/behov.php:165
+msgid "Trenger"
+msgstr ""
+
+#: includes/post-types.php:137
+#: templates/flater/behov.php:76
+#: templates/flater/behov.php:166
+msgid "Tilbyr"
+msgstr ""
+
+#: includes/post-types.php:213
+msgid "Kort beskrivelse"
+msgstr ""
+
+#: includes/post-types.php:217
+msgid "Plass i huset"
+msgstr ""
+
+#: includes/post-types.php:221
+msgid "Nettside"
+msgstr ""
+
+#: includes/post-types.php:225
+#: templates/flater/bedrift-profil.php:142
+msgid "Kontaktperson"
+msgstr ""
+
+#: includes/post-types.php:238
+msgid "Leverer"
+msgstr ""
+
+#: includes/post-types.php:239
+msgid "Kjøper"
+msgstr ""
+
+#: includes/post-types.php:240
+msgid "Trenger nå"
+msgstr ""
+
+#: includes/post-types.php:241
+msgid "Ideelle kunder"
+msgstr ""
+
+#: includes/post-types.php:251
+msgid "Bedriftsdetaljer"
+msgstr ""
+
+#: includes/post-types.php:252
+#: templates/flater/bedrift-profil.php:117
+msgid "Tjenester"
+msgstr ""
+
+#: includes/post-types.php:253
+#: templates/flater/bedrift-profil.php:95
+msgid "Dette ser vi etter"
+msgstr ""
+
+#: includes/post-types.php:280
+msgid "- Velg kontaktperson -"
+msgstr ""
+
+#: includes/post-types.php:315
+msgid "Legg til tjeneste"
+msgstr ""
+
+#: includes/post-types.php:356
+#: templates/flater/behov.php:156
+msgid "Tittel"
+msgstr ""
+
+#: includes/post-types.php:357
+msgid "Punkter (ett per linje)"
+msgstr ""
+
+#: includes/post-types.php:358
+msgid "Fjern tjeneste"
+msgstr ""
+
+#: includes/post-types.php:379
+msgid "Åpne for (ett per linje)"
+msgstr ""
+
+#: includes/post-types.php:504
+msgid "Samlab-portalen"
+msgstr ""
+
+#: includes/post-types.php:517
+msgid "Vis i portalens håndbok"
+msgstr ""
+
+#: includes/post-types.php:518
+msgid "Rekkefølgen styres av sidens «Rekkefølge»-felt."
+msgstr ""
+
+#: includes/post-types.php:553
+msgid "Behovsdetaljer"
+msgstr ""
+
+#: includes/post-types.php:567
+#: templates/flater/behov.php:180
+msgid "Frist"
+msgstr ""
+
+#: includes/post-types.php:568
+#: templates/flater/behov.php:184
+msgid "Budsjett"
+msgstr ""
+
+#: includes/post-types.php:569
+#: templates/flater/behov.php:192
+msgid "Ønsket kontaktform"
+msgstr ""
+
+#: includes/post-types.php:581
+#: templates/flater/behov.php:188
+msgid "Kompetanse (én per linje)"
+msgstr ""
+
+#: includes/post-types.php:596
+msgid "- Velg bedrift -"
+msgstr ""
+
+#: includes/rest-api.php:102
+msgid "Du må være innlogget."
+msgstr ""
+
+#: includes/rest-api.php:125
+msgid "Fant ikke innlegget."
+msgstr ""
+
+#: includes/rest-api.php:128
+msgid "Fant ikke kommentaren."
+msgstr ""
+
+#: includes/rewrites.php:47
+msgid "Portalen"
+msgstr ""
+
+#: includes/rewrites.php:60
+msgid "Veggen"
+msgstr ""
+
+#: includes/rewrites.php:72
+msgid "Håndboken"
+msgstr ""
+
+#: includes/roles.php:51
+msgid "Medlem"
+msgstr ""
+
+#: includes/roles.php:55
+msgid "Bedriftsredaktør"
+msgstr ""
+
+#: includes/roles.php:59
+msgid "Moderator"
+msgstr ""
+
+#: templates/flater/404.php:12
+#: templates/skall.php:18
+msgid "Fant ikke siden"
+msgstr ""
+
+#: templates/flater/404.php:13
+msgid "Til portalens forside"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:88
+msgid "Om oss"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:105
+msgid "Åpne for"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:137
+msgid "Folkene"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:150
+msgid "Galleri"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:161
+msgid "Aktive behov"
+msgstr ""
+
+#: templates/flater/bedrift-profil.php:175
+msgid "Frist:"
+msgstr ""
+
+#: templates/flater/bedrifter.php:60
+msgid "Bli kjent med bedriftene i huset - hver har sin egen side med folk, tjenester og hva de ser etter."
+msgstr ""
+
+#: templates/flater/bedrifter.php:65
+msgid "Søk i bedrifter …"
+msgstr ""
+
+#: templates/flater/bedrifter.php:69
+msgid "Søk"
+msgstr ""
+
+#: templates/flater/bedrifter.php:74
+#: templates/flater/behov.php:74
+msgid "Alle"
+msgstr ""
+
+#: templates/flater/bedrifter.php:87
+msgid "Ingen bedrifter matchet søket."
+msgstr ""
+
+#: templates/flater/behov.php:64
+msgid "Det huset trenger og tilbyr akkurat nå - legg inn ditt eget behov nederst."
+msgstr ""
+
+#: templates/flater/behov.php:68
+msgid "Behovet er publisert."
+msgstr ""
+
+#: templates/flater/behov.php:70
+msgid "Behovet trenger en tittel - prøv igjen."
+msgstr ""
+
+#: templates/flater/behov.php:88
+msgid "Ingen behov matchet filteret."
+msgstr ""
+
+#. translators: %s: fristen slik den er skrevet inn.
+#: templates/flater/behov.php:107
+#, php-format
+msgid "Frist: %s"
+msgstr ""
+
+#: templates/flater/behov.php:152
+msgid "Nytt behov"
+msgstr ""
+
+#: templates/flater/behov.php:160
+msgid "Beskrivelse"
+msgstr ""
+
+#: templates/flater/behov.php:170
+msgid "Type"
+msgstr ""
+
+#: templates/flater/behov.php:172
+msgid "- Velg type -"
+msgstr ""
+
+#: templates/flater/behov.php:199
+msgid "- Ingen bedrift -"
+msgstr ""
+
+#: templates/flater/behov.php:206
+msgid "Publiser behovet"
+msgstr ""
+
+#: templates/flater/handbok.php:30
+msgid "Ingen håndbok-sider ennå. Merk en side med «Vis i portalens håndbok» i sideredigeringen."
+msgstr ""
+
+#: templates/flater/handbok.php:33
+msgid "Håndbok-sider"
+msgstr ""
+
+#: templates/flater/handbok.php:73
+msgid "På denne siden"
+msgstr ""
+
+#: templates/flater/handbok.php:74
+msgid "På denne siden:"
+msgstr ""
+
+#. translators: %s: søkestrengen.
+#: templates/flater/hjem.php:29
+#, php-format
+msgid "Søk: «%s»"
+msgstr ""
+
+#: templates/flater/hjem.php:35
+msgid "Ingen treff i bedrifter, behov eller håndboken."
+msgstr ""
+
+#: templates/flater/hjem.php:64
+msgid "Velkommen til portalen - snarveiene under tar deg til flatene."
+msgstr ""
+
+#: templates/flater/vegg.php:27
+msgid "Innlegget kan ikke være tomt."
+msgstr ""
+
+#: templates/flater/vegg.php:32
+msgid "Nytt innlegg"
+msgstr ""
+
+#: templates/flater/vegg.php:36
+msgid "Hva skjer?"
+msgstr ""
+
+#: templates/flater/vegg.php:37
+msgid "Del noe med huset …"
+msgstr ""
+
+#: templates/flater/vegg.php:41
+msgid "Bilde (valgfritt)"
+msgstr ""
+
+#: templates/flater/vegg.php:43
+msgid "Del innlegg"
+msgstr ""
+
+#: templates/flater/vegg.php:50
+msgid "Ingen innlegg ennå - del det første!"
+msgstr ""
+
+#: templates/flater/vegg.php:56
+msgid "Ukjent"
+msgstr ""
+
+#: templates/flater/vegg.php:73
+msgid "Festet oppslag"
+msgstr ""
+
+#. translators: %s: tid siden innlegget, f.eks. «2 timer».
+#: templates/flater/vegg.php:82
+#, php-format
+msgid "%s siden"
+msgstr ""
+
+#: templates/flater/vegg.php:101
+msgid "Løsne"
+msgstr ""
+
+#: templates/flater/vegg.php:101
+msgid "Fest"
+msgstr ""
+
+#: templates/flater/vegg.php:105
+msgid "Skjul"
+msgstr ""
+
+#: templates/flater/vegg.php:123
+msgid "Kommenter"
+msgstr ""
+
+#: templates/flater/vegg.php:124
+msgid "Kommenter …"
+msgstr ""
+
+#: templates/flater/vegg.php:125
+msgid "Send"
+msgstr ""
+
+#: templates/skall.php:65
+msgid "Hopp til hovedinnhold"
+msgstr ""
+
+#: templates/skall.php:77
+msgid "Portalmeny"
+msgstr ""
+
+#: templates/skall.php:91
+msgid "Søk i portalen"
+msgstr ""
+
+#: templates/skall.php:92
+msgid "Søk …"
+msgstr ""
+
+#: templates/skall.php:116
+msgid "internt innhold, ikke offentlig"
+msgstr ""
