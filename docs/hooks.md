@@ -151,6 +151,39 @@ do_action( 'samlab_matching_kjort', $opprettet );
 
 Siden: 0.2.0.
 
+### `samlab_ukesbrev_sendt`
+
+Kjøres etter at et ukesbrev er sendt (daglig cron `samlab_ukesbrev`
+på innstilt ukedag, eller manuelt via `wp samlab ukesbrev`). Kjøres
+ikke når brevet var tomt og ble droppet.
+
+```php
+do_action( 'samlab_ukesbrev_sendt', $antall, $seksjoner );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$antall` | int | Antall e-poster sendt |
+| `$seksjoner` | array | Seksjonene brevet inneholdt |
+
+Siden: 0.2.0.
+
 ## Filters
 
-*(ingen ennå)*
+### `samlab_ukesbrev_seksjoner`
+
+Filtrerer ukesbrevets seksjoner før rendring og utsending. Hver
+seksjon er `{ tittel: string, linjer: [{ tekst: string, url?:
+string }] }`. E6 legger til kommende arrangementer her. Returner tom
+array for å hindre utsending.
+
+```php
+apply_filters( 'samlab_ukesbrev_seksjoner', $seksjoner, $siden );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$seksjoner` | array | Seksjonene (tittel + linjer med tekst og ev. url) |
+| `$siden` | int | Unix-tidspunktet brevet dekker fra (en uke tilbake) |
+
+Siden: 0.2.0.

@@ -2,6 +2,8 @@
 // Røyk-test for B6: egne tabeller for vegg og reaksjoner med CRUD.
 // Kjøres med: wp eval-file test-b6.php
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;

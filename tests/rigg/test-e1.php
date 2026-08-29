@@ -2,6 +2,8 @@
 // Røyk-test for E1: kobling-CPT med statuskjede og part-tilgang.
 // Kjøres med: wp eval-file test-e1.php  (etter reaktivering av pluginen)
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;

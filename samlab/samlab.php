@@ -56,6 +56,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-varsel.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/varsler.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/matching.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/ukesbrev.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-cli-command.php';
@@ -84,6 +85,9 @@ function samlab_activate() {
 	if ( ! wp_next_scheduled( 'samlab_matching' ) ) {
 		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'samlab_matching' );
 	}
+	if ( ! wp_next_scheduled( 'samlab_ukesbrev' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'samlab_ukesbrev' );
+	}
 	flush_rewrite_rules();
 	update_option( 'samlab_version', SAMLAB_VERSION );
 }
@@ -99,6 +103,7 @@ register_activation_hook( __FILE__, 'samlab_activate' );
  */
 function samlab_deactivate() {
 	wp_clear_scheduled_hook( 'samlab_matching' );
+	wp_clear_scheduled_hook( 'samlab_ukesbrev' );
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'samlab_deactivate' );

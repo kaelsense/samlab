@@ -2,6 +2,8 @@
 // Røyk-test for E2: in-app-varsler - utløsere, modell og opprydding.
 // Kjøres med: wp eval-file test-e2.php  (etter reaktivering, DB v2)
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;

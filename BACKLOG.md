@@ -461,7 +461,7 @@ med `wp cron event run`.*
   tester grønne inkl. idempotens og selv-match-eksklusjon. Tom
   debug.log, WPCS grønn, hooks- og sikkerhetsdocs oppdatert.
   Action: samlab_matching_kjort.
-- [ ] **E5. Ukesbrev.** Cron-jobb som sender digest via `wp_mail`:
+- [x] **E5. Ukesbrev.** Cron-jobb som sender digest via `wp_mail`:
   nye behov, nye innlegg, kommende arrangementer og nye medlemmer
   siste uke. Innstillinger: av/på, ukedag, avsendernavn. Medlemmer
   kan reservere seg (profilinnstilling). E-posten er ren tekst/enkel
@@ -470,6 +470,23 @@ med `wp cron event run`.*
   seed-data (fanget med mail-mock i riggen), reservasjon
   respekteres, og jobben planlegges/avplanlegges ved
   aktivering/deaktivering.
+  *Notat (2026-08-29):* includes/ukesbrev.php: ren tekst-digest
+  (nye behov, nytt på veggen, nye medlemmer) med portallenker og
+  reservasjonsforklaring; daglig cron samlab_ukesbrev som selv
+  sjekker ukedag + minst 6 dager siden sist (robust mot hoppede
+  dager), tomt brev sendes ikke. Innstillinger med nye felttyper
+  (avkryssing, ukedag-nedtrekk) + avsendernavn via
+  wp_mail_from_name kun under utsending. Reservasjon som
+  profil-avkryssing (kjernens nonce + edit_user). Kommende
+  arrangementer kobles på av E6 via nytt filter
+  samlab_ukesbrev_seksjoner; action samlab_ukesbrev_sendt. `wp
+  samlab ukesbrev [--vis]`. 22 tester grønne med
+  pre_wp_mail-mock (innhold mot seed, reservasjon, alle
+  tick-vakter, av-/planlegging ved deaktivering/aktivering).
+  Funn rettet i samme runde: eval-file kjører testfilene i
+  funksjons-scope, så exit-koden var alltid 0 - alle riggtester
+  binder nå $fail globalt (verifisert med negativ probe). Tom
+  debug.log, WPCS grønn, hooks- og sikkerhetsdocs oppdatert.
 - [ ] **E6. CPT: arrangement.** `samlab_arrangement` med dato/tid,
   sted, arrangør (bedriftskobling valgfri) og beskrivelse; egen
   portalflate (kommende først) som ny standardflate i nav og søk;

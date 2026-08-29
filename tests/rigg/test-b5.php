@@ -2,6 +2,8 @@
 // Røyk-test for B5: CPT behov, taksonomier og meta-lagring.
 // Kjøres med: wp eval-file test-b5.php
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;

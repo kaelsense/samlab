@@ -69,6 +69,37 @@ class Samlab_CLI_Command {
 	}
 
 	/**
+	 * Genererer og sender ukesbrevet nå (uavhengig av innstilt ukedag).
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--vis]
+	 * : Skriv brevteksten til terminalen i stedet for å sende.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab ukesbrev
+	 *     wp samlab ukesbrev --vis
+	 *
+	 * @param array $args       Posisjonsargumenter (ubrukt).
+	 * @param array $assoc_args Flagg.
+	 * @return void
+	 */
+	public function ukesbrev( $args, $assoc_args ) {
+		if ( isset( $assoc_args['vis'] ) ) {
+			$seksjoner = samlab_ukesbrev_seksjoner( time() - WEEK_IN_SECONDS );
+			if ( array() === $seksjoner ) {
+				WP_CLI::log( 'Ingenting å melde denne uken - brevet ville ikke blitt sendt.' );
+				return;
+			}
+			WP_CLI::log( samlab_ukesbrev_tekst( $seksjoner ) );
+			return;
+		}
+		$antall = samlab_send_ukesbrev();
+		WP_CLI::success( sprintf( 'Ukesbrev sendt til %d mottakere.', $antall ) );
+	}
+
+	/**
 	 * Oppretter demo-brukere (medlemmer og bedriftsredaktører).
 	 *
 	 * @return array<string, int> Brukernavn => ID.
