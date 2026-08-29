@@ -5,10 +5,11 @@ community-portal for norske coworking-hus og kontorfellesskap, generisk
 nok til ren community-bruk. Plugin-slug og tekstdomene: `samlab`. Digitelle AS eier produktet; Lius
 kunnskaps- og gründerhus er første kunde og referanse.
 
-Les `HANDOVER.md` først, deretter `docs/forslag-wordpress-utvidelse.md`
-(den vedtatte planen). Konsept og kravspesifikasjon ligger i
-`docs/forslag-b2b-community-os.md`, assistent-modulen i
-`docs/forslag-chatbot-lius-intern.md`.
+Les `handover/HANDOVER.md` først, deretter
+`handover/docs/forslag-wordpress-utvidelse.md` (den vedtatte planen).
+Konsept og kravspesifikasjon ligger i
+`handover/docs/forslag-b2b-community-os.md`, assistent-modulen i
+`handover/docs/forslag-chatbot-lius-intern.md`.
 
 ## Ufravikelige prinsipper
 
@@ -19,7 +20,7 @@ Les `HANDOVER.md` først, deretter `docs/forslag-wordpress-utvidelse.md`
 - **Temaets design er standard.** CSS bygges på tokens som leser
   WordPress' preset-variabler (`--wp--preset--color--*`,
   `--wp--preset--font-family--*`) med nøytrale fallbacks. Prototypen i
-  `referanse/prototype-demo.html` er fasit for struktur og UX - ikke
+  `handover/referanse/prototype-demo.html` er fasit for struktur og UX - ikke
   for farger og fonter.
 - **Ingen betal-avhengigheter.** Ikke ACF Pro, ingen tema- eller
   Elementor-kobling. Egne metabokser, eget app-skall på portal-rutene

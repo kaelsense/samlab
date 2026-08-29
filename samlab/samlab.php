@@ -8,7 +8,8 @@
  * Requires PHP:      8.2
  * Author:            Digitelle AS
  * Author URI:        https://digitelle.no
- * License:           TODO - lisensvalg tas i fase 0 (se AVKLARINGER.md)
+ * License:           GPL-2.0-or-later
+ * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       samlab
  * Domain Path:       /languages
  *

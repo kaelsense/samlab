@@ -21,3 +21,14 @@ anbefaling med begrunnelse.
    Anbefaling: (a) - koden i A1 er committet (eae15e1) og trivielt
    lav-risiko, og alternativ (b) stopper hele backloggen. Ved valg
    (a): kryss av A1 og fjern [BLOKKERT].
+   *Svar (2026-08-29, Kay):* Loopen skal få mulighet til å verifisere
+   selv. Løsning under utprøving: WordPress-testrigg på verten
+   (wp-cli + SQLite-drop-in, uten docker) som verifiseringsgrunnlag i
+   loop-miljøet; wp-env beholdes som oppskrift for lokal kjøring.
+
+2. **2026-08-29 - Lisens (fase 0): AVGJORT.** Kay valgte
+   GPL-2.0-or-later. Lagt inn i plugin-header og composer.json.
+
+3. **2026-08-29 - Branch: AVGJORT.** Loopen fortsetter på
+   `claude/backlog-tasks-loop-79kb3l`; merge til andre brancher gjøres
+   av mennesker. Doc-stiene i CLAUDE.md er rettet til `handover/...`.

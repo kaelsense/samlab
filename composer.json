@@ -2,6 +2,7 @@
 	"name": "digitelle/samlab",
 	"description": "Intern community-portal for coworking-hus og kontorfellesskap - WordPress-plugin.",
 	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
 	"require": {
 		"php": ">=8.2"
 	},
