@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="FYNA Designspråk – gjenbrukbar stilguide (palett, typografi, spacing, komponenter) med lim-inn CSS.">
+<title>FYNA Designspråk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  /* ============================================================
+     FYNA Designspråk — stilguiden følger selv systemet den beskriver.
+     Paletten er FYNAs egne tokens (src/app/globals.css); mørk modus
+     bruker den faktiske .dark-paletten.
+     ============================================================ */
+  :root {
+    --bg: #f7f9f7;
+    --surface: #ffffff;
+    --subtle: #f2f6f3;
+    --soft: #e3f1ea;
+    --ink: #17231d;
+    --ink-2: #5f6d65;
+    --green: #187a5a;
+    --green-hover: #126347;
+    --green-active: #0e513b;
+    --on-green: #ffffff;
+    --border: #dde5e0;
+    --border-faint: rgba(23, 35, 29, 0.08);
+    --hairline: rgba(23, 35, 29, 0.07);
+    --warning: #b97e1f;
+    --danger: #b42318;
+    --danger-soft: #fef0ee;
+    --ring: #187a5a;
+    --ring-soft: rgba(24, 122, 90, 0.14);
+
+    --shadow-sm: 0 1px 2px rgba(20, 30, 25, 0.04);
+    --shadow-card: 0 1px 2px rgba(23, 35, 29, 0.025), 0 8px 30px rgba(23, 35, 29, 0.035);
+    --shadow-float: 0 16px 40px rgba(20, 30, 25, 0.10);
+
+    --r-control: 8px;
+    --r-input: 10px;
+    --r-inner: 12px;
+    --r-card: 16px;
+    --r-panel: 18px;
+    --r-pill: 999px;
+
+    --sans: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+    --measure: 66ch;
+    --shell: 1180px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #131a17;
+      --surface: #1b2420;
+      --subtle: #232e28;
+      --soft: #22352c;
+      --ink: #e4ece7;
+      --ink-2: #93a69c;
+      --green: #5bbd94;
+      --green-hover: #6fcaa3;
+      --green-active: #83d7b2;
+      --on-green: #10201a;
+      --border: #2b3831;
+      --border-faint: rgba(228, 236, 231, 0.10);
+      --hairline: rgba(228, 236, 231, 0.09);
+      --warning: #d9a544;
+      --danger: #d97a7a;
+      --danger-soft: rgba(217, 122, 122, 0.14);
+      --ring: #5bbd94;
+      --ring-soft: rgba(91, 189, 148, 0.22);
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 30px rgba(0, 0, 0, 0.35);
+      --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #131a17;
+    --surface: #1b2420;
+    --subtle: #232e28;
+    --soft: #22352c;
+    --ink: #e4ece7;
+    --ink-2: #93a69c;
+    --green: #5bbd94;
+    --green-hover: #6fcaa3;
+    --green-active: #83d7b2;
+    --on-green: #10201a;
+    --border: #2b3831;
+    --border-faint: rgba(228, 236, 231, 0.10);
+    --hairline: rgba(228, 236, 231, 0.09);
+    --warning: #d9a544;
+    --danger: #d97a7a;
+    --danger-soft: rgba(217, 122, 122, 0.14);
+    --ring: #5bbd94;
+    --ring-soft: rgba(91, 189, 148, 0.22);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.25), 0 8px 30px rgba(0, 0, 0, 0.35);
+    --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 { text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(30px, 5vw, 44px); line-height: 1.06; font-weight: 600; letter-spacing: -0.03em; }
+  h2 { font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+  h3 { font-size: 16px; line-height: 1.35; font-weight: 600; letter-spacing: -0.005em; }
+  p { margin: 0; }
+  a { color: var(--green); text-underline-offset: 3px; }
+  code, .mono { font-family: var(--mono); }
+  :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+  /* -------- Skjelett -------- */
+  .wrap { max-width: var(--shell); margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px); }
+  .layout { display: grid; grid-template-columns: 1fr; gap: 0; }
+  @media (min-width: 960px) {
+    .layout { grid-template-columns: 232px minmax(0, 1fr); gap: 56px; align-items: start; }
+  }
+
+  /* -------- Topplinje -------- */
+  header.top {
+    position: sticky; top: 0; z-index: 20;
+    background: color-mix(in oklab, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(12px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .top-row { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand .leaf {
+    width: 30px; height: 30px; border-radius: 9px; flex: none;
+    background: var(--soft); color: var(--green-active);
+    display: grid; place-items: center;
+  }
+  :root[data-theme="dark"] .brand .leaf, :root:not([data-theme="light"]) .brand .leaf { color: var(--green-active); }
+  .theme-toggle {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 34px; padding: 0 14px; border-radius: var(--r-pill);
+    background: var(--surface); border: 1px solid var(--border); color: var(--ink);
+    font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease;
+  }
+  .theme-toggle:hover { background: var(--subtle); }
+
+  /* -------- Hero -------- */
+  .hero { padding: clamp(40px, 8vw, 76px) 0 clamp(28px, 5vw, 44px); border-bottom: 1px solid var(--hairline); }
+  .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--green); margin-bottom: 18px;
+  }
+  .hero p.lede { max-width: var(--measure); margin-top: 18px; font-size: clamp(16px, 2.2vw, 18px); color: var(--ink-2); line-height: 1.55; }
+  .adjectives { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+  .adjectives span {
+    height: 30px; display: inline-flex; align-items: center; padding: 0 12px;
+    border-radius: var(--r-pill); background: var(--soft); color: var(--green-active);
+    font-size: 13px; font-weight: 500;
+  }
+
+  /* -------- Innholdsmeny -------- */
+  nav.toc { position: sticky; top: 84px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 6px 12px; border-radius: var(--r-input);
+    color: var(--ink-2); text-decoration: none; font-size: 13.5px; line-height: 1.3;
+    transition: background-color 140ms ease, color 140ms ease;
+  }
+  nav.toc a:hover { background: var(--subtle); color: var(--ink); }
+  nav.toc a .n { font-family: var(--mono); font-size: 11px; color: var(--green); width: 16px; flex: none; }
+  nav.toc { display: none; }
+  @media (min-width: 960px) { nav.toc { display: block; } }
+
+  main { min-width: 0; padding-bottom: 96px; }
+  section.block { padding: clamp(36px, 6vw, 52px) 0; border-bottom: 1px solid var(--hairline); scroll-margin-top: 84px; }
+  section.block:last-child { border-bottom: none; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+  .sec-head .kicker { font-family: var(--mono); font-size: 12px; color: var(--green); }
+  section.block > p.intro { max-width: var(--measure); color: var(--ink-2); margin-top: 10px; }
+  .subhead { font-size: 12px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-2); margin: 30px 0 12px; }
+
+  /* -------- Kort / paneler -------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border-faint); border-radius: var(--r-card);
+    box-shadow: var(--shadow-card);
+  }
+  .grid { display: grid; gap: 16px; }
+  .cols-2 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .cols-3 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+
+  /* -------- Fargeswatcher -------- */
+  .theme-cols { display: grid; gap: 24px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .theme-cols { grid-template-columns: 1fr 1fr; } }
+  .palette-title { font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .palette-title .dot { width: 9px; height: 9px; border-radius: 999px; }
+  .swatches { display: grid; gap: 8px; grid-template-columns: 1fr; }
+  .swatch {
+    display: grid; grid-template-columns: 42px 1fr auto; align-items: center; gap: 12px;
+    padding: 8px; border-radius: var(--r-inner);
+    background: var(--surface); border: 1px solid var(--border-faint);
+    cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .swatch:hover { border-color: color-mix(in oklab, var(--ink) 14%, transparent); box-shadow: var(--shadow-sm); }
+  .swatch .chip { width: 42px; height: 42px; border-radius: 9px; border: 1px solid var(--border-faint); flex: none; }
+  .swatch .meta { min-width: 0; }
+  .swatch .role { font-size: 13.5px; font-weight: 500; }
+  .swatch .token { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); }
+  .swatch .hex { font-family: var(--mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0.02em; }
+
+  .cat-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+  .cat {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+    border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; font: inherit; color: inherit; text-align: left;
+  }
+  .cat:hover { background: var(--subtle); }
+  .cat .dot { width: 14px; height: 14px; border-radius: 999px; flex: none; }
+  .cat .name { font-size: 13.5px; font-weight: 500; }
+  .cat .hex { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+
+  .note {
+    display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r-inner);
+    background: color-mix(in oklab, var(--warning) 12%, var(--surface));
+    border: 1px solid color-mix(in oklab, var(--warning) 34%, transparent);
+    font-size: 13.5px; line-height: 1.5; margin-top: 20px;
+  }
+  .note b { color: var(--warning); }
+  .note .mark { flex: none; font-family: var(--mono); color: var(--warning); font-weight: 500; }
+
+  /* -------- Type-eksempler -------- */
+  .type-row { padding: 16px 0; border-top: 1px solid var(--hairline); display: grid; gap: 6px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .type-row { grid-template-columns: 1fr 168px; align-items: baseline; } }
+  .type-row:first-of-type { border-top: none; }
+  .type-spec { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2); line-height: 1.5; }
+  .t-page { font-size: 36px; line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; }
+  .t-section { font-size: 20px; line-height: 1.3; font-weight: 600; letter-spacing: -0.015em; }
+  .t-card { font-size: 16px; line-height: 1.35; font-weight: 600; }
+  .t-body { font-size: 15px; line-height: 1.55; font-weight: 400; max-width: 52ch; }
+  .t-label { font-size: 14px; font-weight: 500; }
+  .t-meta { font-size: 13px; line-height: 1.4; color: var(--ink-2); }
+  .t-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--green); }
+
+  /* -------- Skala-rader (spacing/radius/shadow) -------- */
+  .scale { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+  .scale .unit { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .scale .bar { background: var(--green); border-radius: 3px; height: 12px; }
+  .scale .cap { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .radii { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .radii .r { display: flex; flex-direction: column; gap: 8px; }
+  .radii .r .box { height: 60px; background: var(--soft); border: 1px solid var(--border); }
+  .radii .r .cap { font-family: var(--mono); font-size: 11px; color: var(--ink-2); }
+  .radii .r .cap b { color: var(--ink); font-weight: 500; }
+  .shadows { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .shadows .sh { background: var(--surface); border-radius: var(--r-card); padding: 22px 16px; text-align: center; border: 1px solid var(--border-faint); }
+  .shadows .sh .cap { margin-top: 14px; font-size: 12.5px; font-weight: 500; }
+  .shadows .sh .val { font-family: var(--mono); font-size: 10.5px; color: var(--ink-2); }
+
+  /* -------- Levende komponenter -------- */
+  .demo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 22px; background: var(--subtle); border-radius: var(--r-inner); }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 42px; padding: 0 18px; border-radius: var(--r-input);
+    font: inherit; font-size: 14.5px; font-weight: 500; cursor: pointer;
+    border: 1px solid transparent;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+  .btn:active { transform: translateY(0.5px); }
+  .btn-primary { background: var(--green); color: var(--on-green); }
+  .btn-primary:hover { background: var(--green-hover); }
+  .btn-secondary { background: var(--surface); border-color: var(--border); color: var(--ink); }
+  .btn-secondary:hover { border-color: color-mix(in oklab, var(--ink) 18%, transparent); }
+  .btn-ghost { background: transparent; color: var(--ink); }
+  .btn-ghost:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); }
+  .btn-danger { background: transparent; color: var(--danger); border-color: color-mix(in oklab, var(--danger) 30%, transparent); }
+  .btn-danger:hover { background: var(--danger-soft); }
+  .pill-round { border-radius: var(--r-pill); }
+
+  .chip {
+    height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 14px;
+    border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--border);
+    font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); cursor: pointer;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+  .chip:hover { background: var(--subtle); }
+  .chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--on-green); }
+
+  .badge {
+    height: 22px; display: inline-flex; align-items: center; padding: 0 8px;
+    border-radius: var(--r-pill); font-size: 12px; font-weight: 500; letter-spacing: 0.01em;
+  }
+  .badge-primary { background: var(--soft); color: var(--green-active); }
+  .badge-outline { border: 1px solid var(--border); color: var(--ink-2); }
+  .badge-warn { background: color-mix(in oklab, var(--warning) 16%, var(--surface)); color: var(--warning); }
+
+  .field { display: flex; flex-direction: column; gap: 7px; max-width: 320px; }
+  .field label { font-size: 14px; font-weight: 500; }
+  .field input, .field textarea {
+    font: inherit; font-size: 15px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-input); padding: 0 14px; height: 46px;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .field textarea { height: auto; min-height: 92px; padding: 12px 14px; resize: vertical; }
+  .field input::placeholder, .field textarea::placeholder { color: var(--ink-2); opacity: 0.85; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px var(--ring-soft); }
+  .field .help { font-size: 13px; color: var(--ink-2); }
+
+  .listcard { background: var(--surface); border: 1px solid var(--border-faint); border-radius: var(--r-panel); overflow: hidden; }
+  .listitem { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; padding: 16px; border-top: 1px solid var(--hairline); }
+  .listitem:first-child { border-top: none; }
+  .listitem .title { font-size: 15px; font-weight: 600; }
+  .listitem .metaline { font-size: 13px; color: var(--ink-2); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+  .activity-card { max-width: 320px; background: var(--surface); border: 1px solid var(--border-faint); border-radius: var(--r-card); box-shadow: var(--shadow-card); overflow: hidden; transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+  .activity-card:hover { border-color: color-mix(in oklab, var(--ink) 12%, transparent); box-shadow: var(--shadow-card), var(--shadow-float); transform: translateY(-1px); }
+  .activity-card .body { padding: 16px; }
+  .activity-card .badges { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .activity-card h4 { margin: 0; font-size: 16px; font-weight: 600; }
+  .activity-card .when { margin-top: 4px; font-size: 13px; color: var(--ink-2); }
+
+  .statrow { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat { background: var(--surface); border: 1px solid var(--border-faint); border-radius: var(--r-inner); padding: 16px; }
+  .stat .value { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .stat .label { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+
+  .navbar-demo { display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 14px; background: color-mix(in oklab, var(--surface) 94%, transparent); border: 1px solid var(--hairline); border-radius: var(--r-inner); }
+  .navbar-demo .navlink { height: 36px; display: inline-flex; align-items: center; padding: 0 14px; border-radius: var(--r-pill); font-size: 14px; font-weight: 500; color: var(--ink-2); text-decoration: none; cursor: pointer; }
+  .navbar-demo .navlink:hover { background: var(--subtle); color: var(--ink); }
+  .navbar-demo .navlink.active { background: var(--soft); color: var(--green-active); }
+  .navbar-demo .spacer { flex: 1; }
+
+  /* -------- Do / Don't -------- */
+  .rules { display: grid; gap: 10px; grid-template-columns: 1fr; counter-reset: rule; }
+  @media (min-width: 640px) { .rules { grid-template-columns: 1fr 1fr; } }
+  .rule { display: flex; gap: 12px; padding: 13px 15px; background: var(--surface); border: 1px solid var(--border-faint); border-radius: var(--r-inner); font-size: 14px; line-height: 1.45; }
+  .rule::before { counter-increment: rule; content: counter(rule); font-family: var(--mono); font-size: 12px; color: var(--danger); flex: none; width: 18px; }
+
+  /* -------- Kodeblokk -------- */
+  .code {
+    position: relative; margin-top: 16px; background: var(--surface);
+    border: 1px solid var(--border-faint); border-radius: var(--r-inner);
+    box-shadow: var(--shadow-sm); overflow: hidden;
+  }
+  .code .bar { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px 9px 16px; border-bottom: 1px solid var(--hairline); }
+  .code .bar .fname { font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .code pre { margin: 0; padding: 16px; overflow-x: auto; font-family: var(--mono); font-size: 12.5px; line-height: 1.65; }
+  .code pre code { color: var(--ink); }
+  .tok-c { color: var(--ink-2); }
+  .tok-p { color: var(--green); }
+  .copybtn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: var(--r-pill); background: var(--subtle); border: 1px solid var(--border); color: var(--ink-2); font: inherit; font-size: 12px; font-weight: 500; cursor: pointer; transition: background-color 140ms ease, color 140ms ease; }
+  .copybtn:hover { background: var(--soft); color: var(--green-active); }
+  .copybtn.ok { color: var(--green-active); background: var(--soft); }
+
+  .toast { position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: var(--r-pill); box-shadow: var(--shadow-float); opacity: 0; pointer-events: none; transition: opacity 180ms ease, transform 180ms ease; z-index: 40; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer { padding: 40px 0 64px; color: var(--ink-2); font-size: 13px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: baseline; }
+
+  .hint { font-size: 12.5px; color: var(--ink-2); margin-top: 10px; }
+  .hint code { background: var(--subtle); padding: 1px 5px; border-radius: 5px; font-size: 11.5px; }
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap top-row">
+    <div class="brand">
+      <span class="leaf" aria-hidden="true">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      </span>
+      FYNA Designspråk
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Bytt mellom lyst og mørkt tema">
+      <span id="themeIcon" aria-hidden="true">◐</span><span id="themeLabel">Tema</span>
+    </button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Designsystem · referanse for gjenbruk</div>
+    <h1>Et rolig, nordisk designspråk — destillert til tokens du kan ta med videre.</h1>
+    <p class="lede">Dette er retningslinjene bak FYNAs grensesnitt, samlet slik at de kan videreføres i et urelatert prosjekt. Selve siden følger systemet den beskriver. Kjernen — palett, typografi, spacing, flater og komponentoppskrifter — er produktnøytral; det domenespesifikke (kategorifarger, kart) er merket som eksempler. Klikk en verdi for å kopiere den.</p>
+    <div class="adjectives">
+      <span>Lyst</span><span>Varmt</span><span>Minimalistisk</span><span>Moderne</span><span>Vennlig</span><span>Raffinert</span><span>Tilgjengelig</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+    <nav class="toc" aria-label="Innhold">
+      <ol>
+        <li><a href="#prinsipp"><span class="n">01</span> Prinsipper</a></li>
+        <li><a href="#farge"><span class="n">02</span> Fargepalett</a></li>
+        <li><a href="#kategori"><span class="n">03</span> Kategorifarger</a></li>
+        <li><a href="#type"><span class="n">04</span> Typografi</a></li>
+        <li><a href="#spacing"><span class="n">05</span> Spacing</a></li>
+        <li><a href="#radius"><span class="n">06</span> Radius</a></li>
+        <li><a href="#skygge"><span class="n">07</span> Skygger</a></li>
+        <li><a href="#knapp"><span class="n">08</span> Knapper</a></li>
+        <li><a href="#chip"><span class="n">09</span> Chips & badges</a></li>
+        <li><a href="#skjema"><span class="n">10</span> Skjemafelt</a></li>
+        <li><a href="#flate"><span class="n">11</span> Kort & lister</a></li>
+        <li><a href="#navigasjon"><span class="n">12</span> Navigasjon</a></li>
+        <li><a href="#bevegelse"><span class="n">13</span> Bevegelse & fokus</a></li>
+        <li><a href="#regler"><span class="n">14</span> Ti regler</a></li>
+        <li><a href="#css"><span class="n">15</span> Lim inn i WordPress</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <!-- 01 -->
+      <section class="block" id="prinsipp">
+        <div class="sec-head"><span class="kicker">01</span><h2>Prinsipper</h2></div>
+        <p class="intro">Uttrykket skal føles som et moderne digitalt produkt, ikke et administrasjonssystem. Kvaliteten kommer fra typografi, spacing, flater, hierarki og konsistens — ikke fra effekter.</p>
+        <div class="grid cols-2" style="margin-top:24px">
+          <div class="card" style="padding:20px">
+            <h3 style="margin-bottom:8px">Ledestjernen</h3>
+            <p class="t-body" style="color:var(--ink-2)">Airbnbs varme og brukervennlighet møter Lumas moderne produktdesign, filtrert gjennom et rolig nordisk språk. Tidløst framfor trendy; troverdig framfor prangende.</p>
+          </div>
+          <div class="card" style="padding:20px">
+            <h3 style="margin-bottom:8px">Prioriter</h3>
+            <p class="t-body" style="color:var(--ink-2)">Mye whitespace · få streker · tydelig typografisk hierarki · myke flater · subtil dybde · færre harde kontraster · små, presise detaljer · svært konsistente komponenter.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section class="block" id="farge">
+        <div class="sec-head"><span class="kicker">02</span><h2>Fargepalett</h2></div>
+        <p class="intro">Grønt er identitetsbærende, men skal ikke dominere. Store flater er hvite eller svært lyse; grønt reserveres for primærhandlinger, aktiv navigasjon, valgte states og små aksenter. Nøytralene er bevisst dratt mot grønt — ikke en rå grå.</p>
+
+        <div class="theme-cols" style="margin-top:26px">
+          <div>
+            <div class="palette-title"><span class="dot" style="background:#f7f9f7;border:1px solid #dde5e0"></span>Lys modus</div>
+            <div class="swatches" id="paletteLight"></div>
+          </div>
+          <div>
+            <div class="palette-title"><span class="dot" style="background:#131a17"></span>Mørk modus</div>
+            <div class="swatches" id="paletteDark"></div>
+          </div>
+        </div>
+
+        <div class="note">
+          <span class="mark">AA</span>
+          <div><b>Tilgjengelighet går foran.</b> Tertiærtekst <span class="mono">#89938D</span> (3,2:1) og placeholder <span class="mono">#929C96</span> (2,8:1) fra briefen brukes <b>ikke</b> som tekstfarger — de bryter WCAG AA. Sekundærnivået <span class="mono">#5F6D65</span> (5,4:1) dekker metadata, labels og placeholder. <span class="mono">#89938D</span> kan brukes dekorativt (ikoner, streker).</div>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section class="block" id="kategori">
+        <div class="sec-head"><span class="kicker">03</span><h2>Kategorifarger</h2></div>
+        <p class="intro">Domenespesifikt for FYNA, men et nyttig mønster: et sett distinkte, dempede farger på lik metning, holdt <em>utenfor</em> temavariablene som datadrevne verdier. Fargen bæres av prikk/kant — teksten holder forgrunnsfargen, så kontrasten alltid er godkjent. Bytt hele settet for ditt eget domene.</p>
+        <div class="cat-grid" id="catGrid" style="margin-top:24px"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="block" id="type">
+        <div class="sec-head"><span class="kicker">04</span><h2>Typografi</h2></div>
+        <p class="intro">Én familie — <b>Geist</b> (fallback Inter/system-ui) — med <b>Geist Mono</b> til tall og tokens. Hierarkiet kommer fra størrelse, spacing og tone, ikke bare vekt. Overskrifter strammes med negativ letter-spacing; unngå for mange vekter.</p>
+        <div style="margin-top:22px">
+          <div class="type-row"><div class="t-page">Hva skjer i Elverum?</div><div class="type-spec">Page heading<br>36 / 1.1 · 600 · -0.03em<br>mobil 30px</div></div>
+          <div class="type-row"><div class="t-section">Aktive og fremtidige</div><div class="type-spec">Section heading<br>20 / 1.3 · 600 · -0.015em</div></div>
+          <div class="type-row"><div class="t-card">Åpen fotballtrening</div><div class="type-spec">Card heading<br>16 / 1.35 · 600</div></div>
+          <div class="type-row"><div class="t-body">Lavterskel trening på Sentralidrettsplassen. Alle er velkomne — ta med innesko og godt humør.</div><div class="type-spec">Body<br>15 / 1.55 · 400</div></div>
+          <div class="type-row"><div class="t-label">Tidsrom</div><div class="type-spec">Label<br>14 · 500</div></div>
+          <div class="type-row"><div class="t-meta">tir. 02. sep · 17:00 · Sentralidrettsplassen</div><div class="type-spec">Metadata<br>13 / 1.4 · sekundær</div></div>
+          <div class="type-row"><div class="t-eyebrow">Designsystem</div><div class="type-spec">Eyebrow / overline<br>12 · 600 · 0.14em · caps</div></div>
+        </div>
+      </section>
+
+      <!-- 05 -->
+      <section class="block" id="spacing">
+        <div class="sec-head"><span class="kicker">05</span><h2>Spacing</h2></div>
+        <p class="intro">Én skala, gjennomgående. Unngå tilfeldige avstander (13, 18, 27 px). Seksjonsavstand 32–40 px; store seksjoner 48–64 px. La whitespace gjøre struktureringsjobben framfor streker.</p>
+        <div class="scale" id="spacingScale" style="margin-top:26px"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="block" id="radius">
+        <div class="sec-head"><span class="kicker">06</span><h2>Radius</h2></div>
+        <p class="intro">Konsistent radius-system knyttet til elementtype — aldri tilfeldige verdier.</p>
+        <div class="radii" style="margin-top:24px">
+          <div class="r"><div class="box" style="border-radius:8px"></div><div class="cap"><b>8px</b> · liten kontroll</div></div>
+          <div class="r"><div class="box" style="border-radius:10px"></div><div class="cap"><b>10px</b> · input / knapp</div></div>
+          <div class="r"><div class="box" style="border-radius:12px"></div><div class="cap"><b>12px</b> · indre flate / meny</div></div>
+          <div class="r"><div class="box" style="border-radius:16px"></div><div class="cap"><b>16px</b> · card</div></div>
+          <div class="r"><div class="box" style="border-radius:18px"></div><div class="cap"><b>18px</b> · stort panel</div></div>
+          <div class="r"><div class="box" style="border-radius:999px;height:60px"></div><div class="cap"><b>999px</b> · pills / chips</div></div>
+        </div>
+      </section>
+
+      <!-- 07 -->
+      <section class="block" id="skygge">
+        <div class="sec-head"><span class="kicker">07</span><h2>Skygger</h2></div>
+        <p class="intro">Maksimalt tre nivåer. Skygger skal knapt være synlige før elementet sammenlignes med bakgrunnen — ingen svevende Material-kort.</p>
+        <div class="shadows" style="margin-top:24px">
+          <div class="sh" style="box-shadow:var(--shadow-sm)"><div class="cap">Small</div><div class="val">0 1px 2px / .04</div></div>
+          <div class="sh" style="box-shadow:var(--shadow-card)"><div class="cap">Card</div><div class="val">0 8px 30px / .035</div></div>
+          <div class="sh" style="box-shadow:var(--shadow-float)"><div class="cap">Flytende</div><div class="val">0 16px 40px / .10</div></div>
+        </div>
+      </section>
+
+      <!-- 08 -->
+      <section class="block" id="knapp">
+        <div class="sec-head"><span class="kicker">08</span><h2>Knapper</h2></div>
+        <p class="intro">Høyde 42 px (primær 44), radius 10, vekt 500. Ikke gjør alle knapper like viktige: én tydelig primærhandling, resten rolige. Rød brukes som outline, ikke fylt, med mindre handlingen krever sterk oppmerksomhet. FYNA bruker ofte helt runde knapper (<span class="mono">999px</span>) i verktøylinjer.</p>
+        <div class="demo" style="margin-top:22px">
+          <button class="btn btn-primary" type="button">Lagre aktivitet</button>
+          <button class="btn btn-secondary" type="button">Avbryt</button>
+          <button class="btn btn-ghost" type="button">Nullstill</button>
+          <button class="btn btn-danger" type="button">Slett</button>
+          <button class="btn btn-primary pill-round" type="button">Ny aktivitet</button>
+        </div>
+      </section>
+
+      <!-- 09 -->
+      <section class="block" id="chip">
+        <div class="sec-head"><span class="kicker">09</span><h2>Chips &amp; badges</h2></div>
+        <p class="intro">Filter-pills er et bærende element: høyde 36, helt runde, hvit med kant, grønn når valgt. Badges er små og diskré (22 px), myk grønn framfor harde outlines.</p>
+        <div class="subhead">Filter-pills</div>
+        <div class="demo">
+          <button class="chip" type="button" aria-pressed="true">Alle</button>
+          <button class="chip" type="button" aria-pressed="false">I dag</button>
+          <button class="chip" type="button" aria-pressed="false">Denne uken</button>
+          <button class="chip" type="button" aria-pressed="false">Sport</button>
+          <button class="chip" type="button" aria-pressed="false">Kultur</button>
+        </div>
+        <div class="subhead">Badges</div>
+        <div class="demo">
+          <span class="badge badge-primary">Publisert</span>
+          <span class="badge badge-warn">Til godkjenning</span>
+          <span class="badge badge-outline">Utkast</span>
+          <span class="badge badge-primary">PÅGÅR</span>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section class="block" id="skjema">
+        <div class="sec-head"><span class="kicker">10</span><h2>Skjemafelt</h2></div>
+        <p class="intro">Alle felt skal føles som en del av systemet, ikke browser-default. Høyde 46, radius 10, myk kant. Fokus: grønn kant + en 3 px ring på 12 % alpha. Label 6–8 px over feltet; 18–22 px mellom formgrupper.</p>
+        <div class="grid cols-2" style="margin-top:22px">
+          <div class="field">
+            <label for="d-title">Tittel</label>
+            <input id="d-title" type="text" placeholder="F.eks. Åpen fotballtrening">
+            <span class="help">Vises som overskrift på aktivitetskortet.</span>
+          </div>
+          <div class="field">
+            <label for="d-desc">Beskrivelse</label>
+            <textarea id="d-desc" placeholder="Kort om hva som skjer …"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section class="block" id="flate">
+        <div class="sec-head"><span class="kicker">11</span><h2>Kort &amp; lister</h2></div>
+        <p class="intro">Kort er den viktigste byggeklossen: hvit flate, hårfin kant (8 % blekk), radius 16, knapt synlig skygge. Ved hover heves kortet 1 px med en litt sterkere skygge. Lister skilles primært med whitespace; metadata er sekundær og handlinger dominerer aldri innholdet. Store paneler bruker radius 18 — ikke ramme inn hver interne seksjon.</p>
+
+        <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:24px">
+          <div>
+            <div class="subhead">Aktivitetskort (hover det)</div>
+            <div class="activity-card">
+              <div class="body">
+                <div class="badges"><span class="badge badge-primary">PÅGÅR</span><span class="badge badge-outline">Sport</span></div>
+                <h4>Åpen fotballtrening</h4>
+                <div class="when">tir. 02. sep · 17:00–18:30 · Sentralidrettsplassen</div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="subhead">Listeelementer</div>
+            <div class="listcard">
+              <div class="listitem">
+                <div>
+                  <div class="title">Yoga i parken</div>
+                  <div class="metaline"><span class="badge badge-primary">Publisert</span> ons. 03. sep · 09:00 · Vestad</div>
+                </div>
+                <button class="btn btn-ghost" style="height:34px;padding:0 12px;font-size:13px" type="button">Rediger</button>
+              </div>
+              <div class="listitem">
+                <div>
+                  <div class="title">Kveldsmarked</div>
+                  <div class="metaline"><span class="badge badge-warn">Til godkjenning</span> fre. 05. sep · 16:00 · Torget</div>
+                </div>
+                <button class="btn btn-ghost" style="height:34px;padding:0 12px;font-size:13px" type="button">Rediger</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="subhead">Statistikk — tallet får prioritet, flaten er rolig</div>
+        <div class="statrow">
+          <div class="stat"><div class="value">128</div><div class="label">Gjennomført</div></div>
+          <div class="stat"><div class="value">1 540</div><div class="label">Samlet interesse</div></div>
+          <div class="stat"><div class="value">12,0</div><div class="label">Snitt per aktivitet</div></div>
+        </div>
+      </section>
+
+      <!-- 12 -->
+      <section class="block" id="navigasjon">
+        <div class="sec-head"><span class="kicker">12</span><h2>Navigasjon</h2></div>
+        <p class="intro">Svært ren header (64 px), nesten hvit med en hårfin bunnstrek og en nesten usynlig blur. Navigasjonselementer er runde (36 px). Aktiv tilstand: myk grønn flate og mørk grønn tekst — ingen tunge tabs eller rammer.</p>
+        <div class="navbar-demo" style="margin-top:22px">
+          <a class="navlink active">Utforsk</a>
+          <a class="navlink">Mine aktiviteter</a>
+          <a class="navlink">Innsikt</a>
+          <span class="spacer"></span>
+          <button class="btn btn-primary pill-round" style="height:36px;font-size:13.5px" type="button">Logg inn</button>
+        </div>
+      </section>
+
+      <!-- 13 -->
+      <section class="block" id="bevegelse">
+        <div class="sec-head"><span class="kicker">13</span><h2>Bevegelse &amp; fokus</h2></div>
+        <p class="intro">Microinteractions er subtile: én felles overgang på 160 ms ease for bakgrunn, kant, farge, skygge og transform. Tillatt: <span class="mono">translateY(-1px)</span> ved hover. Ikke bounce, skalering, lange overganger eller glow.</p>
+        <div class="grid cols-2" style="margin-top:22px">
+          <div class="card" style="padding:18px">
+            <h3 style="margin-bottom:8px">Overgang</h3>
+            <div class="code" style="margin-top:8px">
+              <div class="bar"><span class="fname">transition</span><button class="copybtn" data-copy="transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;" type="button">Kopier</button></div>
+              <pre><code>transition:
+  background-color 160ms ease,
+  border-color     160ms ease,
+  color            160ms ease,
+  box-shadow       160ms ease,
+  transform        160ms ease;</code></pre>
+            </div>
+          </div>
+          <div class="card" style="padding:18px">
+            <h3 style="margin-bottom:8px">Synlig tastaturfokus</h3>
+            <p class="t-body" style="color:var(--ink-2);margin-bottom:14px">Alltid en synlig outline i tillegg til den myke ringen — den myke ringen alene er ikke nok som tastaturfokus. Tab deg til knappen:</p>
+            <button class="btn btn-secondary" type="button">Fokusér meg (Tab)</button>
+            <div class="code" style="margin-top:14px">
+              <div class="bar"><span class="fname">:focus-visible</span><button class="copybtn" data-copy=":focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }" type="button">Kopier</button></div>
+              <pre><code>:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14 -->
+      <section class="block" id="regler">
+        <div class="sec-head"><span class="kicker">14</span><h2>Ti regler</h2></div>
+        <p class="intro">Sjekklisten som holder uttrykket konsistent. Bryt dem bare med god grunn.</p>
+        <div class="rules" style="margin-top:22px">
+          <div class="rule">Ikke bruk helt hvit bakgrunn på hele flaten — bruk den varme grunnflaten.</div>
+          <div class="rule">Ikke tegn rammer rundt alt; la whitespace strukturere.</div>
+          <div class="rule">Ikke bruk store skygger.</div>
+          <div class="rule">Ikke bruk gradients som hovedvirkemiddel.</div>
+          <div class="rule">Ikke gjør alle knapper visuelt like viktige.</div>
+          <div class="rule">Ikke gjør all tekst like mørk — bruk sekundærnivået.</div>
+          <div class="rule">Ikke bruk for mange font-vekter.</div>
+          <div class="rule">Ikke reduser whitespace for å presse inn mer.</div>
+          <div class="rule">Ikke introduser et enterprise-dashboard-uttrykk.</div>
+          <div class="rule">Ikke bruk tilfeldige verdier når en token finnes.</div>
+        </div>
+      </section>
+
+      <!-- 15 -->
+      <section class="block" id="css">
+        <div class="sec-head"><span class="kicker">15</span><h2>Lim inn i WordPress</h2></div>
+        <p class="intro">Legg tokenene som CSS-variabler på en klasse rundt plugin-en din — <span class="mono">.fyna-ui</span> — i stedet for <span class="mono">:root</span>. Da arver komponentene systemet uten å kollidere med temaets egne variabler, og du slår om mørk modus ved å sette klassen på samme container. Ingen Tailwind eller shadcn nødvendig; ren CSS.</p>
+
+        <div class="code">
+          <div class="bar"><span class="fname">fyna-tokens.css</span><button class="copybtn" data-copy-target="cssTokens" type="button">Kopier alt</button></div>
+          <pre><code id="cssTokens"><span class="tok-c">/* Scope alt til plugin-containeren for å unngå temakollisjon */</span>
+.fyna-ui {
+  <span class="tok-c">/* Flater */</span>
+  --bg: #f7f9f7;            <span class="tok-c">/* grunnflate, aldri helhvit */</span>
+  --surface: #ffffff;      <span class="tok-c">/* kort/paneler */</span>
+  --subtle: #f2f6f3;       <span class="tok-c">/* ghost-hover, subtil flate */</span>
+  --soft: #e3f1ea;         <span class="tok-c">/* myk grønn identitetsflate */</span>
+  <span class="tok-c">/* Tekst (tertiær utelatt – bryter WCAG AA) */</span>
+  --ink: #17231d;          <span class="tok-c">/* primærtekst */</span>
+  --ink-2: #5f6d65;        <span class="tok-c">/* sekundær: metadata, labels, placeholder */</span>
+  <span class="tok-c">/* Grønn – identitet, brukes sparsomt */</span>
+  --primary: #187a5a;
+  --primary-hover: #126347;
+  --primary-active: #0e513b;
+  --on-primary: #ffffff;
+  <span class="tok-c">/* Linjer */</span>
+  --border: #dde5e0;
+  --border-faint: rgba(23,35,29,.08);
+  --hairline: rgba(23,35,29,.07);
+  <span class="tok-c">/* Semantisk (adskilt fra aksenten) */</span>
+  --warning: #b97e1f;
+  --danger: #b42318;
+  --danger-soft: #fef0ee;
+  --ring: #187a5a;
+  <span class="tok-c">/* Radius */</span>
+  --r-control: 8px; --r-input: 10px; --r-inner: 12px;
+  --r-card: 16px; --r-panel: 18px; --r-pill: 999px;
+  <span class="tok-c">/* Skygger – maks tre nivåer, knapt synlige */</span>
+  --shadow-sm: 0 1px 2px rgba(20,30,25,.04);
+  --shadow-card: 0 1px 2px rgba(23,35,29,.025), 0 8px 30px rgba(23,35,29,.035);
+  --shadow-float: 0 16px 40px rgba(20,30,25,.10);
+  <span class="tok-c">/* Type */</span>
+  --sans: "Geist", "Inter", system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.fyna-ui.is-dark {
+  --bg: #131a17;  --surface: #1b2420;  --subtle: #232e28;  --soft: #22352c;
+  --ink: #e4ece7; --ink-2: #93a69c;
+  --primary: #5bbd94; --primary-hover: #6fcaa3; --primary-active: #83d7b2; --on-primary: #10201a;
+  --border: #2b3831; --border-faint: rgba(228,236,231,.10); --hairline: rgba(228,236,231,.09);
+  --warning: #d9a544; --danger: #d97a7a; --danger-soft: rgba(217,122,122,.14); --ring: #5bbd94;
+}</code></pre>
+        </div>
+
+        <div class="code">
+          <div class="bar"><span class="fname">fyna-components.css</span><button class="copybtn" data-copy-target="cssComp" type="button">Kopier alt</button></div>
+          <pre><code id="cssComp"><span class="tok-c">/* Primærknapp */</span>
+.fyna-ui .btn {
+  height: 42px; padding: 0 18px; border-radius: var(--r-input);
+  font-weight: 500; border: 1px solid transparent; cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease,
+              box-shadow 160ms ease, transform 160ms ease;
+}
+.fyna-ui .btn--primary { background: var(--primary); color: var(--on-primary); }
+.fyna-ui .btn--primary:hover { background: var(--primary-hover); }
+.fyna-ui .btn--secondary { background: var(--surface); border-color: var(--border); color: var(--ink); }
+.fyna-ui .btn--ghost:hover { background: var(--subtle); }
+
+<span class="tok-c">/* Filter-pill */</span>
+.fyna-ui .chip {
+  height: 36px; padding: 0 14px; border-radius: var(--r-pill);
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.fyna-ui .chip[aria-pressed="true"] {
+  background: var(--primary); border-color: var(--primary); color: var(--on-primary);
+}
+
+<span class="tok-c">/* Kort */</span>
+.fyna-ui .card {
+  background: var(--surface); border: 1px solid var(--border-faint);
+  border-radius: var(--r-card); box-shadow: var(--shadow-card);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.fyna-ui .card:hover { box-shadow: var(--shadow-float); transform: translateY(-1px); }
+
+<span class="tok-c">/* Inputfelt */</span>
+.fyna-ui input, .fyna-ui textarea {
+  height: 46px; padding: 0 14px; border-radius: var(--r-input);
+  background: var(--surface); border: 1px solid var(--border);
+  font-size: 15px; color: var(--ink);
+}
+.fyna-ui input:focus, .fyna-ui textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+<span class="tok-c">/* Synlig tastaturfokus – aldri usynlig */</span>
+.fyna-ui :focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }</code></pre>
+        </div>
+
+        <p class="hint">Geist ligger på Google Fonts: <code>&lt;link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono&amp;display=swap" rel="stylesheet"&gt;</code>. I en WP-plugin: enqueue den med <code>wp_enqueue_style()</code> framfor en rå <code>&lt;link&gt;</code>.</p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>FYNA Designspråk</span>
+    <span style="color:var(--green)">·</span>
+    <span>Destillert fra <span class="mono">docs/DESIGNBRIEF.md</span> og <span class="mono">globals.css</span></span>
+    <span style="color:var(--green)">·</span>
+    <span>Airbnb-varme × Luma-presisjon × nordisk ro</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Kopiert</div>
+
+<script>
+  // ---- Data: paletten (lys + mørk), rendret som klikkbare swatcher ----
+  const LIGHT = [
+    ["Grunnflate", "--background", "#f7f9f7", "App-bakgrunn — aldri helhvit"],
+    ["Surface", "--card", "#ffffff", "Kort og paneler"],
+    ["Subtil flate", "--muted", "#f2f6f3", "Ghost-hover, dempet flate"],
+    ["Myk grønn", "--secondary", "#e3f1ea", "Identitetsflate, valgt state"],
+    ["Primærtekst", "--foreground", "#17231d", "Overskrifter og brødtekst"],
+    ["Sekundærtekst", "--muted-foreground", "#5f6d65", "Metadata, labels, placeholder"],
+    ["Grønn", "--primary", "#187a5a", "Primærhandling, aktiv, aksent"],
+    ["Grønn hover", "--primary-hover", "#126347", "Hover på primær"],
+    ["Grønn aktiv", "--primary-active", "#0e513b", "Trykk / tekst på myk grønn"],
+    ["Kant", "--border", "#dde5e0", "Synlige linjer (bruk sparsomt)"],
+    ["Inputkant", "--input", "#d8e0db", "Feltrammer"],
+    ["Advarsel", "--warning", "#b97e1f", "Til godkjenning, obs"],
+    ["Fare", "--destructive", "#b42318", "Sletting, kritisk"],
+    ["Fokusring", "--ring", "#187a5a", "Tastaturfokus"],
+  ];
+  const DARK = [
+    ["Grunnflate", "--background", "#131a17", "App-bakgrunn"],
+    ["Surface", "--card", "#1b2420", "Kort og paneler"],
+    ["Subtil flate", "--muted", "#232e28", "Ghost-hover, dempet flate"],
+    ["Myk grønn", "--secondary", "#22352c", "Identitetsflate, valgt state"],
+    ["Primærtekst", "--foreground", "#e4ece7", "Overskrifter og brødtekst"],
+    ["Sekundærtekst", "--muted-foreground", "#93a69c", "Metadata, labels, placeholder"],
+    ["Grønn", "--primary", "#5bbd94", "Lysner i mørk modus for kontrast"],
+    ["Grønn hover", "--primary-hover", "#6fcaa3", "Hover på primær"],
+    ["Grønn aktiv", "--primary-active", "#83d7b2", "Trykk / tekst på myk grønn"],
+    ["Kant", "--border", "#2b3831", "Synlige linjer"],
+    ["Inputkant", "--input", "#35443c", "Feltrammer"],
+    ["Advarsel", "--warning", "#d9a544", "Til godkjenning, obs"],
+    ["Fare", "--destructive", "#d97a7a", "Sletting, kritisk"],
+    ["Fokusring", "--ring", "#5bbd94", "Tastaturfokus"],
+  ];
+  const CATS = [
+    ["Familie", "#C2571F"], ["Kultur", "#7A4FB0"], ["Sport", "#1F6FB0"],
+    ["Utendørs", "#2A7D5F"], ["Mat og drikke", "#B03A48"], ["Musikk og uteliv", "#A03E8C"],
+    ["Marked og handel", "#8A6D1B"], ["Kurs og læring", "#3C6E71"], ["Samfunn og frivillighet", "#4F7A28"],
+    ["Næringsliv og nettverk", "#40556E"], ["Anlegg og renovasjon", "#6E6255"], ["Annet lokalt initiativ", "#5C6B64"],
+  ];
+  const SPACING = [4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80];
+
+  const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function swatchHTML(list) {
+    return list.map(([role, token, hex, desc]) =>
+      `<button class="swatch" type="button" data-copy="${hex}" title="Klikk for å kopiere ${hex}">
+         <span class="chip" style="background:${hex}"></span>
+         <span class="meta"><span class="role">${esc(role)}</span><br><span class="token">${token}</span></span>
+         <span class="hex">${hex}</span>
+       </button>`).join("");
+  }
+  document.getElementById("paletteLight").innerHTML = swatchHTML(LIGHT);
+  document.getElementById("paletteDark").innerHTML = swatchHTML(DARK);
+
+  document.getElementById("catGrid").innerHTML = CATS.map(([name, hex]) =>
+    `<button class="cat" type="button" data-copy="${hex}" title="Klikk for å kopiere ${hex}">
+       <span class="dot" style="background:${hex}"></span><span class="name">${esc(name)}</span><span class="hex">${hex}</span>
+     </button>`).join("");
+
+  document.getElementById("spacingScale").innerHTML = SPACING.map((n) =>
+    `<div class="unit"><div class="bar" style="width:${n}px"></div><div class="cap">${n}</div></div>`).join("");
+
+  // ---- Kopier til utklippstavle ----
+  const toast = document.getElementById("toast");
+  let toastT;
+  function flash(msg) {
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(toastT);
+    toastT = setTimeout(() => toast.classList.remove("show"), 1400);
+  }
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      flash("Kopiert");
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); flash("Kopiert"); } catch { flash("Kunne ikke kopiere"); }
+      ta.remove();
+    }
+  }
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-copy], [data-copy-target]");
+    if (!el) return;
+    if (el.dataset.copyTarget) {
+      const node = document.getElementById(el.dataset.copyTarget);
+      copy(node.innerText);
+      const label = el.textContent;
+      el.textContent = "Kopiert ✓"; el.classList.add("ok");
+      setTimeout(() => { el.textContent = label; el.classList.remove("ok"); }, 1400);
+    } else {
+      copy(el.dataset.copy);
+    }
+  });
+
+  // ---- Tema-toggle (respekterer OS til brukeren velger selv) ----
+  const root = document.documentElement;
+  const icon = document.getElementById("themeIcon");
+  const label = document.getElementById("themeLabel");
+  function currentDark() {
+    const t = root.getAttribute("data-theme");
+    if (t === "dark") return true;
+    if (t === "light") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  }
+  function sync() {
+    const dark = currentDark();
+    icon.textContent = dark ? "☾" : "☀";
+    label.textContent = dark ? "Mørkt" : "Lyst";
+  }
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    root.setAttribute("data-theme", currentDark() ? "light" : "dark");
+    sync();
+  });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", sync);
+  sync();
+</script>
+
+</body>
+</html>

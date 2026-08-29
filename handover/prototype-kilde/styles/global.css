@@ -1,0 +1,360 @@
+/* -------------------------------------------------------------------------- */
+/*                              LIUS - Global CSS                              */
+/*                                                                             */
+/*  Follows Digitelle Typografi-retningslinjer v1.0 (April 2026):              */
+/*  - Self-hosted Inter Variable only (GDPR, no Google CDN)                    */
+/*  - Fluid Utopia-based type scale, 320px → 1400px viewport                   */
+/*  - Mandatory H1 override for WCAG 2.5× resize rule                          */
+/*  - WCAG 2.1 AA compliance (contrast, reflow, spacing)                       */
+/*  - max-width: 70ch on body text                                             */
+/*  - Line-height 1.6 body / 1.1-1.2 headings                                  */
+/*                                                                             */
+/*  Colors extracted from existing lius.no Elementor kit CSS.                  */
+/* -------------------------------------------------------------------------- */
+
+/* Self-hosted Inter Variable (regular + italic) */
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/inter/wght-italic.css";
+
+@import "tailwindcss";
+
+/* --------------------------- Design tokens (v4) --------------------------- */
+@theme {
+  /* Brand palette - extracted from lius.no Elementor CSS */
+  --color-ink: #000000;
+  --color-ink-2: #1d213e;
+  --color-paper: #ffffff;
+  --color-surface: #edf1f4;
+  --color-surface-2: #f6f8fa;
+  --color-line: #d5dae0;
+  --color-line-soft: #e6e9ec;
+  --color-muted: #5c6470;
+  /* Grønnfargen er hentet fra Lius-logoen (prikken over i-en) */
+  --color-accent: #a5c23e;
+  --color-accent-hover: #93af2f;
+  --color-accent-ink: #141b05;
+
+  /* Semantic aliases used by components */
+  --color-bg: var(--color-paper);
+  --color-fg: var(--color-ink);
+  --color-fg-muted: var(--color-muted);
+  --color-border: var(--color-line);
+
+  /* Focus ring */
+  --color-focus: #1d213e;
+
+  /* Font family - Inter Variable only, self-hosted (Digitelle rule) */
+  --font-sans: "Inter Variable", system-ui, -apple-system, sans-serif;
+  /* Mono fallback for <code>/<kbd>/<pre> only - no custom mono webfont */
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Fluid type scale - Utopia method (320 → 1400 viewport).
+     Body / UI tokens (--text-xs … --text-4xl) still follow the
+     Digitelle CoreFramework baseline so ingress, buttons and general
+     body text stay readable at 16 px. */
+  --text-xs: 0.7875rem; /* 12.6px  fixed - footnotes */
+  --text-s: 0.8875rem;  /* 14.2px  fixed - metadata */
+  --text-m: clamp(1rem, 0.961rem + 0.194vw, 1.131rem);       /* 16 → 18.1px body/H6 */
+  --text-l: clamp(1.131rem, 1.022rem + 0.546vw, 1.5rem);     /* 18.1 → 24px ingress */
+  --text-xl: clamp(1.269rem, 1.052rem + 1.083vw, 2rem);      /* 20.3 → 32px eyebrow-xl */
+  --text-2xl: clamp(1.419rem, 1.05rem + 1.843vw, 2.663rem);  /* 22.7 → 42.6px */
+  --text-3xl: clamp(1.6rem, 1.022rem + 2.889vw, 3.55rem);    /* 25.6 → 56.8px */
+  --text-4xl: clamp(1.8rem, calc(3.7vw + 1.06rem), 4.5rem);  /* 28.8 → 72px */
+
+  /* Heading sizes - explicit 70 % scale of the Digitelle CoreFramework
+     baseline per client direction. Only applied to <h1>–<h5>; ingress
+     and other text elements keep the baseline --text-* tokens so body
+     copy doesn't shrink with them. */
+  --heading-h5: clamp(0.7917rem, 0.7154rem + 0.3822vw, 1.05rem);
+  --heading-h4: clamp(0.8883rem, 0.7364rem + 0.7581vw, 1.4rem);
+  --heading-h3: clamp(0.9933rem, 0.735rem + 1.2901vw, 1.8641rem);
+  --heading-h2: clamp(1.12rem, 0.7154rem + 2.0223vw, 2.485rem);
+  --heading-h1: clamp(1.26rem, calc(2.59vw + 0.742rem), 3.15rem);
+
+  /* Spacing (4pt grid, extends default) */
+  --spacing-section: clamp(4rem, 2rem + 6vw, 8rem);
+  --spacing-section-sm: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+
+  /* Radii */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-pill: 9999px;
+
+  /* Shadows - very soft, mostly for cards on hover */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.04);
+  --shadow-md: 0 4px 10px -2px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 20px 40px -12px rgb(0 0 0 / 0.12);
+
+  /* Layout */
+  --container-content: 72rem;  /* 1152px inner content */
+  --container-wide: 100rem;    /* 1600px wide sections */
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 150ms;
+  --dur-base: 240ms;
+}
+
+/* ------------------------------- Base layer ------------------------------- */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    /* Respect reduced motion: disable smooth scroll */
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--text-m);
+    line-height: 1.6;          /* Digitelle body rule */
+    color: var(--color-fg);
+    background: var(--color-bg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern", "liga", "calt", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    text-wrap: balance;
+    font-family: var(--font-sans);
+  }
+
+  /* Digitelle: H1–H3 bold + negative tracking */
+  h1, h2, h3 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  h1 { font-size: var(--heading-h1); }
+  h2 { font-size: var(--heading-h2); }
+  h3 { font-size: var(--heading-h3); line-height: 1.15; }
+
+  /* Digitelle: H4–H6 semibold */
+  h4, h5, h6 {
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.2;
+  }
+  h4 { font-size: var(--heading-h4); }
+  h5 { font-size: var(--heading-h5); }
+  h6 { font-size: var(--text-m); }
+
+  p, li, blockquote {
+    max-width: 70ch; /* Digitelle readability rule */
+  }
+
+  p {
+    margin: 0 0 1em;
+  }
+
+  /* Links - inherit color, underline on hover, focus ring visible */
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+  a:hover {
+    color: var(--color-ink-2);
+  }
+
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  img,
+  picture,
+  video,
+  svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+
+  /* Skip link (accessible) */
+  .skip-link {
+    position: absolute;
+    top: -100px;
+    left: 1rem;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+  }
+  .skip-link:focus-visible {
+    top: 1rem;
+  }
+
+  code, kbd, pre, samp {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin: var(--spacing-section-sm) 0;
+  }
+}
+
+/* ---------------------------- Component layer ---------------------------- */
+@layer components {
+  /* Container utilities */
+  .container-content {
+    width: 100%;
+    max-width: var(--container-content);
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2vw + 0.5rem, 2rem);
+  }
+  .container-wide {
+    width: 100%;
+    max-width: var(--container-wide);
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 2vw + 0.5rem, 2rem);
+  }
+
+  /* Section spacing - symmetric top/bottom.
+     The gap that used to appear above the footer was caused by
+     .site-footer { margin-top: var(--spacing-section) } and
+     .cta-band  { margin-top: var(--spacing-section) }, both now
+     removed, so the last section flows directly into the footer
+     while keeping its natural padding-block on both ends. */
+  .section {
+    padding-block: var(--spacing-section);
+  }
+  .section-sm {
+    padding-block: var(--spacing-section-sm);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    font-family: var(--font-sans);
+    font-size: var(--text-m);
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+    min-height: 44px; /* WCAG target size */
+  }
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    border-color: var(--color-accent);
+  }
+  .btn-primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    color: var(--color-accent-ink);
+  }
+  .btn-dark {
+    background: var(--color-ink);
+    color: var(--color-paper);
+    border-color: var(--color-ink);
+  }
+  .btn-dark:hover {
+    background: var(--color-ink-2);
+    border-color: var(--color-ink-2);
+    color: var(--color-paper);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink);
+    border-color: var(--color-ink);
+  }
+  .btn-ghost:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-line);
+  }
+
+  /* Prose (long-form text blocks) */
+  .prose {
+    max-width: 70ch;
+  }
+  .prose > * + * {
+    margin-top: 1em;
+  }
+  .prose h2 {
+    margin-top: 1.4em;
+  }
+  .prose h3 {
+    margin-top: 1.2em;
+  }
+  .prose p {
+    max-width: 70ch;
+  }
+  .prose ul, .prose ol {
+    padding-left: 1.25em;
+  }
+  .prose li {
+    margin-bottom: 0.4em;
+  }
+  .prose a {
+    font-weight: 500;
+  }
+}

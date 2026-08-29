@@ -1,0 +1,423 @@
+---
+/*
+  Layout for PROTOTYPEN av Lius' interne community-plattform («Lius Intern»).
+
+  Dette er et designforslag, ikke en ferdig tjeneste: Sidene er statiske
+  mockups uten innlogging, database eller ekte funksjonalitet. Layouten har
+  derfor sin egen "innloggede" toppmeny (ikke hovedmenyen fra lius.no),
+  en tydelig prototype-stripe og noindex.
+*/
+import '@styles/global.css';
+
+interface Props {
+  title: string;
+  active?: 'pulsen' | 'behov' | 'bedrifter' | 'praktisk' | 'admin';
+}
+
+const { title, active } = Astro.props;
+
+const nav = [
+  { href: '/intern/', label: 'Pulsen', key: 'pulsen' },
+  { href: '/intern/behov/', label: 'Behov & tilbud', key: 'behov' },
+  { href: '/intern/bedrifter/', label: 'Bedrifter', key: 'bedrifter' },
+  { href: '/intern/praktisk/', label: 'Praktisk', key: 'praktisk' },
+  { href: '/intern/admin/', label: 'Kontrollpanel', key: 'admin' },
+];
+---
+
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title} - Lius Intern (prototype)</title>
+    <link rel="icon" type="image/png" href="/img/logo-lius-mark.png" />
+    <meta name="theme-color" content="#ffffff" />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Hopp til hovedinnhold</a>
+
+    <div class="proto-note" role="note">
+      Designprototype: forslag til intern community-plattform for Lius.
+      Alt innhold er eksempeldata, og alle personer er fiktive.
+    </div>
+
+    <header class="intern-header">
+      <div class="container-wide intern-header-inner">
+        <a href="/intern/" class="intern-brand" aria-label="Lius Intern - Pulsen">
+          <img src="/img/logo-lius-mark.png" alt="Lius" width="86" height="36" />
+          <span class="intern-badge">Intern</span>
+        </a>
+
+        <nav class="intern-nav" aria-label="Intern meny">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                <a
+                  href={item.href}
+                  class:list={['intern-nav-link', { 'is-active': active === item.key }]}
+                  aria-current={active === item.key ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <div class="intern-user">
+          <div class="intern-search" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" />
+              <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span>Søk i huset ...</span>
+          </div>
+          <span class="avatar avatar-t2" title="Innlogget bruker (eksempel)">KD</span>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <!-- PROTOTYPE: mock av chatboten «Kimma» (docs/forslag-chatbot-lius-intern.md).
+         Ren HTML/CSS via <details> - ingen ekte modell er koblet til. -->
+    <details class="bot">
+      <summary aria-label="Åpne chat med Kimma (prototype)">
+        <span class="bot-fab" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="bot-fab-label">Spør Kimma</span>
+      </summary>
+      <div class="bot-panel">
+        <header class="bot-head">
+          <span class="avatar avatar-sm avatar-t2">KI</span>
+          <div>
+            <p class="bot-name">Kimma</p>
+            <p class="bot-sub">Husets assistent · prototype</p>
+          </div>
+        </header>
+        <div class="bot-log">
+          <div class="bot-msg is-bot">
+            <p>Hei! Jeg svarer på spørsmål om huset, medlemmene og alt praktisk - basert på lius.no, lorenskogiutvikling.no og internsidene. Hva lurer du på?</p>
+          </div>
+          <div class="bot-suggest" aria-hidden="true">
+            <span class="intern-chip">Hvordan booker jeg møterom?</span>
+            <span class="intern-chip">Når er neste Onsdagspitch?</span>
+            <span class="intern-chip">Hvem kan hjelpe med regnskap?</span>
+          </div>
+          <div class="bot-msg is-user">
+            <p>Hva er wifi-passordet?</p>
+          </div>
+          <div class="bot-msg is-bot">
+            <p>
+              Arbeidsnettverket heter <strong>Lius_adm</strong>. Selve passordet
+              viser jeg ikke her - du finner det på Praktisk-siden når du er
+              innlogget. Gjester bruker nettverket Lius_gjest.
+            </p>
+            <p class="bot-src">Kilde: <a href="/intern/praktisk/#internett">Praktisk - Internett</a></p>
+          </div>
+        </div>
+        <div class="bot-input" aria-hidden="true">
+          <span class="bot-field">Skriv et spørsmål ...</span>
+          <span class="btn btn-primary btn-bot">Send</span>
+        </div>
+      </div>
+    </details>
+
+    <footer class="intern-footer">
+      <div class="container-wide intern-footer-inner">
+        <p>
+          Lius Intern - kun for medlemmer og ansatte i huset.
+          Denne siden er en designprototype.
+        </p>
+        <a href="/">Til lius.no</a>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  /* ------- Delte byggeklosser for intern-sidene (prefikset for å
+     ikke lekke inn i resten av nettstedet) ------- */
+
+  /* Initial-avatarer i fire fargevarianter fra husets palett */
+  .avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-s);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .avatar-sm { width: 2rem; height: 2rem; font-size: var(--text-xs); }
+  .avatar-lg { width: 3.5rem; height: 3.5rem; font-size: var(--text-m); }
+  .avatar-t1 { background: var(--color-ink-2); color: var(--color-paper); }
+  .avatar-t2 { background: var(--color-accent); color: var(--color-accent-ink); }
+  .avatar-t3 { background: var(--color-surface); color: var(--color-ink-2); border: 1px solid var(--color-line); }
+  .avatar-t4 { background: var(--color-ink); color: var(--color-paper); }
+
+  /* Kort-varianter brukt på tvers av intern-sidene */
+  .intern-card {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-lg);
+  }
+
+  .intern-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-s);
+    font-weight: 600;
+    background: var(--color-surface);
+    color: var(--color-ink-2);
+  }
+</style>
+
+<style>
+  .proto-note {
+    background: var(--color-ink-2);
+    color: var(--color-paper);
+    font-size: var(--text-s);
+    text-align: center;
+    padding: 0.5rem 1rem;
+  }
+
+  .intern-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--color-paper);
+    border-bottom: 1px solid var(--color-line-soft);
+  }
+  .intern-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 4rem;
+    flex-wrap: wrap;
+    padding-block: 0.5rem;
+  }
+
+  .intern-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+  }
+  .intern-brand img {
+    width: 86px;
+    height: auto;
+  }
+  .intern-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .intern-nav > ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .intern-nav-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-pill);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+    transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
+  .intern-nav-link:hover {
+    background: var(--color-surface-2);
+    color: var(--color-ink);
+  }
+  .intern-nav-link.is-active {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .intern-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+  }
+  .intern-search {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    color: var(--color-fg-muted);
+    font-size: var(--text-s);
+    min-width: 13rem;
+  }
+  @media (min-width: 900px) {
+    .intern-search { display: inline-flex; }
+  }
+
+  main {
+    background: var(--color-surface-2);
+    min-height: 60vh;
+  }
+
+  /* -- Chatbot-mock («Kimma») -------------------------------------------- */
+  .bot {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 60;
+  }
+  .bot summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+    border-radius: var(--radius-pill);
+    padding: 0.7rem 1.2rem 0.7rem 0.9rem;
+    font-weight: 700;
+    font-size: var(--text-s);
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.18);
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .bot summary::-webkit-details-marker { display: none; }
+  .bot summary:hover { transform: translateY(-2px); }
+  .bot-fab { display: inline-flex; }
+
+  .bot-panel {
+    position: absolute;
+    right: 0;
+    bottom: 3.5rem;
+    width: min(22rem, calc(100vw - 2.5rem));
+    background: var(--color-paper);
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 16px 48px rgb(0 0 0 / 0.22);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .bot-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-line-soft);
+    background: var(--color-surface-2);
+  }
+  .bot-name { margin: 0; font-weight: 700; font-size: var(--text-s); line-height: 1.2; }
+  .bot-sub { margin: 0; font-size: var(--text-xs); color: var(--color-fg-muted); }
+
+  .bot-log {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 22rem;
+    overflow-y: auto;
+  }
+  .bot-msg { max-width: 88%; }
+  .bot-msg p {
+    margin: 0;
+    font-size: var(--text-s);
+    line-height: 1.45;
+    padding: 0.6rem 0.85rem;
+    border-radius: var(--radius-md);
+    max-width: none;
+  }
+  .bot-msg p + p { margin-top: 0.35rem; }
+  .bot-msg.is-bot p {
+    background: var(--color-surface);
+    color: var(--color-fg);
+  }
+  .bot-msg.is-user {
+    align-self: flex-end;
+  }
+  .bot-msg.is-user p {
+    background: var(--color-ink-2);
+    color: var(--color-paper);
+  }
+  .bot-msg.is-bot p.bot-src {
+    font-size: var(--text-xs);
+    color: var(--color-fg-muted);
+    background: transparent;
+    padding: 0.25rem 0.85rem 0;
+  }
+  .bot-src a { color: var(--color-ink-2); font-weight: 600; }
+  .bot-suggest {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .bot-suggest .intern-chip {
+    font-size: var(--text-xs);
+    border: 1px solid var(--color-line);
+    background: var(--color-paper);
+    cursor: pointer;
+  }
+
+  .bot-input {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--color-line-soft);
+    align-items: center;
+  }
+  .bot-field {
+    flex: 1;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    padding: 0.5rem 0.9rem;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+  }
+  .btn-bot { padding: 0.5rem 1rem; min-height: 0; font-size: var(--text-s); }
+
+  .intern-footer {
+    border-top: 1px solid var(--color-line-soft);
+    background: var(--color-paper);
+  }
+  .intern-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 2rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: 1.25rem;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+  }
+  .intern-footer-inner p { margin: 0; max-width: none; }
+  .intern-footer-inner a { color: inherit; }
+</style>

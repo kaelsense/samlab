@@ -1,0 +1,542 @@
+---
+/*
+  PROTOTYPE: «Praktisk» - husets håndbok, basert på velkomstdokumentet
+  «Velkommen til Lius» (mai 2026). Innholdet er hentet fra dokumentet;
+  passord, IP-adresser og tilsvarende er byttet ut med plassholdere som
+  i den ferdige løsningen kun vises for innloggede medlemmer.
+*/
+import InternLayout from '@layouts/InternLayout.astro';
+
+const anker = [
+  { href: '#nokkel', label: 'Digital nøkkel' },
+  { href: '#internett', label: 'Internett' },
+  { href: '#booking', label: 'Møtebooking' },
+  { href: '#lunsj', label: 'Lunsj & mat' },
+  { href: '#arrangementer', label: 'Arrangementer' },
+  { href: '#parkering', label: 'Parkering' },
+  { href: '#printer', label: 'Printer' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#kontakt', label: 'Kontakt' },
+];
+
+const faq = [
+  {
+    q: 'Hvordan kommer jeg inn i bygget?',
+    a: 'JustIN Mobile-appen er den digitale nøkkelen din. Last den ned, registrer telefonnummeret ditt, velg Olav Thon i bygning-menyen og følg veiledningen. Se «Inngangsdører og kontorer» over.',
+  },
+  {
+    q: 'Hva er wifi-passordet?',
+    a: 'Arbeidsnettverket heter Lius_adm og har tilgang til printer. Passordet vises i boksen under «Internett» når du er innlogget. Gjester bruker nettverket Lius_gjest.',
+  },
+  {
+    q: 'Hvordan booker jeg møterom?',
+    a: 'All møtebooking gjøres i Lius-appen (AvoHub). Lius har 14 møterom som kan bookes.',
+  },
+  {
+    q: 'Må jeg booke stillerom?',
+    a: 'Nei. Lius har 9 stillerom som ikke krever booking - bare gå inn og bruk dem om de er ledige.',
+  },
+  {
+    q: 'Hvordan leier jeg loungen eller kursrommet?',
+    a: 'Loungen og kursrommet bookes manuelt på e-post til Stian. Husk å oppgi dato, tidspunkt, varighet og antall personer. Vertskapet er behjelpelig med bevertning, film, bilder og annen rigg.',
+  },
+  {
+    q: 'Når er felles lunsj?',
+    a: 'Kl. 11.30, ved de runde og firkantede bordene foran scenen. En lavterskel møteplass - helt uten møteagenda.',
+  },
+  {
+    q: 'Hvor får jeg kjøpt mat og drikke?',
+    a: 'I loungen står en Cola-automat (brus 27,-, energidrikk 32,-) og en kjøle-kiosk fra Nitor med toast, nudler, baguetter, yoghurt, smoothie og annet godt. Scan bankkort eller mobil, ta det du skal ha, og du belastes automatisk. Bestilling av mat via Lius-appen kommer.',
+  },
+  {
+    q: 'Hvordan får jeg fast parkeringsplass?',
+    a: 'Fast plass i parkeringshuset kan bestilles for 1 286,- inkl. mva per måned. Ta kontakt med Kim.',
+  },
+  {
+    q: 'Hvordan melder jeg meg på arrangementer?',
+    a: 'Full oversikt og påmelding finner du i Lius-appen (AvoHub). Du får også et ukesbrev på e-post med arrangementene i kommende uke.',
+  },
+  {
+    q: 'Hvordan pitcher jeg på Onsdagspitch?',
+    a: 'Hver onsdag kl. 12.00 i Loungen er det 15 minutter til å presentere prosjekter som ønsker samarbeidspartnere, søknader som trenger flere deltakere, investeringsmuligheter eller utfordringer som trenger innspill. Meld interesse til Kim.',
+  },
+  {
+    q: 'Hva gjør jeg med skitne kopper og glass?',
+    a: 'Bruk gjerne en av de tre oppvaskmaskinene. Er maskinen full? Ingen blir sure om du setter den på - tabletter ligger under vasken. Maskinene åpner seg automatisk når de er ferdige.',
+  },
+  {
+    q: 'Printeren fungerer ikke - hva gjør jeg?',
+    a: 'Sjekk at du er på nettverket Lius_adm og at driveren er installert (se «Printer» over). Fungerer det fortsatt ikke, kontakt Stian.',
+  },
+];
+
+const kontakter = [
+  { navn: 'Julie Østmoe', rolle: 'Community Manager', tlf: '464 54 021', epost: 'julie@lorenskogiu.no', initialer: 'JØ', farge: 2 },
+  { navn: 'Kim Hamli', rolle: 'Daglig leder Lius', tlf: '934 99 014', epost: 'kim@lorenskogiu.no', initialer: 'KH', farge: 1 },
+  { navn: 'Stian Skarelven', rolle: 'Operativ leder Lius', tlf: '411 04 556', epost: 'stian@lorenskogiu.no', initialer: 'SS', farge: 3 },
+  { navn: 'Mona Lunde Martinsen', rolle: 'Daglig leder Lørenskog i Utvikling', tlf: '415 59 266', epost: 'mona@lorenskogiu.no', initialer: 'ML', farge: 4 },
+];
+---
+
+<InternLayout title="Praktisk" active="praktisk">
+  <div class="container-content prak-shell">
+    <header class="prak-head">
+      <h1>Praktisk informasjon</h1>
+      <p>
+        Velkommen til hverdagen på Lius! Her finner du oppdatert og samlet
+        informasjon om bygget, fasilitetene og det som skjer fremover.
+      </p>
+      <p class="prak-meta">Sist oppdatert: mai 2026 · Erstatter velkomst-PDF-en - alltid siste versjon her.</p>
+    </header>
+
+    <nav class="prak-anchors" aria-label="Innhold på siden">
+      {anker.map((a) => <a href={a.href} class="intern-chip">{a.label}</a>)}
+    </nav>
+
+    <div class="prak-cols">
+      <div class="prak-main">
+        <!-- Digital nøkkel -->
+        <section class="intern-card prak-section" id="nokkel">
+          <h2>Inngangsdører og kontorer (digital nøkkel)</h2>
+          <p>
+            Dørene inn til Lius åpner du med appen <strong>JustIN Mobile</strong>.
+          </p>
+          <div class="app-row" aria-hidden="true">
+            <span class="btn btn-dark btn-sm">Google Play</span>
+            <span class="btn btn-dark btn-sm">App Store</span>
+          </div>
+          <ol class="step-list">
+            <li><strong>Last ned appen</strong> fra Google Play eller App Store.</li>
+            <li>
+              <strong>Registrer deg / logg inn:</strong> Åpne appen og registrer
+              telefonnummeret ditt. Du får en verifiseringskode via SMS - skriv
+              den inn i appen for å aktivere kontoen.
+            </li>
+            <li>
+              <strong>Få den digitale nøkkelen:</strong> Trykk på bygning-ikonet
+              øverst til høyre, velg <strong>Olav Thon</strong>, tillat Bluetooth
+              og følg veiledningen. Trykk på det grønne nøkkel-ikonet og scan
+              slik appen viser.
+            </li>
+          </ol>
+        </section>
+
+        <!-- Internett -->
+        <section class="intern-card prak-section" id="internett">
+          <h2>Internett</h2>
+          <div class="cred-grid">
+            <div class="cred">
+              <p class="cred-title">Primært nettverk (arbeid)</p>
+              <dl>
+                <div><dt>Nettverk</dt><dd>Lius_adm</dd></div>
+                <div>
+                  <dt>Passord</dt>
+                  <dd class="cred-masked" aria-label="Skjult passord">••••••••••</dd>
+                </div>
+              </dl>
+              <p class="cred-note">Har tilgang til printer</p>
+              <span class="btn btn-ghost btn-sm" aria-hidden="true">Vis passord</span>
+            </div>
+            <div class="cred">
+              <p class="cred-title">Gjestenettverk</p>
+              <dl>
+                <div><dt>Nettverk</dt><dd>Lius_gjest</dd></div>
+                <div>
+                  <dt>Passord</dt>
+                  <dd class="cred-masked" aria-label="Skjult passord">••••••••••</dd>
+                </div>
+              </dl>
+              <p class="cred-note">Del gjerne med besøkende</p>
+              <span class="btn btn-ghost btn-sm" aria-hidden="true">Vis passord</span>
+            </div>
+          </div>
+          <p class="placeholder-note">
+            Plassholder i prototypen: I den ferdige løsningen vises passordene
+            kun for innloggede medlemmer - de trenger aldri stå i et dokument
+            på avveie.
+          </p>
+        </section>
+
+        <!-- Møtebooking -->
+        <section class="intern-card prak-section" id="booking">
+          <h2>Lius-appen og møtebooking</h2>
+          <p>
+            All møtebooking gjøres i Lius-appen. Lius har <strong>14 møterom</strong>
+            som kan bookes. Appen heter <strong>AvoHub</strong> og finnes i
+            Google Play og App Store.
+          </p>
+          <div class="app-row" aria-hidden="true">
+            <span class="btn btn-dark btn-sm">Google Play</span>
+            <span class="btn btn-dark btn-sm">App Store</span>
+          </div>
+          <ul class="dot-list">
+            <li>
+              <strong>Stillerom:</strong> 9 stillerom krever ingen booking -
+              bare gå inn og bruk dem om de er ledige.
+            </li>
+            <li>
+              <strong>Leie av loungen og kursrommet:</strong> Bookes manuelt på
+              e-post til Stian. Oppgi dato, tidspunkt, varighet og antall
+              personer. Vertskapet er behjelpelig med bevertning, film, bilder
+              og annen rigg.
+            </li>
+          </ul>
+        </section>
+
+        <!-- Lunsj og mat -->
+        <section class="intern-card prak-section" id="lunsj">
+          <h2>Lunsj og mat</h2>
+          <p>
+            Vi oppfordrer alle til felles lunsj kl. <strong>11.30</strong>, ved
+            de runde og firkantede bordene foran scenen. En lavterskel
+            møteplass - helt uten møteagenda.
+          </p>
+          <ul class="dot-list">
+            <li>
+              <strong>Cola-automat:</strong> Brus (27,-) og energidrikk (32,-).
+            </li>
+            <li>
+              <strong>Kjøle-kiosk fra Nitor:</strong> Toast, nudler, baguetter,
+              yoghurt, smoothie, sjokolade og annet godt. Scan bankkort eller
+              mobil, ta det du skal ha og lukk skapet - du belastes automatisk.
+            </li>
+            <li>
+              <strong>Kommer:</strong> Bestilling av mat via Lius-appen (AvoHub).
+            </li>
+          </ul>
+        </section>
+
+        <!-- Arrangementer -->
+        <section class="intern-card prak-section" id="arrangementer">
+          <h2>Faste arrangementer</h2>
+          <ul class="event-blocks">
+            <li>
+              <p class="event-when">Hver onsdag · 12.00 · Loungen</p>
+              <p class="event-name">Onsdagspitch</p>
+              <p class="event-desc">
+                15 minutter til å presentere prosjekter som ønsker
+                samarbeidspartnere, søknader som trenger flere deltakere,
+                investeringsmuligheter eller utfordringer som trenger innspill.
+                Vil du pitche? Meld interesse til Kim.
+              </p>
+            </li>
+            <li>
+              <p class="event-when">Hver fredag · 10.00 · Auditoriet</p>
+              <p class="event-name">«Bli kjent med ...»</p>
+              <p class="event-desc">
+                Selskapene på Lius presenterer sin virksomhet - 10 minutter per
+                selskap. Ikke salg, kun presentasjon av hva din virksomhet gjør.
+              </p>
+            </li>
+            <li>
+              <p class="event-when">Minst én gang i måneden · Loungen</p>
+              <p class="event-name">Frokostmøter</p>
+              <p class="event-desc">Ulike temaer av forskjellige aktører.</p>
+            </li>
+            <li>
+              <p class="event-when">Løpende</p>
+              <p class="event-name">Trening og forebyggende helse</p>
+              <p class="event-desc">
+                Klatring, yoga og pilates, hypnose, løpe- og skogsturer - for de
+                som ønsker.
+              </p>
+            </li>
+          </ul>
+          <p class="placeholder-note">
+            Full oversikt og påmelding i Lius-appen (AvoHub). Ukesbrev på
+            e-post hver uke. Har du ønsker eller forslag? Ta kontakt med Kim.
+          </p>
+        </section>
+
+        <!-- Parkering -->
+        <section class="intern-card prak-section" id="parkering">
+          <h2>Parkering</h2>
+          <p>
+            Fast parkeringsplass i parkeringshuset kan bestilles.
+            Pris: <strong>1 286,- inkl. mva per måned</strong>. Ta kontakt med
+            Kim om du ønsker plass.
+          </p>
+        </section>
+
+        <!-- Printer -->
+        <section class="intern-card prak-section" id="printer">
+          <h2>Printer - installasjon</h2>
+          <ol class="step-list">
+            <li>Sørg for at du er koblet til nettverket <strong>Lius_adm</strong>.</li>
+            <li>
+              Last ned PCL6-driver for PC/Mac fra
+              <a href="https://global.sharp/restricted/print/select_os.html?view=2&pid=765&lang=2&region=1" rel="noopener" target="_blank">Sharp sine driversider</a>.
+            </li>
+            <li>Velg <strong>Next</strong>, deretter <strong>PCL6-driveren</strong> og klikk <strong>Download</strong>.</li>
+            <li>Velg standardinstallasjon. Får du melding om at skriver ikke er funnet, velg <strong>Spesifisert forhold</strong>.</li>
+            <li>
+              Under Maskin-navn eller IP-adresse angir du
+              <span class="cred-inline" aria-label="Skjult IP-adresse">[skriverens IP - vises for innloggede]</span>,
+              trykk <strong>Søk</strong> og velg skriveren.
+            </li>
+            <li>Fungerer det fortsatt ikke? Kontakt Stian.</li>
+          </ol>
+        </section>
+
+        <!-- FAQ -->
+        <section class="intern-card prak-section" id="faq">
+          <h2>Ofte stilte spørsmål</h2>
+          <div class="faq-list">
+            {faq.map((f) => (
+              <details class="faq-item">
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <!-- Kontakt -->
+        <section class="intern-card prak-section" id="kontakt">
+          <h2>Har du andre tanker, ideer eller spørsmål?</h2>
+          <p>Nøl ikke med å ta kontakt.</p>
+          <ul class="contact-grid">
+            {kontakter.map((k) => (
+              <li class="contact-card">
+                <span class={`avatar avatar-lg avatar-t${k.farge}`}>{k.initialer}</span>
+                <p class="contact-name">{k.navn}</p>
+                <p class="contact-role">{k.rolle}</p>
+                <p class="contact-links">
+                  <a href={`tel:+47${k.tlf.replaceAll(' ', '')}`}>{k.tlf}</a>
+                  <a href={`mailto:${k.epost}`}>{k.epost}</a>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+</InternLayout>
+
+<style>
+  .prak-shell {
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+  .prak-head h1 { margin-bottom: 0.5rem; }
+  .prak-head p { color: var(--color-fg-muted); max-width: 62ch; }
+  .prak-meta {
+    font-size: var(--text-s);
+    margin-top: 0.5rem;
+  }
+
+  .prak-anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 1.5rem 1.75rem;
+  }
+  .prak-anchors .intern-chip {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    color: var(--color-ink-2);
+    text-decoration: none;
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+  .prak-anchors .intern-chip:hover {
+    background: var(--color-surface);
+  }
+
+  .prak-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 50rem;
+  }
+  .prak-section {
+    padding: 1.5rem;
+    scroll-margin-top: 5.5rem;
+  }
+  .prak-section h2 {
+    font-size: var(--heading-h4);
+    margin-bottom: 0.85rem;
+  }
+  .prak-section p { color: var(--color-fg-muted); }
+
+  .app-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-block: 0.75rem 1rem;
+  }
+  .btn-sm { padding: 0.45rem 1.1rem; min-height: 0; font-size: var(--text-s); }
+
+  .step-list {
+    margin: 0;
+    padding-left: 1.3em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    color: var(--color-fg-muted);
+    font-size: var(--text-m);
+  }
+  .step-list li { max-width: 60ch; }
+
+  .dot-list {
+    margin: 0.75rem 0 0;
+    padding-left: 1.2em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6em;
+    color: var(--color-fg-muted);
+  }
+  .dot-list li { max-width: 60ch; }
+
+  /* -- Innloggingsbokser (plassholdere) ---------------------------------- */
+  .cred-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 680px) { .cred-grid { grid-template-columns: repeat(2, 1fr); } }
+  .cred {
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    padding: 1.1rem 1.25rem;
+  }
+  .cred-title {
+    margin: 0 0 0.6rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    font-size: var(--text-m);
+  }
+  .cred dl {
+    margin: 0 0 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .cred dt {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-fg-muted);
+  }
+  .cred dd {
+    margin: 0;
+    font-size: var(--text-m);
+    color: var(--color-ink);
+  }
+  .cred-masked { letter-spacing: 0.15em; color: var(--color-fg-muted); }
+  .cred-note {
+    margin: 0 0 0.75rem;
+    font-size: var(--text-xs);
+    color: var(--color-fg-muted);
+  }
+  .placeholder-note {
+    margin: 1rem 0 0;
+    font-size: var(--text-s);
+    font-style: italic;
+    color: var(--color-fg-muted);
+    max-width: 60ch;
+  }
+  .cred-inline {
+    background: var(--color-surface);
+    border: 1px dashed var(--color-line);
+    border-radius: var(--radius-sm);
+    padding: 0.05rem 0.4rem;
+    font-size: var(--text-s);
+    color: var(--color-ink-2);
+    white-space: nowrap;
+  }
+
+  /* -- Faste arrangementer ------------------------------------------------ */
+  .event-blocks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .event-blocks > li {
+    padding-block: 0.9rem;
+    max-width: none;
+  }
+  .event-blocks > li + li { border-top: 1px solid var(--color-line-soft); }
+  .event-when {
+    margin: 0;
+    font-size: var(--text-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-ink-2);
+  }
+  .event-name {
+    margin: 0.2rem 0 0.25rem;
+    font-weight: 700;
+    color: var(--color-ink);
+    font-size: var(--text-m);
+  }
+  .event-desc {
+    margin: 0;
+    font-size: var(--text-s);
+    max-width: 60ch;
+  }
+
+  /* -- FAQ ---------------------------------------------------------------- */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .faq-item {
+    border-top: 1px solid var(--color-line-soft);
+  }
+  .faq-item:first-child { border-top: none; }
+  .faq-item summary {
+    cursor: pointer;
+    padding: 0.85rem 0.25rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    font-size: var(--text-m);
+    list-style-position: outside;
+  }
+  .faq-item summary:hover { color: var(--color-ink-2); }
+  .faq-item[open] summary { padding-bottom: 0.35rem; }
+  .faq-item p {
+    margin: 0 0 0.85rem;
+    padding-left: 1.35rem;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+    max-width: 62ch;
+  }
+
+  /* -- Kontakter ----------------------------------------------------------- */
+  .contact-grid {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 680px) { .contact-grid { grid-template-columns: repeat(2, 1fr); } }
+  .contact-card {
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-2);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    max-width: none;
+  }
+  .contact-card .avatar { margin-bottom: 0.5rem; }
+  .contact-name { margin: 0; font-weight: 700; color: var(--color-ink); }
+  .contact-role { margin: 0; font-size: var(--text-s); color: var(--color-fg-muted); }
+  .contact-links {
+    margin: 0.5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: var(--text-s);
+  }
+  .contact-links a { color: var(--color-ink-2); text-decoration: none; }
+  .contact-links a:hover { text-decoration: underline; }
+</style>

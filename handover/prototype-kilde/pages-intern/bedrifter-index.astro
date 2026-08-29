@@ -1,0 +1,156 @@
+---
+/*
+  PROTOTYPE: Bedriftskatalogen - oversikt over alle bedriftene i huset.
+  Statisk mockup med eksempeldata fra src/data/intern.ts.
+*/
+import InternLayout from '@layouts/InternLayout.astro';
+import { bedrifter } from '@/data/intern';
+
+const kategorier = ['Alle', ...new Set(bedrifter.map((b) => b.kategori.split(' - ')[0]))];
+---
+
+<InternLayout title="Bedrifter" active="bedrifter">
+  <div class="container-content dir-shell">
+    <header class="dir-head">
+      <h1>Bedriftene i huset</h1>
+      <p>
+        Hver bedrift på Lius har sin egen side med historie, folk, tjenester
+        og bilder. Bli kjent med naboene dine - kanskje sitter neste kunde
+        eller samarbeidspartner to pulter unna.
+      </p>
+    </header>
+
+    <div class="dir-filter" aria-hidden="true">
+      {kategorier.map((k, i) => (
+        <span class:list={['intern-chip', { 'is-active': i === 0 }]}>{k}</span>
+      ))}
+    </div>
+
+    <ul class="dir-grid">
+      {bedrifter.map((b) => (
+        <li>
+          <a href={`/intern/bedrifter/${b.slug}/`} class="intern-card dir-card">
+            <div class="dir-logo">
+              {b.logo ? (
+                <img src={b.logo} alt={b.navn} loading="lazy" />
+              ) : (
+                <span class={`avatar avatar-lg avatar-t${b.farge}`}>{b.initialer}</span>
+              )}
+            </div>
+            <div class="dir-body">
+              <h2>{b.navn}</h2>
+              <p class="dir-cat">{b.kategori}</p>
+              <p class="dir-kort">{b.kort}</p>
+              <p class="dir-meta">
+                {b.ansatte.length} {b.ansatte.length === 1 ? 'person' : 'personer'} · {b.plass}
+              </p>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</InternLayout>
+
+<style>
+  .dir-shell {
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+  .dir-head h1 { margin-bottom: 0.5rem; }
+  .dir-head p { color: var(--color-fg-muted); max-width: 62ch; }
+
+  .dir-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: 1.5rem 2rem;
+  }
+  .dir-filter .intern-chip {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    color: var(--color-fg-muted);
+  }
+  .dir-filter .intern-chip.is-active {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .dir-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 680px) { .dir-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1024px) { .dir-grid { grid-template-columns: repeat(3, 1fr); } }
+  .dir-grid > li { max-width: none; }
+
+  .dir-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    text-decoration: none;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+  }
+  .dir-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-line);
+    color: inherit;
+  }
+
+  .dir-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 8.5rem;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--color-line-soft);
+    background: var(--color-paper);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .dir-logo img {
+    max-width: 70%;
+    max-height: 6rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .dir-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+  }
+  .dir-body h2 {
+    font-size: var(--heading-h4);
+    line-height: 1.25;
+  }
+  .dir-cat {
+    margin: 0;
+    font-size: var(--text-s);
+    font-weight: 600;
+    color: var(--color-ink-2);
+  }
+  .dir-kort {
+    margin: 0.25rem 0 0;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+    flex: 1;
+  }
+  .dir-meta {
+    margin: 0.75rem 0 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-line-soft);
+    font-size: var(--text-xs);
+    color: var(--color-fg-muted);
+  }
+</style>

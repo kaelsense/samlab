@@ -1,0 +1,203 @@
+---
+/*
+  PROTOTYPE: «Behov & tilbud» - kjernen i B2B Community OS-forslaget
+  (docs/forslag-b2b-community-os.md, kap. 2). Strukturerte behov og
+  tilbud med frist, budsjettområde, kompetanse og ønsket kontakt.
+  Statisk mockup med eksempeldata fra src/data/intern.ts.
+*/
+import InternLayout from '@layouts/InternLayout.astro';
+import { behov, finnBedrift } from '@/data/intern';
+
+const filtre = ['Alle', 'Jeg trenger', 'Jeg tilbyr'];
+const sortert = [...behov].sort((a, b) => (a.kategori === b.kategori ? 0 : a.kategori === 'trenger' ? -1 : 1));
+---
+
+<InternLayout title="Behov & tilbud" active="behov">
+  <div class="container-content need-shell">
+    <header class="need-head">
+      <h1>Behov & tilbud</h1>
+      <p>
+        Si hva bedriften din trenger akkurat nå - eller hva dere har ledig.
+        Strukturerte behov gjør at community-manageren og systemet kan foreslå
+        riktige koblinger, i stedet for at alle må rope i en felles feed.
+      </p>
+    </header>
+
+    <div class="need-bar">
+      <div class="need-filter" aria-hidden="true">
+        {filtre.map((f, i) => (
+          <span class:list={['intern-chip', { 'is-active': i === 0 }]}>{f}</span>
+        ))}
+      </div>
+      <span class="btn btn-primary" aria-hidden="true">Nytt behov eller tilbud</span>
+    </div>
+
+    <ul class="need-grid">
+      {sortert.map((n) => {
+        const b = finnBedrift(n.bedrift);
+        return (
+          <li>
+            <article class:list={['intern-card', 'need-card', `is-${n.kategori}`]}>
+              <p class="need-type">
+                <span class="need-kind">{n.kategori === 'trenger' ? 'Jeg trenger' : 'Jeg tilbyr'}</span>
+                {n.type}
+              </p>
+              <h2>{n.tittel}</h2>
+              <p class="need-desc">{n.beskrivelse}</p>
+
+              <dl class="need-meta">
+                {n.frist && (
+                  <div><dt>Frist</dt><dd>{n.frist}</dd></div>
+                )}
+                {n.budsjett && (
+                  <div><dt>Budsjett</dt><dd>{n.budsjett}</dd></div>
+                )}
+                {n.kompetanse && (
+                  <div><dt>Kompetanse</dt><dd>{n.kompetanse.join(', ')}</dd></div>
+                )}
+                <div><dt>Kontakt</dt><dd>{n.kontakt}</dd></div>
+              </dl>
+
+              {b && (
+                <footer class="need-foot">
+                  <a href={`/intern/bedrifter/${b.slug}/`} class="need-company">
+                    <span class={`avatar avatar-sm avatar-t${b.farge}`}>{b.initialer}</span>
+                    {b.navn}
+                  </a>
+                  <span class="btn btn-ghost btn-sm" aria-hidden="true">Ta kontakt</span>
+                </footer>
+              )}
+            </article>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</InternLayout>
+
+<style>
+  .need-shell {
+    padding-block: clamp(1.5rem, 1rem + 2vw, 3rem);
+  }
+  .need-head h1 { margin-bottom: 0.5rem; }
+  .need-head p { color: var(--color-fg-muted); max-width: 62ch; }
+
+  .need-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-block: 1.5rem 2rem;
+  }
+  .need-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .need-filter .intern-chip {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    color: var(--color-fg-muted);
+  }
+  .need-filter .intern-chip.is-active {
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .need-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  @media (min-width: 720px) { .need-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1080px) { .need-grid { grid-template-columns: repeat(3, 1fr); } }
+  .need-grid > li { max-width: none; }
+
+  .need-card {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .need-type {
+    margin: 0 0 0.6rem;
+    font-size: var(--text-xs);
+    color: var(--color-fg-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    max-width: none;
+  }
+  .need-kind {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.15rem 0.55rem;
+    border-radius: var(--radius-pill);
+    background: var(--color-ink-2);
+    color: var(--color-paper);
+  }
+  .need-card.is-tilbyr .need-kind {
+    background: var(--color-accent);
+    color: var(--color-accent-ink);
+  }
+
+  .need-card h2 {
+    font-size: var(--heading-h5);
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+  .need-desc {
+    margin: 0 0 1rem;
+    font-size: var(--text-s);
+    color: var(--color-fg-muted);
+    flex: 1;
+  }
+
+  .need-meta {
+    margin: 0 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 1rem;
+    font-size: var(--text-xs);
+  }
+  .need-meta dt {
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-fg-muted);
+    margin-bottom: 0.1rem;
+  }
+  .need-meta dd {
+    margin: 0;
+    color: var(--color-fg);
+    font-size: var(--text-s);
+  }
+
+  .need-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--color-line-soft);
+  }
+  .need-company {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-s);
+    font-weight: 600;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+  .need-company:hover { text-decoration: underline; }
+  .btn-sm { padding: 0.45rem 0.95rem; min-height: 0; font-size: var(--text-s); }
+</style>
