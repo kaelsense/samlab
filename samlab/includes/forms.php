@@ -119,6 +119,79 @@ function samlab_handle_behov_form() {
 add_action( 'template_redirect', 'samlab_handle_behov_form', 9 );
 
 /**
+ * Tar imot «nytt arrangement»-skjemaet fra portalen (E6).
+ *
+ * @return void
+ */
+function samlab_handle_arrangement_form() {
+	if ( ! isset( $_POST['samlab_arrangement_skjema_nonce'] ) || '' === (string) get_query_var( 'samlab_portal' ) ) {
+		return;
+	}
+
+	$nonce = sanitize_key( wp_unslash( $_POST['samlab_arrangement_skjema_nonce'] ) );
+	if ( ! wp_verify_nonce( $nonce, 'samlab_nytt_arrangement' ) ) {
+		wp_die( esc_html__( 'Ugyldig eller utløpt skjema - gå tilbake og prøv igjen.', 'samlab' ), '', 403 );
+	}
+	if ( ! current_user_can( 'samlab_create_arrangement' ) ) {
+		wp_die( esc_html__( 'Du har ikke tilgang til å opprette arrangementer.', 'samlab' ), '', 403 );
+	}
+
+	$tittel = isset( $_POST['samlab_tittel'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_tittel'] ) ) : '';
+	if ( '' === $tittel ) {
+		wp_safe_redirect( add_query_arg( 'feil', 'tittel', samlab_portal_url( 'arrangementer' ) ) );
+		exit;
+	}
+	$start = isset( $_POST['samlab_start'] ) ? samlab_arrangement_sanitize_tid( sanitize_text_field( wp_unslash( $_POST['samlab_start'] ) ) ) : '';
+	if ( '' === $start ) {
+		wp_safe_redirect( add_query_arg( 'feil', 'tid', samlab_portal_url( 'arrangementer' ) ) );
+		exit;
+	}
+
+	$arrangement_id = wp_insert_post(
+		array(
+			'post_type'    => 'samlab_arrangement',
+			'post_status'  => 'publish',
+			'post_title'   => $tittel,
+			'post_content' => isset( $_POST['samlab_beskrivelse'] ) ? sanitize_textarea_field( wp_unslash( $_POST['samlab_beskrivelse'] ) ) : '',
+			'post_author'  => get_current_user_id(),
+		)
+	);
+	if ( is_wp_error( $arrangement_id ) || ! $arrangement_id ) {
+		wp_die( esc_html__( 'Kunne ikke lagre arrangementet.', 'samlab' ), '', 500 );
+	}
+
+	update_post_meta( $arrangement_id, '_samlab_start', $start );
+	if ( isset( $_POST['samlab_slutt'] ) ) {
+		update_post_meta( $arrangement_id, '_samlab_slutt', samlab_arrangement_sanitize_tid( sanitize_text_field( wp_unslash( $_POST['samlab_slutt'] ) ) ) );
+	}
+	if ( isset( $_POST['samlab_sted'] ) && '' !== $_POST['samlab_sted'] ) {
+		update_post_meta( $arrangement_id, '_samlab_sted', sanitize_text_field( wp_unslash( $_POST['samlab_sted'] ) ) );
+	}
+
+	$bedrift_id = isset( $_POST['samlab_bedrift'] ) ? absint( $_POST['samlab_bedrift'] ) : 0;
+	if ( $bedrift_id ) {
+		$tillatte = wp_list_pluck( samlab_behov_bedrifter_for( get_current_user_id() ), 'ID' );
+		if ( in_array( $bedrift_id, array_map( 'intval', $tillatte ), true ) ) {
+			update_post_meta( $arrangement_id, '_samlab_bedrift', $bedrift_id );
+		}
+	}
+
+	/**
+	 * Kjøres når et arrangement er opprettet fra portalskjemaet.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $arrangement_id Arrangementets post-ID.
+	 * @param int $user_id        Innsenderen.
+	 */
+	do_action( 'samlab_arrangement_opprettet', $arrangement_id, get_current_user_id() );
+
+	wp_safe_redirect( add_query_arg( 'opprettet', (string) $arrangement_id, samlab_portal_url( 'arrangementer' ) ) );
+	exit;
+}
+add_action( 'template_redirect', 'samlab_handle_arrangement_form', 9 );
+
+/**
  * Tar imot «nytt innlegg»-skjemaet på veggen (tekst + valgfritt bilde).
  *
  * @return void
@@ -142,6 +215,18 @@ function samlab_handle_vegg_form() {
 		exit;
 	}
 
+	// Valgfri avstemning: spørsmål + 2-5 alternativer (ett per linje).
+	$poll_sporsmal = isset( $_POST['samlab_poll_sporsmal'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_poll_sporsmal'] ) ) : '';
+	$poll_valg     = array();
+	if ( '' !== $poll_sporsmal ) {
+		$linjer    = isset( $_POST['samlab_poll_valg'] ) ? explode( "\n", sanitize_textarea_field( wp_unslash( $_POST['samlab_poll_valg'] ) ) ) : array();
+		$poll_valg = array_values( array_filter( array_map( 'trim', $linjer ) ) );
+		if ( count( $poll_valg ) < 2 || count( $poll_valg ) > 5 ) {
+			wp_safe_redirect( add_query_arg( 'feil', 'avstemning', samlab_portal_url( 'vegg' ) ) );
+			exit;
+		}
+	}
+
 	$image_id = 0;
 	if ( ! empty( $_FILES['samlab_bilde']['name'] ) && current_user_can( 'upload_files' ) ) {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -155,9 +240,11 @@ function samlab_handle_vegg_form() {
 
 	$innlegg_id = Samlab_Innlegg::create(
 		array(
-			'user_id'  => get_current_user_id(),
-			'content'  => $innhold,
-			'image_id' => $image_id,
+			'user_id'       => get_current_user_id(),
+			'content'       => $innhold,
+			'image_id'      => $image_id,
+			'poll_sporsmal' => $poll_sporsmal,
+			'poll_valg'     => $poll_valg,
 		)
 	);
 
@@ -250,7 +337,20 @@ function samlab_handle_innlegg_moderering() {
 		if ( ! current_user_can( 'samlab_pin_posts' ) ) {
 			wp_die( esc_html__( 'Kun moderatorer kan feste oppslag.', 'samlab' ), '', 403 );
 		}
-		Samlab_Innlegg::update( $innlegg_id, array( 'pinned' => 'fest' === $handling ? 1 : 0 ) );
+		$endring = array( 'pinned' => 'fest' === $handling ? 1 : 0 );
+		if ( 'losne' === $handling ) {
+			$endring['confirm_read'] = 0; // Lest-kravet følger festingen.
+		}
+		Samlab_Innlegg::update( $innlegg_id, $endring );
+	} elseif ( 'krev_lest' === $handling || 'fjern_krev_lest' === $handling ) {
+		if ( ! current_user_can( 'samlab_pin_posts' ) ) {
+			wp_die( esc_html__( 'Kun moderatorer kan kreve lesebekreftelse.', 'samlab' ), '', 403 );
+		}
+		$innlegg = Samlab_Innlegg::get( $innlegg_id );
+		if ( 'krev_lest' === $handling && empty( $innlegg->pinned ) ) {
+			wp_die( esc_html__( 'Lesebekreftelse kan kun kreves på festede oppslag.', 'samlab' ), '', 400 );
+		}
+		Samlab_Innlegg::update( $innlegg_id, array( 'confirm_read' => 'krev_lest' === $handling ? 1 : 0 ) );
 	} elseif ( 'skjul' === $handling ) {
 		if ( ! current_user_can( 'samlab_hide_content' ) ) {
 			wp_die( esc_html__( 'Kun moderatorer kan skjule innhold.', 'samlab' ), '', 403 );

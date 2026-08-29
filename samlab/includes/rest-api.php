@@ -47,6 +47,44 @@ function samlab_register_rest_routes() {
 	);
 	register_rest_route(
 		'samlab/v1',
+		'/lest',
+		array(
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => 'samlab_rest_bekreft_lest',
+			'permission_callback' => 'samlab_rest_can_react',
+			'args'                => array(
+				'innlegg_id' => array(
+					'type'     => 'integer',
+					'required' => true,
+					'minimum'  => 1,
+				),
+			),
+		)
+	);
+	register_rest_route(
+		'samlab/v1',
+		'/stemmer',
+		array(
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => 'samlab_rest_avgi_stemme',
+			'permission_callback' => 'samlab_rest_can_react',
+			'args'                => array(
+				'innlegg_id' => array(
+					'type'     => 'integer',
+					'required' => true,
+					'minimum'  => 1,
+				),
+				'valg'       => array(
+					'type'     => 'integer',
+					'required' => true,
+					'minimum'  => 0,
+					'maximum'  => 4,
+				),
+			),
+		)
+	);
+	register_rest_route(
+		'samlab/v1',
 		'/brukere',
 		array(
 			'methods'             => WP_REST_Server::READABLE,
@@ -112,6 +150,98 @@ function samlab_rest_can_react() {
 }
 
 /**
+ * Bekrefter at innlogget bruker har lest et oppslag med lest-krav.
+ * Én bekreftelse per medlem - gjentatte kall er idempotente og kan
+ * aldri trekke bekreftelsen tilbake.
+ *
+ * @param WP_REST_Request $request Forespørselen.
+ * @return WP_REST_Response|WP_Error
+ */
+function samlab_rest_bekreft_lest( $request ) {
+	$innlegg_id = (int) $request['innlegg_id'];
+	$user_id    = get_current_user_id();
+
+	$innlegg = Samlab_Innlegg::get( $innlegg_id );
+	if ( ! $innlegg || 'publish' !== $innlegg->status || empty( $innlegg->confirm_read ) ) {
+		return new WP_Error( 'samlab_ukjent_objekt', __( 'Fant ikke oppslaget, eller det krever ikke lesebekreftelse.', 'samlab' ), array( 'status' => 404 ) );
+	}
+
+	$allerede = Samlab_Reaksjon::user_has( 'innlegg', $innlegg_id, $user_id, 'lest' );
+	if ( ! $allerede ) {
+		Samlab_Reaksjon::add( 'innlegg', $innlegg_id, $user_id, 'lest' );
+
+		/**
+		 * Kjøres når et medlem bekrefter å ha lest et oppslag
+		 * (kun første gang - gjentatte kall er idempotente).
+		 *
+		 * @since 0.2.0
+		 *
+		 * @param int $innlegg_id Oppslaget.
+		 * @param int $user_id    Medlemmet som bekreftet.
+		 */
+		do_action( 'samlab_lest_bekreftet', $innlegg_id, $user_id );
+	}
+
+	$antall = Samlab_Reaksjon::counts( 'innlegg', $innlegg_id );
+	return rest_ensure_response(
+		array(
+			'innlegg_id' => $innlegg_id,
+			'bekreftet'  => true,
+			'allerede'   => $allerede,
+			'antall'     => isset( $antall['lest'] ) ? $antall['lest'] : 0,
+		)
+	);
+}
+
+/**
+ * Avgir eller endrer innlogget brukers stemme i en avstemning og
+ * returnerer stemmetallene (resultatvisning etter avgitt stemme).
+ *
+ * @param WP_REST_Request $request Forespørselen.
+ * @return WP_REST_Response|WP_Error
+ */
+function samlab_rest_avgi_stemme( $request ) {
+	$innlegg_id = (int) $request['innlegg_id'];
+	$valg       = (int) $request['valg'];
+	$user_id    = get_current_user_id();
+
+	$innlegg = Samlab_Innlegg::get( $innlegg_id );
+	if ( ! $innlegg || 'publish' !== $innlegg->status ) {
+		return new WP_Error( 'samlab_ukjent_objekt', __( 'Fant ikke innlegget.', 'samlab' ), array( 'status' => 404 ) );
+	}
+	$poll = Samlab_Innlegg::poll( $innlegg );
+	if ( null === $poll ) {
+		return new WP_Error( 'samlab_ingen_avstemning', __( 'Innlegget har ingen avstemning.', 'samlab' ), array( 'status' => 404 ) );
+	}
+	if ( $valg >= count( $poll['valg'] ) ) {
+		return new WP_Error( 'samlab_ugyldig_valg', __( 'Ugyldig alternativ.', 'samlab' ), array( 'status' => 400 ) );
+	}
+
+	Samlab_Stemme::vote( $innlegg_id, $user_id, $valg );
+
+	/**
+	 * Kjøres når en stemme er avgitt eller endret via REST.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $innlegg_id Innlegget med avstemningen.
+	 * @param int $user_id    Brukeren som stemte.
+	 * @param int $valg       Alternativindeksen (0-basert).
+	 */
+	do_action( 'samlab_stemme_avgitt', $innlegg_id, $user_id, $valg );
+
+	$counts = Samlab_Stemme::counts( $innlegg_id, count( $poll['valg'] ) );
+	return rest_ensure_response(
+		array(
+			'innlegg_id' => $innlegg_id,
+			'valg'       => $valg,
+			'counts'     => $counts,
+			'totalt'     => array_sum( $counts ),
+		)
+	);
+}
+
+/**
  * Slår en reaksjon av/på for innlogget bruker og returnerer ny status.
  *
  * @param WP_REST_Request $request Forespørselen.
@@ -122,6 +252,12 @@ function samlab_rest_toggle_reaksjon( $request ) {
 	$obj_id   = (int) $request['object_id'];
 	$reaction = (string) $request['reaction'];
 	$user_id  = get_current_user_id();
+
+	// Lesebekreftelser bor i samme tabell men er ikke en reaksjon:
+	// de skal aldri kunne slås av via toggle-endepunktet.
+	if ( 'lest' === $reaction ) {
+		return new WP_Error( 'samlab_ugyldig_reaksjon', __( 'Ugyldig reaksjonsnøkkel.', 'samlab' ), array( 'status' => 400 ) );
+	}
 
 	if ( 'innlegg' === $type ) {
 		$innlegg = Samlab_Innlegg::get( $obj_id );

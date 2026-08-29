@@ -42,15 +42,24 @@ add_action( 'init', 'samlab_load_textdomain' );
  */
 require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/post-types.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/arrangementer.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/koblinger.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rewrites.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/access.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/skjerm.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/forms.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rest-api.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/search.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/settings.php';
+require_once SAMLAB_PLUGIN_DIR . 'admin/kontrollpanel.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/database.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-innlegg.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-stemme.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-varsel.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/varsler.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/matching.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/ukesbrev.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-cli-command.php';
@@ -73,9 +82,16 @@ function samlab_activate() {
 	// så term-seeding og flush ser dem.
 	samlab_register_bedrift();
 	samlab_register_behov();
+	samlab_register_arrangement();
 	samlab_ensure_retning_terms();
 	samlab_create_tables();
 	samlab_add_roles();
+	if ( ! wp_next_scheduled( 'samlab_matching' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'samlab_matching' );
+	}
+	if ( ! wp_next_scheduled( 'samlab_ukesbrev' ) ) {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'samlab_ukesbrev' );
+	}
 	flush_rewrite_rules();
 	update_option( 'samlab_version', SAMLAB_VERSION );
 }
@@ -90,6 +106,8 @@ register_activation_hook( __FILE__, 'samlab_activate' );
  * @return void
  */
 function samlab_deactivate() {
+	wp_clear_scheduled_hook( 'samlab_matching' );
+	wp_clear_scheduled_hook( 'samlab_ukesbrev' );
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'samlab_deactivate' );

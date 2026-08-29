@@ -55,19 +55,23 @@ function samlab_portal_name() {
  */
 function samlab_portal_views() {
 	return array(
-		'vegg'      => array(
+		'vegg'          => array(
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_vegg', 'vegg' ) ),
 			'label' => samlab_get_setting( 'navn_vegg', __( 'Veggen', 'samlab' ) ),
 		),
-		'behov'     => array(
+		'behov'         => array(
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_behov', 'behov' ) ),
 			'label' => samlab_get_setting( 'navn_behov', __( 'Behov og tilbud', 'samlab' ) ),
 		),
-		'bedrifter' => array(
+		'bedrifter'     => array(
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_bedrifter', 'bedrifter' ) ),
 			'label' => samlab_get_setting( 'navn_bedrifter', __( 'Bedrifter', 'samlab' ) ),
 		),
-		'handbok'   => array(
+		'arrangementer' => array(
+			'slug'  => sanitize_title( samlab_get_setting( 'slug_arrangementer', 'arrangementer' ) ),
+			'label' => samlab_get_setting( 'navn_arrangementer', __( 'Arrangementer', 'samlab' ) ),
+		),
+		'handbok'       => array(
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_handbok', 'handbok' ) ),
 			'label' => samlab_get_setting( 'navn_handbok', __( 'Håndboken', 'samlab' ) ),
 		),

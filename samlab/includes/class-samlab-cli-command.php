@@ -50,8 +50,55 @@ class Samlab_CLI_Command {
 		$this->seed_behov( $bedrifter, $termer );
 		$this->seed_vegg( $brukere );
 		$this->seed_handbok();
+		$this->seed_arrangementer( $bedrifter );
+		$this->seed_koblinger( $brukere, $bedrifter );
 
-		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 4 vegginnlegg og 2 håndbok-sider.' );
+		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 5 vegginnlegg (med avstemning), 2 håndbok-sider, 3 arrangementer og 4 koblinger i ulike statuser (med varsler til partene).' );
+	}
+
+	/**
+	 * Kjører den regelbaserte matchingen manuelt.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab match
+	 *
+	 * @return void
+	 */
+	public function match() {
+		$opprettet = samlab_kjor_matching();
+		WP_CLI::success( sprintf( '%d nye matchforslag lagt i kontrollpanelets kø.', count( $opprettet ) ) );
+	}
+
+	/**
+	 * Genererer og sender ukesbrevet nå (uavhengig av innstilt ukedag).
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--vis]
+	 * : Skriv brevteksten til terminalen i stedet for å sende.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab ukesbrev
+	 *     wp samlab ukesbrev --vis
+	 *
+	 * @param array $args       Posisjonsargumenter (ubrukt).
+	 * @param array $assoc_args Flagg.
+	 * @return void
+	 */
+	public function ukesbrev( $args, $assoc_args ) {
+		if ( isset( $assoc_args['vis'] ) ) {
+			$seksjoner = samlab_ukesbrev_seksjoner( time() - WEEK_IN_SECONDS );
+			if ( array() === $seksjoner ) {
+				WP_CLI::log( 'Ingenting å melde denne uken - brevet ville ikke blitt sendt.' );
+				return;
+			}
+			WP_CLI::log( samlab_ukesbrev_tekst( $seksjoner ) );
+			return;
+		}
+		$antall = samlab_send_ukesbrev();
+		WP_CLI::success( sprintf( 'Ukesbrev sendt til %d mottakere.', $antall ) );
 	}
 
 	/**
@@ -369,6 +416,20 @@ class Samlab_CLI_Command {
 			)
 		);
 
+		// Avstemning (E7): innlegg med spørsmål og stemmer fra tre medlemmer.
+		$avstemning    = Samlab_Innlegg::create(
+			array(
+				'user_id'       => $brukere['ola.demo'],
+				'content'       => 'Vi planlegger neste husfrokost - hjelp oss å velge dag!',
+				'poll_sporsmal' => 'Hvilken dag passer best for husfrokost?',
+				'poll_valg'     => array( 'Tirsdag', 'Onsdag', 'Fredag' ),
+			)
+		);
+		$innlegg_ids[] = $avstemning;
+		Samlab_Stemme::vote( $avstemning, $brukere['kari.demo'], 2 );
+		Samlab_Stemme::vote( $avstemning, $brukere['ingrid.demo'], 0 );
+		Samlab_Stemme::vote( $avstemning, $brukere['jonas.demo'], 2 );
+
 		Samlab_Reaksjon::add( 'innlegg', $innlegg_ids[3], $brukere['kari.demo'] );
 		Samlab_Reaksjon::add( 'innlegg', $innlegg_ids[3], $brukere['ola.demo'] );
 		Samlab_Reaksjon::add( 'innlegg', $innlegg_ids[0], $brukere['jonas.demo'] );
@@ -427,6 +488,81 @@ class Samlab_CLI_Command {
 	}
 
 	/**
+	 * Oppretter demoarrangementer: to kommende og ett tidligere (E6).
+	 *
+	 * @param array $bedrifter Slug => post-ID.
+	 * @return void
+	 */
+	private function seed_arrangementer( $bedrifter ) {
+		$definisjoner = array(
+			array( 'Felleslunsj med quiz', DAY_IN_SECONDS, HOUR_IN_SECONDS, 'Kantina', '' ),
+			array( 'Frokostmøte: bærekraft i praksis', 3 * DAY_IN_SECONDS, 2 * HOUR_IN_SECONDS, '2. etasje', 'gronn-vekst-radgivning' ),
+			array( 'Sommerfesten (vel overstått)', -30 * DAY_IN_SECONDS, 4 * HOUR_IN_SECONDS, 'Takterrassen', '' ),
+		);
+
+		foreach ( $definisjoner as $def ) {
+			$start = time() + $def[1];
+			wp_insert_post(
+				array(
+					'post_type'    => 'samlab_arrangement',
+					'post_status'  => 'publish',
+					'post_title'   => $def[0],
+					'post_content' => 'Eksempelbeskrivelse for demoarrangementet «' . $def[0] . '».',
+					'meta_input'   => array(
+						'_samlab_seed'    => '1',
+						'_samlab_start'   => wp_date( 'Y-m-d H:i', $start ),
+						'_samlab_slutt'   => wp_date( 'Y-m-d H:i', $start + $def[2] ),
+						'_samlab_sted'    => $def[3],
+						'_samlab_bedrift' => isset( $bedrifter[ $def[4] ] ) ? $bedrifter[ $def[4] ] : 0,
+					),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Oppretter demokoblinger i ulike statuser (E1/E3). Statusløftene
+	 * til godkjent/introdusert varsler partene (E2), så seeden gir
+	 * også uleste varsler å vise frem.
+	 *
+	 * @param array $brukere   Brukernavn => ID.
+	 * @param array $bedrifter Slug => post-ID.
+	 * @return void
+	 */
+	private function seed_koblinger( $brukere, $bedrifter ) {
+		$definisjoner = array(
+			array( 'Brygga Design ↔ Jonas Dal', 'Jonas ser etter designmiljø - foreslått av verten.', 'brygga-design', 'jonas.demo', array() ),
+			array( 'Fjordnett Systemer ↔ Tallknuserne', 'Tallknuserne trenger driftshjelp.', 'fjordnett-systemer', 'ingrid.demo', array( 'godkjent' ) ),
+			array( 'Grønn Vekst ↔ Brygga Design', 'Bærekraftsrapporten trenger ny visuell drakt.', 'gronn-vekst-radgivning', 'kari.demo', array( 'godkjent', 'introdusert' ) ),
+			array( 'Fjordnett Systemer ↔ Jonas Dal', 'Ikke aktuelt akkurat nå.', 'fjordnett-systemer', 'jonas.demo', array( 'avvist' ) ),
+		);
+
+		foreach ( $definisjoner as $def ) {
+			$kobling = samlab_opprett_kobling(
+				array(
+					'tittel'      => $def[0],
+					'begrunnelse' => $def[1],
+					'part_a'      => array(
+						'type' => 'bedrift',
+						'id'   => isset( $bedrifter[ $def[2] ] ) ? $bedrifter[ $def[2] ] : 0,
+					),
+					'part_b'      => array(
+						'type' => 'bruker',
+						'id'   => $brukere[ $def[3] ],
+					),
+				)
+			);
+			if ( is_wp_error( $kobling ) ) {
+				continue;
+			}
+			update_post_meta( $kobling, '_samlab_seed', '1' );
+			foreach ( $def[4] as $status ) {
+				samlab_sett_kobling_status( $kobling, $status );
+			}
+		}
+	}
+
+	/**
 	 * Fjerner alt seedet innhold.
 	 *
 	 * @return void
@@ -434,7 +570,7 @@ class Samlab_CLI_Command {
 	private function slett() {
 		$poster = get_posts(
 			array(
-				'post_type'      => array( 'samlab_bedrift', 'samlab_behov', 'page', 'attachment' ),
+				'post_type'      => array( 'samlab_bedrift', 'samlab_behov', 'samlab_arrangement', 'samlab_kobling', 'page', 'attachment' ),
 				'post_status'    => 'any',
 				'posts_per_page' => -1,
 				'meta_key'       => '_samlab_seed', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Kun ved opprydding.

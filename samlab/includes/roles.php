@@ -23,11 +23,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function samlab_get_roles() {
 	$member_caps = array(
-		'read'                => true,
-		'upload_files'        => true,
-		'samlab_read_portal'  => true,
-		'samlab_post_wall'    => true,
-		'samlab_create_behov' => true,
+		'read'                      => true,
+		'upload_files'              => true,
+		'samlab_read_portal'        => true,
+		'samlab_post_wall'          => true,
+		'samlab_create_behov'       => true,
+		'samlab_create_arrangement' => true,
 	);
 
 	$company_editor_caps = array_merge(
@@ -43,7 +44,8 @@ function samlab_get_roles() {
 			'samlab_approve_members' => true,
 			'samlab_hide_content'    => true,
 			'samlab_pin_posts'       => true,
-		)
+		),
+		array_fill_keys( samlab_get_kobling_caps(), true )
 	);
 
 	return array(
@@ -63,7 +65,22 @@ function samlab_get_roles() {
 }
 
 /**
- * Alle samlab-prefiksede capabilities (til admin-tildeling og opprydding).
+ * Capability-primitivene for koblings-CPT-en (capability_type
+ * samlab_kobling/samlab_koblinger med map_meta_cap). Gis til
+ * moderator+ - aldri via vanlige post-caps.
+ *
+ * @return string[]
+ */
+function samlab_get_kobling_caps() {
+	$caps = array();
+	foreach ( array( 'edit', 'edit_others', 'edit_private', 'edit_published', 'delete', 'delete_others', 'delete_private', 'delete_published', 'publish', 'read_private' ) as $prefiks ) {
+		$caps[] = $prefiks . '_samlab_koblinger';
+	}
+	return $caps;
+}
+
+/**
+ * Alle samlab-relaterte capabilities (til admin-tildeling og opprydding).
  *
  * @return string[]
  */
@@ -71,7 +88,7 @@ function samlab_get_all_caps() {
 	$caps = array();
 	foreach ( samlab_get_roles() as $role ) {
 		foreach ( array_keys( $role['caps'] ) as $cap ) {
-			if ( str_starts_with( $cap, 'samlab_' ) ) {
+			if ( str_starts_with( $cap, 'samlab_' ) || str_contains( $cap, '_samlab_' ) ) {
 				$caps[ $cap ] = true;
 			}
 		}

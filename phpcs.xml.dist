@@ -31,10 +31,21 @@
 				<element value="samlab_read_portal"/>
 				<element value="samlab_post_wall"/>
 				<element value="samlab_create_behov"/>
+				<element value="samlab_create_arrangement"/>
 				<element value="samlab_edit_bedrift"/>
 				<element value="samlab_approve_members"/>
 				<element value="samlab_hide_content"/>
 				<element value="samlab_pin_posts"/>
+				<element value="edit_samlab_koblinger"/>
+				<element value="edit_others_samlab_koblinger"/>
+				<element value="edit_private_samlab_koblinger"/>
+				<element value="edit_published_samlab_koblinger"/>
+				<element value="delete_samlab_koblinger"/>
+				<element value="delete_others_samlab_koblinger"/>
+				<element value="delete_private_samlab_koblinger"/>
+				<element value="delete_published_samlab_koblinger"/>
+				<element value="publish_samlab_koblinger"/>
+				<element value="read_private_samlab_koblinger"/>
 			</property>
 		</properties>
 	</rule>

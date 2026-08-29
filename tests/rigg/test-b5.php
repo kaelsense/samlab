@@ -2,6 +2,8 @@
 // Røyk-test for B5: CPT behov, taksonomier og meta-lagring.
 // Kjøres med: wp eval-file test-b5.php
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;
@@ -46,8 +48,12 @@ sjekk( 'Behov opprettet', $behov_id > 0 );
 
 $trenger = get_term_by( 'slug', 'trenger', 'samlab_retning' );
 wp_set_object_terms( $behov_id, array( $trenger->term_id ), 'samlab_retning' );
-$type = wp_insert_term( 'Trenger kompetanse eller rådgivning', 'samlab_behovstype' );
-wp_set_object_terms( $behov_id, array( $type['term_id'] ), 'samlab_behovstype' );
+// Termen kan alt finnes (seeden lager den) - gjenbruk i så fall.
+$type = term_exists( 'Trenger kompetanse eller rådgivning', 'samlab_behovstype' );
+if ( ! $type ) {
+	$type = wp_insert_term( 'Trenger kompetanse eller rådgivning', 'samlab_behovstype' );
+}
+wp_set_object_terms( $behov_id, array( (int) $type['term_id'] ), 'samlab_behovstype' );
 sjekk( 'Retning tilordnet', array( 'Trenger' ) === wp_get_object_terms( $behov_id, 'samlab_retning', array( 'fields' => 'names' ) ) );
 sjekk( 'Behovstype tilordnet', 1 === count( wp_get_object_terms( $behov_id, 'samlab_behovstype' ) ) );
 

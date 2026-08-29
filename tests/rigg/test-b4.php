@@ -2,6 +2,8 @@
 // Røyk-test for B4: bedriftsredaktør kan kun redigere egen bedrift.
 // Kjøres med: wp eval-file test-b4.php
 
+// eval-file kjører i funksjons-scope: bind til den globale sjekk() skriver til.
+global $fail;
 $fail = 0;
 function sjekk( $navn, $ok ) {
 	global $fail;
@@ -13,9 +15,21 @@ function sjekk( $navn, $ok ) {
 	}
 }
 
+// Redaktør A: opprettes ved behov så testen virker i fersk rigg.
 $redaktor_a = get_user_by( 'login', 'testbedred' );
-$medlem     = get_user_by( 'login', 'testmedlem' );
-$moderator  = get_user_by( 'login', 'testmod' );
+if ( ! $redaktor_a ) {
+	$id         = wp_insert_user(
+		array(
+			'user_login' => 'testbedred',
+			'user_email' => 'bedred@example.com',
+			'user_pass'  => wp_generate_password(),
+			'role'       => 'samlab_company_editor',
+		)
+	);
+	$redaktor_a = get_user_by( 'id', $id );
+}
+$medlem    = get_user_by( 'login', 'testmedlem' );
+$moderator = get_user_by( 'login', 'testmod' );
 
 // Redaktør B: enda en bedriftsredaktør for krysstesten.
 $redaktor_b = get_user_by( 'login', 'testbedred2' );

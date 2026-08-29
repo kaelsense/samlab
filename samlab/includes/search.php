@@ -13,7 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Søker på tvers av bedrifter, behov og håndbok-sider.
  *
  * @param string $sok Søkestrengen.
- * @return array<string, WP_Post[]> Grupper: bedrifter, behov, handbok.
+ * @return array<string, WP_Post[]> Grupper: bedrifter, behov,
+ *         arrangementer, handbok.
  */
 function samlab_global_search( $sok ) {
 	$sok = trim( $sok );
@@ -28,9 +29,10 @@ function samlab_global_search( $sok ) {
 	);
 
 	$grupper = array(
-		'bedrifter' => get_posts( array_merge( $felles, array( 'post_type' => 'samlab_bedrift' ) ) ),
-		'behov'     => get_posts( array_merge( $felles, array( 'post_type' => 'samlab_behov' ) ) ),
-		'handbok'   => get_posts(
+		'bedrifter'     => get_posts( array_merge( $felles, array( 'post_type' => 'samlab_bedrift' ) ) ),
+		'behov'         => get_posts( array_merge( $felles, array( 'post_type' => 'samlab_behov' ) ) ),
+		'arrangementer' => get_posts( array_merge( $felles, array( 'post_type' => 'samlab_arrangement' ) ) ),
+		'handbok'       => get_posts(
 			array_merge(
 				$felles,
 				array(

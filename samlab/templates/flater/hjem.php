@@ -17,9 +17,10 @@ $samlab_sok = isset( $_GET['sok'] ) ? sanitize_text_field( wp_unslash( $_GET['so
 if ( '' !== $samlab_sok ) :
 	$samlab_grupper    = samlab_global_search( $samlab_sok );
 	$samlab_gruppenavn = array(
-		'bedrifter' => samlab_portal_views()['bedrifter']['label'],
-		'behov'     => samlab_portal_views()['behov']['label'],
-		'handbok'   => samlab_portal_views()['handbok']['label'],
+		'bedrifter'     => samlab_portal_views()['bedrifter']['label'],
+		'behov'         => samlab_portal_views()['behov']['label'],
+		'arrangementer' => samlab_portal_views()['arrangementer']['label'],
+		'handbok'       => samlab_portal_views()['handbok']['label'],
 	);
 	?>
 	<header class="samlab-flate-hode">
@@ -44,6 +45,8 @@ if ( '' !== $samlab_sok ) :
 							$samlab_lenke = samlab_portal_url( 'bedrifter', $samlab_post->post_name );
 						} elseif ( 'handbok' === $samlab_gruppe ) {
 							$samlab_lenke = samlab_portal_url( 'handbok', $samlab_post->post_name );
+						} elseif ( 'arrangementer' === $samlab_gruppe ) {
+							$samlab_lenke = samlab_portal_url( 'arrangementer' ) . '#arrangement-' . $samlab_post->ID;
 						} else {
 							$samlab_lenke = samlab_portal_url( 'behov' ) . '#behov-' . $samlab_post->ID;
 						}
