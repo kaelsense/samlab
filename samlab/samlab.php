@@ -41,6 +41,7 @@ add_action( 'init', 'samlab_load_textdomain' );
  * (post-types, rewrites, rest-api, access - se planens kap. 3).
  */
 require_once SAMLAB_PLUGIN_DIR . 'includes/roles.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/post-types.php';
 
 /**
  * Aktivering: registrer pluginens rewrite-regler og flush dem én gang.

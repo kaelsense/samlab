@@ -104,13 +104,19 @@ oppgave innfri sin «Ferdig når».*
   options (innhold beholdes). Verifisert i riggen: roller listet,
   én testbruker per rolle via wp-cli, caps riktige, uninstall
   rydder, tom debug.log. WPCS grønn.
-- [ ] **B3. CPT: bedrift.** `samlab_bedrift` med taksonomi
+- [x] **B3. CPT: bedrift.** `samlab_bedrift` med taksonomi
   `samlab_kategori`, fremhevet bilde, og metabokser for kort
   beskrivelse, plass, nettside, kontaktperson (brukervelger),
   tjenester og intensjonsfeltene («leverer», «kjøper», «trenger nå»,
   «ideelle kunder», «åpne for»). Egne metabokser, ikke ACF.
   *Ferdig når:* en bedrift kan opprettes komplett i wp-admin, alle
   felter lagres og escapes korrekt, WPCS grønn.
+  *Notat (2026-08-29):* includes/post-types.php: CPT + taksonomi
+  (ikke-offentlig, thumbnail-støtte), tre metabokser med alle
+  felter, tjenester som vanilla-JS-repeater, nonce + capability +
+  feltvis sanitering i save-handleren. 18 røyk-tester grønne i
+  riggen (tests/rigg/test-b3.php): XSS strippet, javascript:-URL
+  avvist, ugyldig nonce og manglende rettigheter avvist. WPCS grønn.
 - [ ] **B4. Bedriftsredaktør-avgrensning.** `map_meta_cap` slik at
   bedriftsredaktører kun kan redigere bedriften der de er
   kontaktperson.
