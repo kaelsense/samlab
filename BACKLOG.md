@@ -38,12 +38,16 @@ oppgave i stedet for å gjette.
 *Verifiseringsgrunnlaget bygges først - uten dette kan ingen senere
 oppgave innfri sin «Ferdig når».*
 
-- [ ] **A1. Plugin-skjelett.** Opprett `samlab/samlab.php` med
+- [ ] **A1. Plugin-skjelett.** [BLOKKERT] Opprett `samlab/samlab.php` med
   plugin-header (navn, versjon 0.1.0, tekstdomene `samlab`,
   lisensfelt TODO-merket), konstanter (versjon, sti, URL) og en tom
   `includes/`-struktur som i planens kapittel 3.
   *Ferdig når:* `php -l` er grønn på alle filer, og pluginen kan
   aktiveres i wp-env uten feil eller output.
+  *Notat (2026-08-29):* Kode committet i eae15e1 og statisk verifisert
+  (`php -l` grønn på alle filer, direkte kall gir null output).
+  Kun wp-env-aktiveringstesten gjenstår - den kan ikke kjøres i
+  loop-miljøet, se AVKLARINGER.md punkt 1.
 - [ ] **A2. wp-env.** Legg til `.wp-env.json` med nyeste stabile
   WordPress, PHP 8.2, pluginen montert, og standardtemaet
   Twenty Twenty-Four. Dokumenter `npx wp-env start` i README.
