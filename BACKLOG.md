@@ -438,7 +438,7 @@ med `wp cron event run`.*
   parter (E2-integrasjonen). HTTP: moderator 200 med alle
   seksjoner, medlem 403. Tom debug.log, WPCS grønn,
   sikkerhetstabellen oppdatert.
-- [ ] **E4. Regelbasert matching.** Cron-jobb (`wp_schedule_event`,
+- [x] **E4. Regelbasert matching.** Cron-jobb (`wp_schedule_event`,
   daglig) som matcher åpne behov mot bedriftenes intensjonsfelter
   og kompetanse/tjenester (tekstlig overlapp, terskel), og
   oppretter foreslåtte koblinger i kontrollpanelet - aldri
@@ -447,6 +447,20 @@ med `wp cron event run`.*
   assistentens integrasjon - egen oppgave når F-fasen er levert.)
   *Ferdig når:* kjøring mot seed-data gir forutsigbare forslag
   (dokumentert i testen), ingen duplikater ved gjentatt kjøring.
+  *Notat (2026-08-29):* includes/matching.php: lett norsk stemming
+  med stoppord, behovskorpus (tittel+kompetanse) mot
+  bedriftskorpus per retning (trenger→leverer/kort/tjenester,
+  tilbyr→kjøper/trenger nå), terskel 2 felles stammer, hopper over
+  egen bedrift og samme kontaktperson. Forslag med kilde matching
+  og begrunnelse med felles nøkkelord i kontrollpanelets kø; dedup
+  via match-meta med post_status any så avviste aldri gjenoppstår.
+  Cron planlegges ved aktivering og ryddes ved deaktivering; `wp
+  samlab match` for manuell kjøring. Deterministisk fasit mot seed
+  dokumentert i tests/rigg/test-e4.php (nøyaktig ett forslag:
+  Tallknuserne-behovet ↔ Brygga Design på nettsid+design) - 17
+  tester grønne inkl. idempotens og selv-match-eksklusjon. Tom
+  debug.log, WPCS grønn, hooks- og sikkerhetsdocs oppdatert.
+  Action: samlab_matching_kjort.
 - [ ] **E5. Ukesbrev.** Cron-jobb som sender digest via `wp_mail`:
   nye behov, nye innlegg, kommende arrangementer og nye medlemmer
   siste uke. Innstillinger: av/på, ukedag, avsendernavn. Medlemmer

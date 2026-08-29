@@ -55,6 +55,20 @@ class Samlab_CLI_Command {
 	}
 
 	/**
+	 * Kjører den regelbaserte matchingen manuelt.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab match
+	 *
+	 * @return void
+	 */
+	public function match() {
+		$opprettet = samlab_kjor_matching();
+		WP_CLI::success( sprintf( '%d nye matchforslag lagt i kontrollpanelets kø.', count( $opprettet ) ) );
+	}
+
+	/**
 	 * Oppretter demo-brukere (medlemmer og bedriftsredaktører).
 	 *
 	 * @return array<string, int> Brukernavn => ID.

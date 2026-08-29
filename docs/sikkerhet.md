@@ -24,6 +24,7 @@ rettelsene. Statusene under er bekreftet i kode og over HTTP.
 | Kobling-CPT (E1) | Egne capability-primitiver (`edit_samlab_koblinger` m.fl., kun moderator+); parter mappes til ren lesing via `map_meta_cap`, andre `do_not_allow`; metaboks med nonce + `edit_post`; partvalidering mot post-type/bruker | OK |
 | REST `GET/POST samlab/v1/varsler[/lest]` (E2) | Cookie + nonce, `samlab_read_portal`; svarer kun med innlogget brukers egne varsler (user_id fra sesjonen, aldri parameter); prepared statements i modellen; kaskadesletting ved objektsletting | OK |
 | Kontrollpanelet (E3) | Menyside bak `edit_samlab_koblinger` (moderator+); handlinger via admin-post med nonce og `edit_post`-sjekk per kobling i `samlab_kontrollpanel_utfor` (returnerer WP_Error, testbar); HTTP-verifisert: medlem 403, utlogget til innlogging | OK |
+| Matching-cron (E4) | Ingen brukerinput og ingen HTTP-flate: leses kun fra publiserte behov/bedrifter, oppretter koblinger via validert `samlab_opprett_kobling` med status foreslått (aldri automatisk introduksjon), dedup via match-meta (avvist gjenoppstår ikke); kjøres av WP-cron eller WP_CLI | OK |
 | Egne tabeller (innlegg/reaksjoner) | `wpdb::prepare`/insert/update/delete med formatlister overalt; tabellnavn kun fra kode | OK |
 | Templates/output | `esc_html`/`esc_attr`/`esc_url`/`esc_textarea`/`wp_kses_post` (kses sist, etter mention-/anker-transformasjon); allowlistet template-include | OK |
 | Tema-CSS-broen i skallet | Verdivask til trygt tegnsett (ingen `<>;{}`), `sanitize_hex_color` på aksent; bekreftet ikke-escapbar | OK |

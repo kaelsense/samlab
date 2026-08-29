@@ -135,6 +135,22 @@ do_action( 'samlab_kobling_status_endret', $kobling_id, $status, $gammel, $user_
 
 Siden: 0.2.0.
 
+### `samlab_matching_kjort`
+
+Kjøres etter en runde regelbasert matching (daglig cron
+`samlab_matching`, eller manuelt via `wp samlab match`), også når
+runden ikke ga nye forslag.
+
+```php
+do_action( 'samlab_matching_kjort', $opprettet );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$opprettet` | int[] | Post-ID-ene til koblingene runden opprettet (tom array = ingen nye) |
+
+Siden: 0.2.0.
+
 ## Filters
 
 *(ingen ennå)*
