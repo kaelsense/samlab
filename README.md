@@ -29,3 +29,17 @@ npx wp-env run cli wp plugin activate samlab
 
 Stopp miljøet med `npx wp-env stop`; `npx wp-env destroy` fjerner
 det helt.
+
+## Testrigg uten docker
+
+Der docker ikke er tilgjengelig (f.eks. i Claude Code-loopens
+kjøremiljø) bygger `bin/testrigg.sh` en fullverdig WordPress på
+verten med wp-cli og SQLite-drop-in, med pluginen lenket inn og
+aktivert:
+
+```
+bin/testrigg.sh [målmappe]
+```
+
+Standard målmappe er `/tmp/samlab-testrigg`. Scriptet er idempotent
+og skriver videre wp-cli-bruk til terminalen når riggen er klar.

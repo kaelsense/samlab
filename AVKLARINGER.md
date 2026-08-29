@@ -22,9 +22,12 @@ anbefaling med begrunnelse.
    lav-risiko, og alternativ (b) stopper hele backloggen. Ved valg
    (a): kryss av A1 og fjern [BLOKKERT].
    *Svar (2026-08-29, Kay):* Loopen skal få mulighet til å verifisere
-   selv. Løsning under utprøving: WordPress-testrigg på verten
-   (wp-cli + SQLite-drop-in, uten docker) som verifiseringsgrunnlag i
-   loop-miljøet; wp-env beholdes som oppskrift for lokal kjøring.
+   selv. LØST: `bin/testrigg.sh` bygger WordPress på verten
+   (wp-cli + SQLite-drop-in, uten docker) og brukes som
+   verifiseringsgrunnlag i loop-miljøet. Verifisert: WordPress 7.1
+   installerer, Samlab aktiveres uten feil. wp-env beholdes som
+   oppskrift for lokal kjøring; A1 avkrysset, A2 venter kun på en
+   lokal `npx wp-env start`-krysstest.
 
 2. **2026-08-29 - Lisens (fase 0): AVGJORT.** Kay valgte
    GPL-2.0-or-later. Lagt inn i plugin-header og composer.json.
