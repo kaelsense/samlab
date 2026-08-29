@@ -207,11 +207,18 @@ function samlab_kunnskap_handbok() {
 /**
  * Henter én ekstern kilde og stripper den til tekst.
  *
+ * Kildelisten er redaktørstyrt, og henting skjer server-side - derfor
+ * wp_safe_remote_get, som validerer URL-en og sperrer loopback og
+ * interne adresser (f.eks. metadata-tjenester i skyen). Uten den kan
+ * en URL i innstillingene få serveren til å hente interne ressurser
+ * inn i kunnskapsgrunnlaget, som ethvert medlem kan lese via
+ * assistenten.
+ *
  * @param string $url Kilden.
  * @return string|WP_Error Teksten, eller WP_Error ved feil.
  */
 function samlab_kunnskap_hent_kilde( $url ) {
-	$svar = wp_remote_get( $url, array( 'timeout' => 15 ) );
+	$svar = wp_safe_remote_get( $url, array( 'timeout' => 15 ) );
 	if ( is_wp_error( $svar ) ) {
 		return $svar;
 	}

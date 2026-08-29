@@ -36,6 +36,26 @@ function samlab_test_assistent_kall( $params ) {
 	return rest_do_request( $request );
 }
 
+/**
+ * Hjelper: sjekker at meldingslisten er slik Messages API-et krever -
+ * første melding fra brukeren, deretter vekslende roller.
+ *
+ * @param array $meldinger Meldingslisten som ble sendt.
+ * @return bool
+ */
+function samlab_test_veksler( $meldinger ) {
+	if ( array() === $meldinger || 'user' !== $meldinger[0]['role'] ) {
+		return false;
+	}
+	foreach ( $meldinger as $indeks => $melding ) {
+		$ventet = 0 === $indeks % 2 ? 'user' : 'assistant';
+		if ( $ventet !== $melding['role'] ) {
+			return false;
+		}
+	}
+	return true;
+}
+
 // --- Ruten finnes når modulen er på ---
 $ruter = rest_get_server()->get_routes( 'samlab/v1' );
 sjekk( 'ruten er registrert', isset( $ruter['/samlab/v1/assistent'] ) );
@@ -116,9 +136,50 @@ sjekk( 'instruksblokken nevner assistent- og portalnavn', false !== strpos( $fan
 sjekk( 'kunnskapsblokken har cache_control (prompt-caching)', 'ephemeral' === $fanget['body']['system'][1]['cache_control']['type'] );
 sjekk( 'kunnskapsgrunnlaget ligger i systemblokken', false !== strpos( $fanget['body']['system'][1]['text'], 'Brygga Design' ) );
 $meldinger = $fanget['body']['messages'];
-sjekk( 'historikken er avgrenset til 10 + ny melding', 11 === count( $meldinger ) );
-sjekk( 'eldste innslag er kuttet, system-rollen filtrert', 'Innslag 6' === $meldinger[0]['content'] && ! in_array( 'system', wp_list_pluck( $meldinger, 'role' ), true ) );
+sjekk( 'historikken er avgrenset til maks 10 + ny melding', count( $meldinger ) <= SAMLAB_ASSISTENT_HISTORIKK_MAKS + 1 );
+sjekk( 'eldste innslag er kuttet, system-rollen filtrert', 'Innslag 7' === $meldinger[0]['content'] && ! in_array( 'system', wp_list_pluck( $meldinger, 'role' ), true ) );
 sjekk( 'medlemmets melding er sist', 'Hvem lager nettsider i huset?' === end( $meldinger )['content'] );
+sjekk( 'listen starter med bruker og veksler rolle', samlab_test_veksler( $meldinger ) );
+
+// --- Historikk med hull veksler fortsatt riktig ---
+$hullete = array(
+	array(
+		'rolle' => 'assistant',
+		'tekst' => 'Historikken starter med assistenten',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Første spørsmål',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Andre spørsmål - svaret imellom falt ut',
+	),
+	array(
+		'rolle' => 'assistant',
+		'tekst' => 'Et svar',
+	),
+	array(
+		'rolle' => 'user',
+		'tekst' => 'Siste spørsmål, ubesvart',
+	),
+);
+$svar = samlab_test_assistent_kall(
+	array(
+		'melding'   => 'Ny melding',
+		'historikk' => $hullete,
+	)
+);
+$meldinger = $fanget['body']['messages'];
+sjekk( 'hullete historikk gir gyldig veksling', 200 === $svar->get_status() && samlab_test_veksler( $meldinger ) );
+sjekk( 'hullete historikk beholder nyeste av to like roller', 'Andre spørsmål - svaret imellom falt ut' === $meldinger[0]['content'] );
+sjekk( 'medlemmets nye melding er sist', 'Ny melding' === end( $meldinger )['content'] );
+
+// --- Melding som saniteres til tom avvises før API-kallet ---
+$fanget = null;
+$svar   = samlab_test_assistent_kall( array( 'melding' => '<hei>' ) );
+sjekk( 'melding som saniteres til tom gir 400', 400 === $svar->get_status() );
+sjekk( 'tom melding når aldri API-et', null === $fanget );
 
 // --- Rate-limiting: 429 over grensen ---
 set_transient( 'samlab_assistent_rl_' . $medlem->ID, SAMLAB_ASSISTENT_RATE_ANTALL, 60 );

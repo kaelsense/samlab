@@ -38,6 +38,11 @@ const SAMLAB_ASSISTENT_RATE_VINDU = 5 * MINUTE_IN_SECONDS;
 const SAMLAB_ASSISTENT_HISTORIKK_MAKS = 10;
 
 /**
+ * Maks lengde på én meldingstekst, i tegn.
+ */
+const SAMLAB_ASSISTENT_TEKST_MAKS = 4000;
+
+/**
  * Registrerer assistent-ruten.
  *
  * @return void
@@ -55,7 +60,7 @@ function samlab_assistent_register_rest() {
 					'type'      => 'string',
 					'required'  => true,
 					'minLength' => 1,
-					'maxLength' => 4000,
+					'maxLength' => SAMLAB_ASSISTENT_TEKST_MAKS,
 				),
 				'historikk' => array(
 					'type'    => 'array',
@@ -119,8 +124,47 @@ function samlab_assistent_systemblokker() {
 }
 
 /**
+ * Saniterer og kapper én meldingstekst. Saniteringen kan tømme
+ * teksten helt (f.eks. «<hei>»), og kallerne må derfor sjekke
+ * resultatet - en tom tekstblokk avvises av API-et.
+ *
+ * @param mixed $tekst Rå tekst.
+ * @return string Sanitert tekst, kappet til grensen.
+ */
+function samlab_assistent_rens_tekst( $tekst ) {
+	return mb_substr( sanitize_textarea_field( (string) $tekst ), 0, SAMLAB_ASSISTENT_TEKST_MAKS );
+}
+
+/**
+ * Trimmer meldingslisten til formen Messages API-et krever: første
+ * melding fra brukeren, siste fra assistenten. Da kan medlemmets
+ * nye melding legges til uten to brukerturer på rad. En liste som
+ * er kappet midt i en samtale starter ellers ofte med assistenten,
+ * og API-et svarer 400.
+ *
+ * @param array $meldinger Vekslende meldingsliste.
+ * @return array Trimmet liste - kan være tom.
+ */
+function samlab_assistent_trim_meldinger( $meldinger ) {
+	while ( array() !== $meldinger && 'user' !== $meldinger[0]['role'] ) {
+		array_shift( $meldinger );
+	}
+	while ( array() !== $meldinger ) {
+		$siste = end( $meldinger );
+		if ( 'assistant' === $siste['role'] ) {
+			break;
+		}
+		array_pop( $meldinger );
+	}
+	return array_values( $meldinger );
+}
+
+/**
  * Vasker og avgrenser samtalehistorikken fra klienten: kun kjente
- * roller, tekst sanitert og kappet, maks N siste innslag.
+ * roller, tekst sanitert og kappet, maks N siste innslag - og alltid
+ * vekslende roller. Faller et innslag ut (ukjent rolle, tom tekst
+ * etter sanitering), beholdes det nyeste av to like roller på rad
+ * slik at vekslingen holder.
  *
  * @param array $historikk Rå historikk fra forespørselen.
  * @return array Meldingsliste for Messages API.
@@ -134,16 +178,21 @@ function samlab_assistent_vask_historikk( $historikk ) {
 		if ( ! in_array( $innslag['rolle'], array( 'user', 'assistant' ), true ) ) {
 			continue;
 		}
-		$tekst = mb_substr( sanitize_textarea_field( (string) $innslag['tekst'] ), 0, 4000 );
+		$tekst = samlab_assistent_rens_tekst( $innslag['tekst'] );
 		if ( '' === $tekst ) {
 			continue;
+		}
+		$siste = count( $meldinger ) - 1;
+		if ( $siste >= 0 && $meldinger[ $siste ]['role'] === $innslag['rolle'] ) {
+			array_pop( $meldinger );
 		}
 		$meldinger[] = array(
 			'role'    => $innslag['rolle'],
 			'content' => $tekst,
 		);
 	}
-	return array_slice( $meldinger, - SAMLAB_ASSISTENT_HISTORIKK_MAKS );
+
+	return samlab_assistent_trim_meldinger( array_slice( $meldinger, - SAMLAB_ASSISTENT_HISTORIKK_MAKS ) );
 }
 
 /**
@@ -202,12 +251,20 @@ function samlab_rest_assistent( $request ) {
 	if ( ! samlab_assistent_har_nokkel() ) {
 		return new WP_Error( 'samlab_assistent_utilgjengelig', __( 'Assistenten er ikke tilgjengelig ennå - kontakt verten.', 'samlab' ), array( 'status' => 503 ) );
 	}
+
+	// Saniteringen kjøres etter REST-valideringen, og kan tømme en
+	// melding som passerte minLength - da ville API-et fått en tom
+	// tekstblokk. Sjekk før rate-telleren brukes: kallet når aldri ut.
+	$melding = samlab_assistent_rens_tekst( $request['melding'] );
+	if ( '' === $melding ) {
+		return new WP_Error( 'samlab_assistent_tom_melding', __( 'Skriv et spørsmål med tekst i.', 'samlab' ), array( 'status' => 400 ) );
+	}
+
 	$user_id = get_current_user_id();
 	if ( ! samlab_assistent_rate_ok( $user_id ) ) {
 		return new WP_Error( 'samlab_assistent_grense', __( 'Rolig nå - du har sendt mange spørsmål på kort tid. Prøv igjen om noen minutter.', 'samlab' ), array( 'status' => 429 ) );
 	}
 
-	$melding     = mb_substr( sanitize_textarea_field( (string) $request['melding'] ), 0, 4000 );
 	$meldinger   = samlab_assistent_vask_historikk( $request['historikk'] );
 	$meldinger[] = array(
 		'role'    => 'user',
