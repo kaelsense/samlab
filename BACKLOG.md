@@ -530,12 +530,27 @@ med `wp cron event run`.*
   tall, 400 ugyldig indeks, 404 uten avstemning, veggen viser
   status. Tom debug.log, WPCS grønn, hooks- og sikkerhetsdocs
   oppdatert.
-- [ ] **E8. Lesebekreftelser.** «Bekreft lest» på festede oppslag
+- [x] **E8. Lesebekreftelser.** «Bekreft lest» på festede oppslag
   (moderator velger per innlegg), bekreftelse via REST, og
   moderatoroversikt i kontrollpanelet over hvem som har/ikke har
   bekreftet.
   *Ferdig når:* medlem kan bekrefte én gang, oversikten stemmer,
   kun moderator+ ser den.
+  *Notat (2026-08-29):* DB v4: confirm_read-flagg på
+  innlegg-tabellen; bekreftelsene bor i reaksjonstabellen med
+  reservert nøkkel «lest» (UNIQUE gir én per medlem) - nøkkelen er
+  sperret i toggle-endepunktet (400) så bekreftelser aldri kan
+  slås av. Moderator setter/fjerner lest-krav fra veggen
+  (samlab_pin_posts, kun festede; kravet fjernes ved løsning).
+  REST POST /lest er idempotent (allerede-flagg i svaret); action
+  samlab_lest_bekreftet fyrer kun første gang. «Bekreft
+  lest»-knapp med teller på veggen (deaktivert etter bekreftelse),
+  og kontrollpanel-seksjon med «X av N har bekreftet» + navnelister
+  (bak edit_samlab_koblinger). 12 tester grønne + HTTP: 404 uten
+  krav, moderator setter krav (medlem 403), 401 utlogget, bekreft
+  + idempotent gjenkall, toggle-vakt 400, oversikten viser riktige
+  navn og medlem får 403 på siden. Tom debug.log, WPCS grønn,
+  hooks- og sikkerhetsdocs oppdatert.
 - [ ] **E9. Infoskjerm.** Read-only rute (`/portal-sti/skjerm/` e.l.)
   med hemmelig nøkkel i URL-en (innstilling, regenererbar) som
   viser festede oppslag, siste vegginnlegg og kommende

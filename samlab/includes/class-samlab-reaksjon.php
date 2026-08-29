@@ -152,4 +152,30 @@ class Samlab_Reaksjon {
 		}
 		return $antall;
 	}
+
+	/**
+	 * Brukerne som har en gitt reaksjon på et objekt (brukes av
+	 * lesebekreftelsene, nøkkel «lest»).
+	 *
+	 * @param string $type     Objekttype.
+	 * @param int    $obj_id   Objektets ID.
+	 * @param string $reaction Reaksjonsnøkkel.
+	 * @return int[] Bruker-ID-er.
+	 */
+	public static function users( $type, $obj_id, $reaction = 'like' ) {
+		global $wpdb;
+		$tabell = samlab_table( 'reaksjoner' );
+
+		return array_map(
+			'intval',
+			$wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Egen tabell.
+				$wpdb->prepare(
+					"SELECT user_id FROM {$tabell} WHERE object_type = %s AND object_id = %d AND reaction = %s ORDER BY created_at ASC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellnavn fra samlab_table(), ikke brukerdata.
+					self::object_type( $type ),
+					absint( $obj_id ),
+					sanitize_key( $reaction )
+				)
+			)
+		);
+	}
 }

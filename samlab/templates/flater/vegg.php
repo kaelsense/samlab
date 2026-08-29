@@ -137,6 +137,20 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 					<button type="button" class="samlab-knapp samlab-liker" data-id="<?php echo esc_attr( (string) $samlab_innlegg->id ); ?>" aria-pressed="<?php echo $samlab_har_likt ? 'true' : 'false'; ?>">
 						&#10084; <span class="samlab-liker-antall"><?php echo esc_html( (string) $samlab_liker ); ?></span>
 					</button>
+					<?php if ( ! empty( $samlab_innlegg->confirm_read ) ) : ?>
+						<?php
+						$samlab_har_lest  = Samlab_Reaksjon::user_has( 'innlegg', (int) $samlab_innlegg->id, get_current_user_id(), 'lest' );
+						$samlab_lest_tall = isset( $samlab_antall['lest'] ) ? $samlab_antall['lest'] : 0;
+						?>
+						<button type="button" class="samlab-knapp samlab-bekreft-lest"
+							data-id="<?php echo esc_attr( (string) $samlab_innlegg->id ); ?>"
+							data-lest="<?php echo esc_attr( __( 'Lest', 'samlab' ) ); ?>"
+							aria-pressed="<?php echo $samlab_har_lest ? 'true' : 'false'; ?>"
+							<?php disabled( $samlab_har_lest ); ?>>
+							<?php $samlab_har_lest ? esc_html_e( 'Lest', 'samlab' ) : esc_html_e( 'Bekreft lest', 'samlab' ); ?>
+							<span class="samlab-lest-antall">(<?php echo esc_html( (string) $samlab_lest_tall ); ?>)</span>
+						</button>
+					<?php endif; ?>
 					<?php if ( $samlab_kan_moderere ) : ?>
 					<form method="post" action="<?php echo esc_url( samlab_portal_url( 'vegg' ) ); ?>" class="samlab-moderer">
 						<?php wp_nonce_field( 'samlab_moderer_innlegg', 'samlab_moderer_nonce' ); ?>
@@ -145,6 +159,11 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 							<button type="submit" class="samlab-knapp" name="samlab_handling" value="<?php echo $samlab_innlegg->pinned ? 'losne' : 'fest'; ?>">
 								<?php $samlab_innlegg->pinned ? esc_html_e( 'Løsne', 'samlab' ) : esc_html_e( 'Fest', 'samlab' ); ?>
 							</button>
+							<?php if ( $samlab_innlegg->pinned ) : ?>
+								<button type="submit" class="samlab-knapp" name="samlab_handling" value="<?php echo empty( $samlab_innlegg->confirm_read ) ? 'krev_lest' : 'fjern_krev_lest'; ?>">
+									<?php empty( $samlab_innlegg->confirm_read ) ? esc_html_e( 'Krev lest', 'samlab' ) : esc_html_e( 'Fjern lest-krav', 'samlab' ); ?>
+								</button>
+							<?php endif; ?>
 						<?php endif; ?>
 						<?php if ( current_user_can( 'samlab_hide_content' ) ) : ?>
 							<button type="submit" class="samlab-knapp" name="samlab_handling" value="skjul"><?php esc_html_e( 'Skjul', 'samlab' ); ?></button>
@@ -215,6 +234,30 @@ $samlab_kan_moderere  = current_user_can( 'samlab_pin_posts' ) || current_user_c
 				} );
 			} );
 		}
+		// Lesebekreftelser: én bekreftelse, kan ikke angres.
+		document.querySelectorAll( '.samlab-bekreft-lest' ).forEach( function ( knapp ) {
+			knapp.addEventListener( 'click', function () {
+				fetch( window.samlabRest.url + 'samlab/v1/lest', {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': window.samlabRest.nonce
+					},
+					body: JSON.stringify( { innlegg_id: parseInt( knapp.dataset.id, 10 ) } )
+				} ).then( function ( svar ) {
+					return svar.json();
+				} ).then( function ( data ) {
+					if ( ! data || ! data.bekreftet ) {
+						return;
+					}
+					knapp.setAttribute( 'aria-pressed', 'true' );
+					knapp.disabled = true;
+					knapp.firstChild.textContent = knapp.dataset.lest + ' ';
+					knapp.querySelector( '.samlab-lest-antall' ).textContent = '(' + data.antall + ')';
+				} );
+			} );
+		} );
 		// Avstemninger: stem/endre og vis resultatene etterpå.
 		document.querySelectorAll( '.samlab-stem' ).forEach( function ( knapp ) {
 			knapp.addEventListener( 'click', function () {

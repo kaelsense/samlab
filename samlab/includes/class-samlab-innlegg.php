@@ -123,6 +123,10 @@ class Samlab_Innlegg {
 			$data['pinned'] = empty( $args['pinned'] ) ? 0 : 1;
 			$formats[]      = '%d';
 		}
+		if ( isset( $args['confirm_read'] ) ) {
+			$data['confirm_read'] = empty( $args['confirm_read'] ) ? 0 : 1;
+			$formats[]            = '%d';
+		}
 		if ( isset( $args['status'] ) ) {
 			$data['status'] = 'hidden' === $args['status'] ? 'hidden' : 'publish';
 			$formats[]      = '%s';

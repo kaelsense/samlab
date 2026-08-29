@@ -25,7 +25,9 @@ Slår en reaksjon av/på for innlogget bruker. Krever
 
 Svar: `{ object_type, object_id, reaction, reacted, counts }` der
 `reacted` sier om reaksjonen ble lagt til (`true`) eller fjernet,
-og `counts` er antall per reaksjonsnøkkel.
+og `counts` er antall per reaksjonsnøkkel. Nøkkelen `lest` er
+reservert for lesebekreftelser og avvises her med 400 - bruk
+`/lest`-endepunktet.
 
 Eksempel fra nettleser-konsollen i portalen:
 
@@ -50,6 +52,22 @@ Brukerforslag til @-mentions. Krever `samlab_read_portal`.
 | `sok` | string | Søkestreng mot brukernavn og visningsnavn (påkrevd) |
 
 Svar: liste av `{ login, navn }`, maks 8.
+
+### `POST /wp-json/samlab/v1/lest`
+
+Bekrefter at innlogget bruker har lest et festet oppslag med
+lest-krav. Én bekreftelse per medlem; gjentatte kall er idempotente
+og kan aldri trekke bekreftelsen tilbake. Krever
+`samlab_read_portal`.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `innlegg_id` | int | Oppslaget med lest-krav (påkrevd) |
+
+Svar: `{ innlegg_id, bekreftet, allerede, antall }` der `allerede`
+sier om bekreftelsen fantes fra før og `antall` er totalt antall
+bekreftelser. 404 når oppslaget ikke finnes eller ikke krever
+lesebekreftelse.
 
 ### `POST /wp-json/samlab/v1/stemmer`
 
@@ -146,6 +164,22 @@ do_action( 'samlab_arrangement_opprettet', $arrangement_id, $user_id );
 | --- | --- | --- |
 | `$arrangement_id` | int | Arrangementets post-ID |
 | `$user_id` | int | Innsenderen |
+
+Siden: 0.2.0.
+
+### `samlab_lest_bekreftet`
+
+Kjøres når et medlem bekrefter å ha lest et oppslag - kun første
+gang (gjentatte kall er idempotente og fyrer ikke på nytt).
+
+```php
+do_action( 'samlab_lest_bekreftet', $innlegg_id, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$innlegg_id` | int | Oppslaget |
+| `$user_id` | int | Medlemmet som bekreftet |
 
 Siden: 0.2.0.
 

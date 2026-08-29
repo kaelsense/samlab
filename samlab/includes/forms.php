@@ -337,7 +337,20 @@ function samlab_handle_innlegg_moderering() {
 		if ( ! current_user_can( 'samlab_pin_posts' ) ) {
 			wp_die( esc_html__( 'Kun moderatorer kan feste oppslag.', 'samlab' ), '', 403 );
 		}
-		Samlab_Innlegg::update( $innlegg_id, array( 'pinned' => 'fest' === $handling ? 1 : 0 ) );
+		$endring = array( 'pinned' => 'fest' === $handling ? 1 : 0 );
+		if ( 'losne' === $handling ) {
+			$endring['confirm_read'] = 0; // Lest-kravet følger festingen.
+		}
+		Samlab_Innlegg::update( $innlegg_id, $endring );
+	} elseif ( 'krev_lest' === $handling || 'fjern_krev_lest' === $handling ) {
+		if ( ! current_user_can( 'samlab_pin_posts' ) ) {
+			wp_die( esc_html__( 'Kun moderatorer kan kreve lesebekreftelse.', 'samlab' ), '', 403 );
+		}
+		$innlegg = Samlab_Innlegg::get( $innlegg_id );
+		if ( 'krev_lest' === $handling && empty( $innlegg->pinned ) ) {
+			wp_die( esc_html__( 'Lesebekreftelse kan kun kreves på festede oppslag.', 'samlab' ), '', 400 );
+		}
+		Samlab_Innlegg::update( $innlegg_id, array( 'confirm_read' => 'krev_lest' === $handling ? 1 : 0 ) );
 	} elseif ( 'skjul' === $handling ) {
 		if ( ! current_user_can( 'samlab_hide_content' ) ) {
 			wp_die( esc_html__( 'Kun moderatorer kan skjule innhold.', 'samlab' ), '', 403 );

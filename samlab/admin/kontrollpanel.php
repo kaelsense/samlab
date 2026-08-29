@@ -227,6 +227,53 @@ function samlab_kp_stille_medlemmer( $dager = 30 ) {
 }
 
 /**
+ * Lesebekreftelses-oversikten: oppslag med lest-krav og hvem som
+ * har/ikke har bekreftet (E8). Kun for moderator+ (siden er bak
+ * edit_samlab_koblinger).
+ *
+ * @return array<int, array{innlegg: object, bekreftet: WP_User[], mangler: WP_User[]}>
+ */
+function samlab_kp_lesebekreftelser() {
+	global $wpdb;
+	$tabell = samlab_table( 'innlegg' );
+
+	$oppslag = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Egen tabell, admin-liste.
+		"SELECT * FROM {$tabell} WHERE confirm_read = 1 AND status = 'publish' ORDER BY created_at DESC LIMIT 20" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellnavn fra samlab_table(), ingen brukerdata.
+	);
+	if ( array() === $oppslag ) {
+		return array();
+	}
+
+	$medlemmer = get_users(
+		array(
+			'capability' => 'samlab_read_portal',
+			'number'     => 500,
+			'orderby'    => 'display_name',
+		)
+	);
+
+	$resultat = array();
+	foreach ( $oppslag as $innlegg ) {
+		$lest_ids  = Samlab_Reaksjon::users( 'innlegg', (int) $innlegg->id, 'lest' );
+		$bekreftet = array();
+		$mangler   = array();
+		foreach ( $medlemmer as $medlem ) {
+			if ( in_array( (int) $medlem->ID, $lest_ids, true ) ) {
+				$bekreftet[] = $medlem;
+			} else {
+				$mangler[] = $medlem;
+			}
+		}
+		$resultat[] = array(
+			'innlegg'   => $innlegg,
+			'bekreftet' => $bekreftet,
+			'mangler'   => $mangler,
+		);
+	}
+	return $resultat;
+}
+
+/**
  * Utfører en koblingshandling med capability-sjekk.
  *
  * @param int    $kobling_id Koblingen.
@@ -406,5 +453,33 @@ function samlab_render_kontrollpanel() {
 	foreach ( $stille as $bruker ) {
 		echo '<li>' . esc_html( $bruker->display_name ) . '</li>';
 	}
-	echo '</ul></div>';
+	echo '</ul>';
+
+	// 4) Lesebekreftelser.
+	echo '<h2>' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
+	$lesekrav = samlab_kp_lesebekreftelser();
+	if ( array() === $lesekrav ) {
+		echo '<p>' . esc_html__( 'Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest».', 'samlab' ) . '</p>';
+	}
+	foreach ( $lesekrav as $rad ) {
+		echo '<h3>' . esc_html( wp_html_excerpt( wp_strip_all_tags( $rad['innlegg']->content ), 80, '…' ) ) . '</h3>';
+		echo '<p>';
+		echo esc_html(
+			sprintf(
+				/* translators: 1: antall som har bekreftet, 2: antall medlemmer totalt. */
+				__( '%1$d av %2$d har bekreftet.', 'samlab' ),
+				count( $rad['bekreftet'] ),
+				count( $rad['bekreftet'] ) + count( $rad['mangler'] )
+			)
+		);
+		echo '</p><ul>';
+		foreach ( $rad['bekreftet'] as $bruker ) {
+			echo '<li>&#10003; ' . esc_html( $bruker->display_name ) . '</li>';
+		}
+		foreach ( $rad['mangler'] as $bruker ) {
+			echo '<li>&#8211; ' . esc_html( $bruker->display_name ) . ' <span class="description">' . esc_html__( '(ikke bekreftet)', 'samlab' ) . '</span></li>';
+		}
+		echo '</ul>';
+	}
+	echo '</div>';
 }

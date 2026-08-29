@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const SAMLAB_DB_VERSION = '3';
+const SAMLAB_DB_VERSION = '4';
 
 /**
  * Fullt tabellnavn med nettstedets prefiks.
@@ -48,6 +48,7 @@ function samlab_create_tables() {
 			content longtext NOT NULL,
 			image_id bigint(20) unsigned NOT NULL DEFAULT 0,
 			pinned tinyint(1) NOT NULL DEFAULT 0,
+			confirm_read tinyint(1) NOT NULL DEFAULT 0,
 			status varchar(20) NOT NULL DEFAULT 'publish',
 			poll_sporsmal varchar(255) NOT NULL DEFAULT '',
 			poll_valg longtext,
