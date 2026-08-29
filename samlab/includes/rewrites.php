@@ -167,7 +167,9 @@ function samlab_route_portal() {
 	header( 'X-Robots-Tag: noindex, nofollow' );
 	nocache_headers();
 
-	if ( '' === $view || ( 'bedrifter' === $view && '' !== $item && ! samlab_get_bedrift_by_slug( $item ) ) ) {
+	$ukjent_underside = ( 'bedrifter' === $view && '' !== $item && ! samlab_get_bedrift_by_slug( $item ) )
+		|| ( 'handbok' === $view && '' !== $item && ! samlab_get_handbok_page_by_slug( $item ) );
+	if ( '' === $view || $ukjent_underside ) {
 		status_header( 404 );
 		samlab_render_portal( '404', $item );
 		exit;

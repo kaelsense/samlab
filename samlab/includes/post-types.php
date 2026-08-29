@@ -460,6 +460,91 @@ function samlab_save_bedrift_meta( $post_id ) {
 add_action( 'save_post_samlab_bedrift', 'samlab_save_bedrift_meta' );
 
 /**
+ * Håndboken: vanlige WordPress-sider merkes som portalinnhold med
+ * meta-flagget _samlab_handbok og vises i portal-skallet (C5).
+ *
+ * @return WP_Post[] Merkede sider i menyrekkefølge.
+ */
+function samlab_get_handbok_pages() {
+	return get_posts(
+		array(
+			'post_type'      => 'page',
+			'post_status'    => 'publish',
+			'orderby'        => 'menu_order title',
+			'order'          => 'ASC',
+			'posts_per_page' => 50,
+			'meta_key'       => '_samlab_handbok', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Lavvolum sidegruppe.
+			'meta_value'     => '1', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		)
+	);
+}
+
+/**
+ * Finner en håndbok-side på slug - kun blant merkede sider.
+ *
+ * @param string $slug Sidens post_name.
+ * @return WP_Post|null
+ */
+function samlab_get_handbok_page_by_slug( $slug ) {
+	$slug = sanitize_title( $slug );
+	foreach ( samlab_get_handbok_pages() as $side ) {
+		if ( $side->post_name === $slug ) {
+			return $side;
+		}
+	}
+	return null;
+}
+
+/**
+ * Metaboks på sider: «Vis i portalens håndbok».
+ *
+ * @return void
+ */
+function samlab_handbok_meta_box() {
+	add_meta_box( 'samlab_handbok', __( 'Samlab-portalen', 'samlab' ), 'samlab_render_handbok_box', 'page', 'side' );
+}
+add_action( 'add_meta_boxes_page', 'samlab_handbok_meta_box' );
+
+/**
+ * Rendrer håndbok-avkrysningen.
+ *
+ * @param WP_Post $post Siden som redigeres.
+ * @return void
+ */
+function samlab_render_handbok_box( $post ) {
+	wp_nonce_field( 'samlab_handbok_meta', 'samlab_handbok_nonce' );
+	$valgt = get_post_meta( $post->ID, '_samlab_handbok', true );
+	echo '<label><input type="checkbox" name="samlab_handbok" value="1"' . checked( $valgt, '1', false ) . ' /> ' . esc_html__( 'Vis i portalens håndbok', 'samlab' ) . '</label>';
+	echo '<p class="description">' . esc_html__( 'Rekkefølgen styres av sidens «Rekkefølge»-felt.', 'samlab' ) . '</p>';
+}
+
+/**
+ * Lagrer håndbok-flagget.
+ *
+ * @param int $post_id Sidens ID.
+ * @return void
+ */
+function samlab_save_handbok_meta( $post_id ) {
+	$nonce = isset( $_POST['samlab_handbok_nonce'] ) ? sanitize_key( wp_unslash( $_POST['samlab_handbok_nonce'] ) ) : '';
+	if ( ! wp_verify_nonce( $nonce, 'samlab_handbok_meta' ) ) {
+		return;
+	}
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+	if ( isset( $_POST['samlab_handbok'] ) && '1' === $_POST['samlab_handbok'] ) {
+		update_post_meta( $post_id, '_samlab_handbok', '1' );
+	} else {
+		delete_post_meta( $post_id, '_samlab_handbok' );
+	}
+}
+add_action( 'save_post_page', 'samlab_save_handbok_meta' );
+
+/**
  * Registrerer metaboksen for behov.
  *
  * @return void
