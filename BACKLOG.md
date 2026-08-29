@@ -163,10 +163,16 @@ oppgave innfri sin «Ferdig når».*
   (php -S + router): alle 5 ruter 200 med eget skall og noindex,
   ukjent rute 404, tema uberørt på resten, og sti/navn-innstilling
   bekreftet med /intern/-test. WPCS grønn.
-- [ ] **B8. Innloggingsport.** `template_redirect`-sjekk: uinnloggede
+- [x] **B8. Innloggingsport.** `template_redirect`-sjekk: uinnloggede
   på portal-ruter sendes til wp-login med redirect tilbake.
   *Ferdig når:* utlogget curl mot portal-rute gir redirect til
   innlogging; innlogget bruker ser siden.
+  *Notat (2026-08-29):* includes/access.php med
+  samlab_portal_login_gate på template_redirect prioritet 9 (før
+  rutingen), wp_safe_redirect til wp_login_url med retur-URL fra
+  $wp->request. HTTP-verifisert: utlogget 302 med korrekt
+  redirect_to, innlogget (logged_in-cookie) 200 med skallet,
+  resten av nettstedet åpent. WPCS grønn.
 - [ ] **B9. Token-CSS.** Portalens stilark bygget på
   `--wp--preset--*`-variabler med nøytrale fallbacks, portert
   strukturelt fra `prototype-kilde/styles/global.css` (kort, chips,
