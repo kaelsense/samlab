@@ -44,6 +44,19 @@ add_filter(
 	3
 );
 
+// --- Opptaker: hva var lagret da den første kilden ble hentet? ---
+$under_henting = null;
+add_filter(
+	'pre_http_request',
+	function ( $ignorert ) use ( &$under_henting ) {
+		if ( null === $under_henting ) {
+			$under_henting = get_option( 'samlab_kunnskap', null );
+		}
+		return $ignorert;
+	},
+	9
+);
+
 // --- Oppsett: kilder + innhold som ALDRI skal med ---
 $orig = get_option( 'samlab_settings', array() );
 $s    = $orig;
@@ -92,6 +105,11 @@ sjekk( 'ekstern kilde er hentet og strippet', false !== strpos( $tekst, '40 kont
 sjekk( 'én kilde ok, én feilet', 1 === $grunnlag['kilder_ok'] && array( 'https://example.no/finnes-ikke' ) === $grunnlag['kilder_feilet'] );
 sjekk( 'grunnlaget er HTML-fritt', false === strpos( $tekst, '<p>' ) && false === strpos( $tekst, '<script' ) );
 
+// --- Delvis lagring: portalinnholdet overlever en avbrutt jobb ---
+sjekk( 'portalinnholdet er lagret før kildene hentes', is_array( $under_henting ) && false !== strpos( $under_henting['tekst'], 'Brygga Design' ) );
+sjekk( 'delvis lagring bruker samme versjon som det ferdige bygget', $under_henting['versjon'] === $grunnlag['versjon'] );
+sjekk( 'delvis lagring merker kildene som ikke hentet ennå', 0 === $under_henting['kilder_ok'] && 2 === count( $under_henting['kilder_feilet'] ) );
+
 // --- Versjonering og status ---
 sjekk( 'første bygg er versjon 1', 1 === $grunnlag['versjon'] && $grunnlag['bygget'] > 0 && strlen( $tekst ) === $grunnlag['storrelse'] );
 $andre = samlab_assistent_bygg_kunnskap();
@@ -102,6 +120,24 @@ sjekk( 'statusteksten navngir feilede kilder', false !== strpos( samlab_assisten
 // --- Cron er planlagt når modulen er på ---
 samlab_kunnskap_planlegg();
 sjekk( 'kunnskaps-cronen er planlagt daglig', false !== wp_next_scheduled( 'samlab_assistent_kunnskap' ) );
+
+// --- Tidsbudsjettet stopper hentingen før kjøretiden er brukt opp ---
+$maks_orig = ini_get( 'max_execution_time' );
+ini_set( 'max_execution_time', '30' );
+sjekk( 'budsjettet gir rom for det siste kildekallet', samlab_kunnskap_tidsbudsjett() + SAMLAB_KUNNSKAP_KILDETIMEOUT <= 30 );
+ini_set( 'max_execution_time', '0' );
+sjekk( 'uten kjøretidsgrense brukes standardbudsjettet', SAMLAB_KUNNSKAP_TIDSBUDSJETT === samlab_kunnskap_tidsbudsjett() );
+ini_set( 'max_execution_time', (string) $maks_orig );
+
+$tomt_budsjett = function () {
+	return 0;
+};
+add_filter( 'samlab_kunnskap_tidsbudsjett', $tomt_budsjett );
+delete_option( 'samlab_kunnskap' );
+$knapt = samlab_assistent_bygg_kunnskap();
+remove_filter( 'samlab_kunnskap_tidsbudsjett', $tomt_budsjett );
+sjekk( 'brukt budsjett stopper kildehentingen', 0 === $knapt['kilder_ok'] && 2 === count( $knapt['kilder_feilet'] ) );
+sjekk( 'portalinnholdet er med selv når kildene droppes', false !== strpos( $knapt['tekst'], 'Brygga Design' ) && false === strpos( $knapt['tekst'], '40 kontorplasser' ) );
 
 // --- Rydd ---
 wp_delete_post( $hemmelig_side, true );

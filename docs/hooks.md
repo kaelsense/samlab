@@ -96,10 +96,17 @@ nøkkelen forlater aldri serveren. Krever `samlab_read_portal`.
 | `melding` | string | Medlemmets spørsmål, maks 4000 tegn (påkrevd) |
 | `historikk` | array | Valgfri samtalehistorikk: `[{ rolle: user\|assistant, tekst }]` - avgrenses server-side til de siste 10 |
 
-Svar: `{ svar, navn }`. Feilsvar: 503 uten API-nøkkel, 429 over
-rate-grensen (15 kall per 5 minutter per bruker), 502 ved API-feil -
-alle med generiske meldinger uten konfigurasjonsdetaljer. Spørsmål
-og svar logges aldri.
+Historikken normaliseres server-side til formen Messages API-et
+krever: ukjente roller og tomme innslag fjernes, to like roller på
+rad kollapses (nyeste beholdes), og listen trimmes så den starter med
+`user` og slutter med `assistant` før medlemmets nye melding legges
+til.
+
+Svar: `{ svar, navn }`. Feilsvar: 503 uten API-nøkkel, 400 når
+meldingen er tom etter sanitering, 429 over rate-grensen (15 kall per
+5 minutter per bruker), 502 ved API-feil - alle med generiske
+meldinger uten konfigurasjonsdetaljer. Spørsmål og svar logges
+aldri.
 
 **Mulig oppgradering: SSE-streaming.** Widgeten leverer i dag hele
 svaret i ett (planens plan B). Streaming ville gitt ord-for-ord-
@@ -340,5 +347,25 @@ apply_filters( 'samlab_ukesbrev_seksjoner', $seksjoner, $siden );
 | --- | --- | --- |
 | `$seksjoner` | array | Seksjonene (tittel + linjer med tekst og ev. url) |
 | `$siden` | int | Unix-tidspunktet brevet dekker fra (en uke tilbake) |
+
+Siden: 0.2.0.
+
+### `samlab_kunnskap_tidsbudsjett`
+
+Filtrerer hvor lenge kunnskapsbygget bruker på å hente eksterne
+kilder. Hentingen er seriell, og bygget kjøres av wp-cron over HTTP
+der `max_execution_time` gjelder - når budsjettet er brukt opp,
+stopper hentingen, og kildene som ikke ble forsøkt havner i
+`kilder_feilet` og prøves igjen ved neste bygg. Standard er halve
+`max_execution_time` minus timeouten for én kilde (minimum den
+timeouten), eller 45 sekunder når PHP ikke har noen kjøretidsgrense.
+
+```php
+apply_filters( 'samlab_kunnskap_tidsbudsjett', $budsjett );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$budsjett` | int | Sekunder til rådighet for hele kildehentingen |
 
 Siden: 0.2.0.

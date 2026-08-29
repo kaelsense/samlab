@@ -24,6 +24,10 @@ if ( ! function_exists( 'samlab_rest_assistent' ) ) {
 
 $medlem = get_user_by( 'login', 'testmedlem' );
 
+// Rate-telleren kan ligge igjen fra en tidligere kjøring (vinduet er
+// fem minutter) - nullstill, ellers rate-limiteres testen selv.
+delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+
 /**
  * Hjelper: kjør et REST-kall mot assistenten.
  *
@@ -181,10 +185,37 @@ $svar   = samlab_test_assistent_kall( array( 'melding' => '<hei>' ) );
 sjekk( 'melding som saniteres til tom gir 400', 400 === $svar->get_status() );
 sjekk( 'tom melding når aldri API-et', null === $fanget );
 
+// --- Rate-telleren teller hvert kall, og stopper på grensen ---
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
+$koder = array();
+for ( $i = 0; $i <= SAMLAB_ASSISTENT_RATE_ANTALL; $i++ ) {
+	$koder[] = samlab_test_assistent_kall( array( 'melding' => "Spørsmål $i" ) )->get_status();
+}
+sjekk( 'kallene innenfor grensen slipper gjennom', SAMLAB_ASSISTENT_RATE_ANTALL === count( array_keys( $koder, 200, true ) ) );
+sjekk( 'kallet over grensen stoppes', 429 === end( $koder ) );
+
+// --- Med eksternt objektcache går telleren via wp_cache_incr ---
+// (Atomisiteten kan ikke vises i en seriell test - her verifiseres at
+// grenen finnes, teller riktig og ikke faller tilbake på transient.)
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
+// Flagget er null før noe cache-oppsett - cast, ellers betyr null
+// «ikke endre», og tilbakestillingen blir en nulloperasjon.
+$var_ext_cache = (bool) wp_using_ext_object_cache( true );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
+$koder = array();
+for ( $i = 0; $i <= SAMLAB_ASSISTENT_RATE_ANTALL; $i++ ) {
+	$koder[] = samlab_test_assistent_kall( array( 'melding' => "Cache-spørsmål $i" ) )->get_status();
+}
+wp_using_ext_object_cache( $var_ext_cache );
+sjekk( 'objektcache-veien holder samme grense', SAMLAB_ASSISTENT_RATE_ANTALL === count( array_keys( $koder, 200, true ) ) && 429 === end( $koder ) );
+sjekk( 'objektcache-veien skriver ikke transient', false === get_transient( samlab_assistent_rate_nokkel( $medlem->ID ) ) );
+wp_cache_delete( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_GRUPPE );
+
 // --- Rate-limiting: 429 over grensen ---
-set_transient( 'samlab_assistent_rl_' . $medlem->ID, SAMLAB_ASSISTENT_RATE_ANTALL, 60 );
+set_transient( samlab_assistent_rate_nokkel( $medlem->ID ), SAMLAB_ASSISTENT_RATE_ANTALL, 60 );
 sjekk( 'over grensen gir 429', 429 === samlab_test_assistent_kall( array( 'melding' => 'Enda et spørsmål' ) )->get_status() );
-delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
 
 // --- API-feil gir generisk 502 ---
 add_filter(
@@ -205,5 +236,5 @@ sjekk( 'API-feil gir generisk 502', 502 === $svar->get_status() && false === str
 
 // --- Rydd ---
 delete_option( 'samlab_kunnskap' );
-delete_transient( 'samlab_assistent_rl_' . $medlem->ID );
+delete_transient( samlab_assistent_rate_nokkel( $medlem->ID ) );
 exit( $fail );

@@ -27,11 +27,38 @@ $medlem = get_user_by( 'login', 'testmedlem' );
 // --- Widgeten er hektet på skall-punktet ---
 sjekk( 'widgeten er hektet på samlab_portal_bunn', false !== has_action( 'samlab_portal_bunn', 'samlab_assistent_widget' ) );
 
+/**
+ * Hjelper: rendrer widgeten og gir markupen tilbake.
+ *
+ * @return string
+ */
+function samlab_test_widget_html() {
+	ob_start();
+	samlab_assistent_widget();
+	return ob_get_clean();
+}
+
 // --- Utlogget: ingenting rendres ---
 wp_set_current_user( 0 );
-ob_start();
-samlab_assistent_widget();
-sjekk( 'utlogget får ingen widget', '' === ob_get_clean() );
+sjekk( 'utlogget får ingen widget', '' === samlab_test_widget_html() );
+
+// --- Modulen på, men uten API-nøkkel: ingen knapp som bare feiler ---
+wp_set_current_user( $medlem->ID );
+sjekk( 'uten API-nøkkel får medlemmet ingen widget', ! samlab_assistent_har_nokkel() && '' === samlab_test_widget_html() );
+
+define( 'SAMLAB_CLAUDE_API_KEY', 'sk-test-mock-42' );
+
+// --- Innlogget uten portaltilgang: ingen widget (endepunktet gir 403) ---
+// wp_set_current_user returnerer tidlig på samme ID, så vi må innom 0
+// for at capability-endringen skal slå gjennom på den aktive brukeren.
+$medlem->add_cap( 'samlab_read_portal', false );
+wp_set_current_user( 0 );
+wp_set_current_user( $medlem->ID );
+sjekk( 'uten samlab_read_portal får brukeren ingen widget', ! current_user_can( 'samlab_read_portal' ) && '' === samlab_test_widget_html() );
+$medlem->remove_cap( 'samlab_read_portal' );
+wp_set_current_user( 0 );
+wp_set_current_user( $medlem->ID );
+sjekk( 'portaltilgangen er tilbakestilt', current_user_can( 'samlab_read_portal' ) );
 
 // --- Innlogget: markup med escaped innstillinger ---
 $orig = get_option( 'samlab_settings', array() );
@@ -41,9 +68,7 @@ $s['assistent_velkomst'] = 'Hei "du" <der> & velkommen!';
 update_option( 'samlab_settings', $s );
 
 wp_set_current_user( $medlem->ID );
-ob_start();
-samlab_assistent_widget();
-$html = ob_get_clean();
+$html = samlab_test_widget_html();
 
 sjekk( 'knapp og panel rendres', false !== strpos( $html, 'samlab-assistent-knapp' ) && false !== strpos( $html, 'samlab-assistent-panel' ) );
 sjekk( 'navnet escapes ved output', false !== strpos( $html, 'Kompis &amp; venner' ) );

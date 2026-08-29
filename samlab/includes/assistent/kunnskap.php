@@ -28,6 +28,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 const SAMLAB_KUNNSKAP_KILDEGRENSE = 20000;
 
 /**
+ * Timeout per ekstern kilde, i sekunder.
+ */
+const SAMLAB_KUNNSKAP_KILDETIMEOUT = 10;
+
+/**
+ * Tidsbudsjett for hele kildehentingen når PHP ikke har en
+ * kjøretidsgrense (typisk CLI/WP-CLI), i sekunder.
+ */
+const SAMLAB_KUNNSKAP_TIDSBUDSJETT = 45;
+
+/**
  * Det lagrede kunnskapsgrunnlaget.
  *
  * @return array{versjon: int, bygget: int, storrelse: int, tekst: string, kilder_ok: int, kilder_feilet: string[]}|null
@@ -218,7 +229,7 @@ function samlab_kunnskap_handbok() {
  * @return string|WP_Error Teksten, eller WP_Error ved feil.
  */
 function samlab_kunnskap_hent_kilde( $url ) {
-	$svar = wp_safe_remote_get( $url, array( 'timeout' => 15 ) );
+	$svar = wp_safe_remote_get( $url, array( 'timeout' => SAMLAB_KUNNSKAP_KILDETIMEOUT ) );
 	if ( is_wp_error( $svar ) ) {
 		return $svar;
 	}
@@ -233,7 +244,35 @@ function samlab_kunnskap_hent_kilde( $url ) {
 }
 
 /**
- * Seksjonen for eksterne kilder.
+ * Tidsbudsjettet kildehentingen har til rådighet, i sekunder.
+ *
+ * Bygget kjøres av wp-cron over HTTP, der max_execution_time gjelder.
+ * Budsjettet holder seg godt innenfor den grensen, med rom for det
+ * siste kildekallet og lagringen etterpå - ellers kan noen få trege
+ * kilder ta livet av hele jobben.
+ *
+ * @return int Sekunder.
+ */
+function samlab_kunnskap_tidsbudsjett() {
+	$maks     = (int) ini_get( 'max_execution_time' );
+	$budsjett = $maks > 0
+		? max( SAMLAB_KUNNSKAP_KILDETIMEOUT, (int) floor( $maks / 2 ) - SAMLAB_KUNNSKAP_KILDETIMEOUT )
+		: SAMLAB_KUNNSKAP_TIDSBUDSJETT;
+
+	/**
+	 * Filtrerer tidsbudsjettet kildehentingen har til rådighet.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int $budsjett Sekunder.
+	 */
+	return (int) apply_filters( 'samlab_kunnskap_tidsbudsjett', $budsjett );
+}
+
+/**
+ * Seksjonen for eksterne kilder. Hentingen er seriell, så den
+ * stopper når tidsbudsjettet er brukt opp - kildene som ikke ble
+ * forsøkt havner i feilet-listen og prøves igjen ved neste bygg.
  *
  * @param string[] $feilet Fylles med URL-er som ikke kunne hentes.
  * @return array{tekst: string, ok: int}
@@ -247,9 +286,15 @@ function samlab_kunnskap_kilder( &$feilet ) {
 		);
 	}
 
-	$ut = '';
-	$ok = 0;
-	foreach ( $kilder as $url ) {
+	$ut       = '';
+	$ok       = 0;
+	$start    = microtime( true );
+	$budsjett = samlab_kunnskap_tidsbudsjett();
+	foreach ( $kilder as $indeks => $url ) {
+		if ( microtime( true ) - $start > $budsjett ) {
+			$feilet = array_merge( $feilet, array_slice( $kilder, $indeks ) );
+			break;
+		}
 		$tekst = samlab_kunnskap_hent_kilde( $url );
 		if ( is_wp_error( $tekst ) || '' === $tekst ) {
 			$feilet[] = $url;
@@ -265,8 +310,36 @@ function samlab_kunnskap_kilder( &$feilet ) {
 }
 
 /**
+ * Lagrer grunnlaget. Versjonen sendes inn, slik at et bygg som
+ * lagrer flere ganger (portalinnhold først, kilder etterpå) blir
+ * stående som én versjon.
+ *
+ * @param int      $versjon Versjonsnummeret dette bygget har.
+ * @param string   $tekst   Grunnlagsteksten.
+ * @param int      $ok      Antall kilder hentet.
+ * @param string[] $feilet  Kilder som ikke ble hentet.
+ * @return array Det lagrede grunnlaget.
+ */
+function samlab_kunnskap_lagre( $versjon, $tekst, $ok, $feilet ) {
+	$grunnlag = array(
+		'versjon'       => $versjon,
+		'bygget'        => time(),
+		'storrelse'     => strlen( $tekst ),
+		'tekst'         => $tekst,
+		'kilder_ok'     => $ok,
+		'kilder_feilet' => $feilet,
+	);
+	update_option( 'samlab_kunnskap', $grunnlag, false );
+	return $grunnlag;
+}
+
+/**
  * Bygger og lagrer kunnskapsgrunnlaget. Versjonen teller opp for
  * hvert bygg, med tidsstempel og størrelse til statusvisningen.
+ *
+ * Portalinnholdet lagres før de eksterne kildene hentes: hentingen
+ * er seriell og kan bli avbrutt av max_execution_time, og da skal
+ * grunnlaget likevel være oppdatert med det som alt er bygget.
  *
  * @return array Det lagrede grunnlaget.
  */
@@ -278,20 +351,20 @@ function samlab_assistent_bygg_kunnskap() {
 	$tekst .= samlab_kunnskap_arrangementer();
 	$tekst .= samlab_kunnskap_handbok();
 
-	$feilet = array();
-	$kilder = samlab_kunnskap_kilder( $feilet );
-	$tekst .= $kilder['tekst'];
+	$forrige = samlab_assistent_kunnskap();
+	$versjon = $forrige ? (int) $forrige['versjon'] + 1 : 1;
+	$kilder  = samlab_assistent_kilder();
 
-	$forrige  = samlab_assistent_kunnskap();
-	$grunnlag = array(
-		'versjon'       => $forrige ? (int) $forrige['versjon'] + 1 : 1,
-		'bygget'        => time(),
-		'storrelse'     => strlen( $tekst ),
-		'tekst'         => $tekst,
-		'kilder_ok'     => $kilder['ok'],
-		'kilder_feilet' => $feilet,
-	);
-	update_option( 'samlab_kunnskap', $grunnlag, false );
+	// Delvis lagring: alle kildene står som ikke-hentet inntil videre,
+	// slik at statusen er ærlig om jobben skulle bli avbrutt her.
+	// Samme versjon skrives på nytt når kildene er hentet.
+	$grunnlag = samlab_kunnskap_lagre( $versjon, $tekst, 0, $kilder );
+
+	if ( array() !== $kilder ) {
+		$feilet   = array();
+		$hentet   = samlab_kunnskap_kilder( $feilet );
+		$grunnlag = samlab_kunnskap_lagre( $versjon, $tekst . $hentet['tekst'], $hentet['ok'], $feilet );
+	}
 
 	/**
 	 * Kjøres etter at kunnskapsgrunnlaget er bygget.

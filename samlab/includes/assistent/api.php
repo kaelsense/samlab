@@ -74,13 +74,50 @@ function samlab_assistent_register_rest() {
 add_action( 'rest_api_init', 'samlab_assistent_register_rest' );
 
 /**
+ * Cache-gruppen telleren ligger i når nettstedet har et eksternt
+ * objektcache.
+ */
+const SAMLAB_ASSISTENT_RATE_GRUPPE = 'samlab_assistent';
+
+/**
+ * Nøkkelen brukerens teller ligger under.
+ *
+ * @param int $user_id Brukeren.
+ * @return string
+ */
+function samlab_assistent_rate_nokkel( $user_id ) {
+	return 'samlab_assistent_rl_' . absint( $user_id );
+}
+
+/**
  * Teller brukerens kall i vinduet og sier om dette er innenfor.
+ *
+ * Med et eksternt objektcache telles det opp med wp_cache_incr, som
+ * er atomisk - da slipper parallelle forespørsler fra samme medlem
+ * ikke forbi grensen sammen. Uten objektcache faller vi tilbake til
+ * transient: en les-sammenlign-skriv som kan la noen få samtidige
+ * kall gå gjennom. Det er en bevisst grense - en atomisk teller i
+ * options-tabellen krever direkte SQL, og grensen er en bremse mot
+ * kostnad, ikke en sikkerhetsmekanisme.
  *
  * @param int $user_id Brukeren.
  * @return bool Om kallet er innenfor grensen.
  */
 function samlab_assistent_rate_ok( $user_id ) {
-	$nokkel = 'samlab_assistent_rl_' . absint( $user_id );
+	$nokkel = samlab_assistent_rate_nokkel( $user_id );
+
+	if ( wp_using_ext_object_cache() ) {
+		wp_cache_add( $nokkel, 0, SAMLAB_ASSISTENT_RATE_GRUPPE, SAMLAB_ASSISTENT_RATE_VINDU );
+		$antall = wp_cache_incr( $nokkel, 1, SAMLAB_ASSISTENT_RATE_GRUPPE );
+		// Nøkkelen kan ha løpt ut mellom add og incr - da er dette
+		// kallet det første i et nytt vindu.
+		if ( false === $antall ) {
+			wp_cache_set( $nokkel, 1, SAMLAB_ASSISTENT_RATE_GRUPPE, SAMLAB_ASSISTENT_RATE_VINDU );
+			return true;
+		}
+		return $antall <= SAMLAB_ASSISTENT_RATE_ANTALL;
+	}
+
 	$antall = (int) get_transient( $nokkel );
 	if ( $antall >= SAMLAB_ASSISTENT_RATE_ANTALL ) {
 		return false;

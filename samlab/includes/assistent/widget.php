@@ -3,8 +3,8 @@
  * Chat-widgeten (F4): flytende assistentknapp i portalskallet med
  * panel, meldingsliste, «skriver …»-indikator og hel-svar-levering
  * mot POST samlab/v1/assistent (F3). Lastes kun via modul.php
- * (modulen på), og rendres kun for innloggede - utloggede når
- * aldri skallet (innloggingsporten).
+ * (modulen på), og rendres kun for medlemmer som faktisk kan bruke
+ * den: innlogget, med samlab_read_portal, og med API-nøkkel satt.
  *
  * All dynamisk output escapes: PHP-siden med esc_html/esc_attr,
  * JS-siden utelukkende med textContent (aldri innerHTML med data).
@@ -19,12 +19,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Om widgeten skal vises for den innloggede brukeren. Porten er den
+ * samme som endepunktets: uten portaltilgang svarer REST 403, og uten
+ * API-nøkkel svarer det 503. Da skal knappen heller ikke vises - en
+ * chat som alltid feiler er verre enn ingen chat. Innloggingsporten
+ * slipper inn alle innloggede, så capability-sjekken må gjøres her.
+ *
+ * @return bool
+ */
+function samlab_assistent_vis_widget() {
+	if ( ! is_user_logged_in() || ! current_user_can( 'samlab_read_portal' ) ) {
+		return false;
+	}
+	return samlab_assistent_har_nokkel();
+}
+
+/**
  * Rendrer widgeten i portalskallets bunn (samlab_portal_bunn).
  *
  * @return void
  */
 function samlab_assistent_widget() {
-	if ( ! is_user_logged_in() ) {
+	if ( ! samlab_assistent_vis_widget() ) {
 		return;
 	}
 	$navn = samlab_assistent_navn();
