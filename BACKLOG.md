@@ -84,10 +84,14 @@ oppgave innfri sin «Ferdig når».*
 
 ## Fase B: Plugin-kjerne
 
-- [ ] **B1. Aktivering/deaktivering.** Aktiveringshook som registrerer
+- [x] **B1. Aktivering/deaktivering.** Aktiveringshook som registrerer
   rewrite-regler og flusher én gang; deaktivering rydder.
   *Ferdig når:* aktivering/deaktivering i wp-env gir ingen feil i
   debug.log.
+  *Notat (2026-08-29):* `samlab_activate()` (rewrites når B7 finnes,
+  flush, versjons-option) og `samlab_deactivate()` (flush) i
+  samlab.php per planens bootstrap-rolle. To fulle sykluser i
+  testriggen: tom debug.log. WPCS grønn.
 - [ ] **B2. Roller og capabilities.** Roller for medlem,
   bedriftsredaktør og moderator med capabilities per planens
   kapittel 3.2, lagt til ved aktivering og fjernet ved avinstallering

@@ -40,3 +40,34 @@ add_action( 'init', 'samlab_load_textdomain' );
  * Modulene i includes/ registreres her etter hvert som de bygges
  * (post-types, roles, rewrites, rest-api, access - se planens kap. 3).
  */
+
+/**
+ * Aktivering: registrer pluginens rewrite-regler og flush dem én gang.
+ *
+ * Flush er dyrt og skal kun skje her - aldri på vanlige requests.
+ *
+ * @return void
+ */
+function samlab_activate() {
+	// Rewrite-modulen kommer i B7; kalles her slik at reglene er
+	// registrert før flushen når modulen finnes.
+	if ( function_exists( 'samlab_register_rewrites' ) ) {
+		samlab_register_rewrites();
+	}
+	flush_rewrite_rules();
+	update_option( 'samlab_version', SAMLAB_VERSION );
+}
+register_activation_hook( __FILE__, 'samlab_activate' );
+
+/**
+ * Deaktivering: fjern pluginens rewrite-regler fra cachen.
+ *
+ * Innhold og innstillinger beholdes - opprydding av data hører til
+ * avinstallering (uninstall.php, B2).
+ *
+ * @return void
+ */
+function samlab_deactivate() {
+	flush_rewrite_rules();
+}
+register_deactivation_hook( __FILE__, 'samlab_deactivate' );
