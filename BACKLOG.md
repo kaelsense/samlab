@@ -419,7 +419,7 @@ med `wp cron event run`.*
   andres er per konstruksjon utilgjengelige, lest-markering,
   teller i skallet). Tom debug.log, WPCS grønn, sikkerhetstabellen
   oppdatert.
-- [ ] **E3. Kontrollpanelet.** wp-admin-side for community-manageren
+- [x] **E3. Kontrollpanelet.** wp-admin-side for community-manageren
   (planens kap. 3.4): koblingskø med godkjenn/avvis og statuskjede,
   og «trenger oppmerksomhet»-listene (nye medlemmer uten
   introduksjon, ubesvarte behov eldre enn X dager, ufullstendige
@@ -427,6 +427,17 @@ med `wp cron event run`.*
   *Ferdig når:* alle listene viser riktige treff mot seed-data
   pluss konstruerte kanttilfeller, og godkjenning av en foreslått
   kobling utløser varsel til partene.
+  *Notat (2026-08-29):* admin/kontrollpanel.php: menyside bak
+  edit_samlab_koblinger med koblingskø (godkjenn/avvis), aktive
+  koblinger med neste-steg-knapper, og de fire listene (nye uten
+  kobling siste 30 d, behov eldre enn 14 d, profiler med manglende
+  felter/logo, medlemmer uten aktivitet i 30 d - nyregistrerte
+  unntatt). Handlinger via admin-post med nonce; utfør-funksjonen
+  returnerer WP_Error og er testbar. 23 tester grønne mot seed +
+  konstruerte kanttilfeller, inkl. at godkjenning varslet begge
+  parter (E2-integrasjonen). HTTP: moderator 200 med alle
+  seksjoner, medlem 403. Tom debug.log, WPCS grønn,
+  sikkerhetstabellen oppdatert.
 - [ ] **E4. Regelbasert matching.** Cron-jobb (`wp_schedule_event`,
   daglig) som matcher åpne behov mot bedriftenes intensjonsfelter
   og kompetanse/tjenester (tekstlig overlapp, terskel), og
