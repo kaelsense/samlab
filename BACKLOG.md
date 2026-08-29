@@ -68,10 +68,13 @@ oppgave innfri sin «Ferdig når».*
   PHPCompatibilityWP og skriptene lint/lint:fix; phpcs.xml.dist med
   tekstdomene- og prefiks-regler. `composer lint` grønn på alle
   7 filer. Lisensfelt utelatt fra composer.json (fase 0-beslutning).
-- [ ] **A4. CI.** GitHub Action som kjører `php -l` og `composer lint`
+- [x] **A4. CI.** GitHub Action som kjører `php -l` og `composer lint`
   på push og PR.
   *Ferdig når:* workflow-filen er committet og syntaktisk gyldig
   (`act`-kjøring eller YAML-validering).
+  *Notat (2026-08-29):* `.github/workflows/ci.yml` med php -l over
+  `samlab/` og `composer lint` på push og PR (PHP 8.2). YAML
+  validert og begge stegene kjørt grønt lokalt før push.
 - [ ] **A5. AVKLARINGER.md.** Opprett filen med en kort forklaring og
   tom liste.
   *Ferdig når:* filen finnes og er lenket fra README.

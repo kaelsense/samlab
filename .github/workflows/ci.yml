@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: PHP-lint og kodestandard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sjekk ut koden
+        uses: actions/checkout@v4
+
+      - name: Sett opp PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: composer
+
+      - name: Syntakssjekk (php -l)
+        run: |
+          feil=0
+          while IFS= read -r fil; do
+            php -l "$fil" || feil=1
+          done < <(find samlab -name '*.php')
+          exit "$feil"
+
+      - name: Installer verktøy
+        run: composer install --no-interaction --no-progress
+
+      - name: Kodestandard (composer lint)
+        run: composer lint
