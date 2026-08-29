@@ -611,7 +611,7 @@ innstilling med standard `claude-opus-5`. Verifisering i riggen
 mocker API-et med `pre_http_request`-filteret, så ingen nøkkel
 trengs i test.*
 
-- [ ] **F1. Modulinnstillinger.** Egen seksjon på innstillingssiden:
+- [x] **F1. Modulinnstillinger.** Egen seksjon på innstillingssiden:
   modul av/på (standard av), assistentnavn, velkomstmelding,
   toneinstruks, modell (standard `claude-opus-5`), eksterne kilder
   (URL-liste), og statusvisning (nøkkel funnet i wp-config: ja/nei -
@@ -619,6 +619,22 @@ trengs i test.*
   av.
   *Ferdig når:* innstillingene lagres sanitert, av/på styrer
   faktisk lasting, status vises riktig med/uten konstant i riggen.
+  *Notat (2026-08-29):* includes/assistent.php (bootstrap som
+  alltid lastes: helpers med nøytrale standarder + av/på-bryteren)
+  og includes/assistent/modul.php (lastes KUN når modulen er på -
+  hjemmet for F2-F4). Innstillingssiden fikk fire nye felttyper:
+  overskrift (seksjonsrad), status (visning via callback, tar
+  aldri imot POST), tekstfelt (textarea) og urlliste (kun
+  http(s)-URL-er overlever, javascript:/ftp: forkastes); modell-ID
+  vaskes til [a-z0-9.-]. Nøkkelhelperen leser kun konstanten og
+  statusteksten røper aldri verdien. 21 tester grønne (sanitering,
+  standarder, nøkkelstatus med/uten konstant, modul ikke lastet
+  når av) + prosess-verifisering av at av/på faktisk styrer
+  lastingen (function_exists false/true/false over tre wp-kall) og
+  HTTP: seksjonen rendres, «Ikke funnet» uten konstant, «Funnet» med
+  konstant satt via wp config set - og aldri nøkkelverdien i
+  HTML-en. Tom debug.log, WPCS grønn, sikkerhetstabellen
+  oppdatert.
 - [ ] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
   fra portalinnholdet (bedrifter med intensjoner, behov, håndbok,
   arrangementer) pluss de eksterne URL-ene (hentet og strippet til

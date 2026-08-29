@@ -58,6 +58,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-stemme.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-varsel.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/varsler.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/assistent.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/matching.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/ukesbrev.php';
 
