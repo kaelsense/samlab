@@ -35,3 +35,12 @@ anbefaling med begrunnelse.
 3. **2026-08-29 - Branch: AVGJORT.** Loopen fortsetter på
    `claude/backlog-tasks-loop-79kb3l`; merge til andre brancher gjøres
    av mennesker. Doc-stiene i CLAUDE.md er rettet til `handover/...`.
+
+4. **2026-08-29 - Fase 3-4-planlegging: AVGJORT.** Interaktiv økt
+   med Kay etter MVP-milepælen: (a) fase E får fullt scope -
+   planens kjerne (koblinger, kontrollpanel, matching, ukesbrev)
+   pluss alle analysenes tillegg (in-app-varsler, arrangementer +
+   infoskjerm, lesebekreftelser, avstemninger); (b) hele
+   assistentmodulen (fase F) bygges nå, med SSE utsatt til
+   webhotell-test (hel-svar som standard); (c) samme autonome
+   loop-regime som MVP-en. Backloggen fase E/F er kontrakten.

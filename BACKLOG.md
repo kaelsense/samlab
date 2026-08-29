@@ -368,8 +368,152 @@ oppgave innfri sin «Ferdig når».*
   helt fersk rigg: klone → script → seed → server → portal 200 med
   demodata, håndbok-vern aktivt. MVP-MILEPÆLEN ER NÅDD.
 
-**Milepæl: MVP.** Når D4 er krysset av er fase 1-2 fra planen levert
-og Lius-piloten kan settes opp. Fase 3-4 (kontrollpanel, matching,
-varsler, lesebekreftelser, infoskjerm, assistent) planlegges i en
-interaktiv økt sammen med erfaringene fra AVKLARINGER.md - de skal
-ikke inn i denne backloggen før mennesker har prioritert dem.
+**Milepæl: MVP - NÅDD 2026-08-29.** Fase 1-2 fra planen er levert
+(PR #1, merget til main) og Lius-piloten kan settes opp. Fase 3-4
+under ble planlagt interaktivt med Kay 2026-08-29: fullt fase
+3-scope inkludert alle analysenes tillegg, hele assistentmodulen,
+samme loop-regime som MVP-en.
+
+## Fase E: Fasilitering (planens fase 3)
+
+*Kjernen fra planens kap. 3.4 pluss tilleggene fra FluentCommunity-,
+Infohub- og B2B-analysene. Rekkefølgen er avhengighetsstyrt:
+koblinger og varsler først (kontrollpanelet og matchingen bygger på
+dem). Verifisering skjer i testriggen som før; cron-jobber testes
+med `wp cron event run`.*
+
+- [ ] **E1. CPT: kobling/introduksjon.** `samlab_kobling` (ikke
+  offentlig, ingen egen portalflate): to parter (bedrift og/eller
+  bruker), begrunnelse, kilde (manuell/matching) og statuskjeden som
+  meta (foreslått → godkjent → introdusert → fulgt opp). Synlig kun
+  for moderator+ og partene selv (capability-håndhevet, som B4).
+  *Ferdig når:* koblinger kan opprettes og flyttes gjennom
+  statuskjeden via wp-admin/wp-cli, og en part kan lese men ikke
+  endre andres koblinger - verifisert med røyk-test i riggen.
+- [ ] **E2. In-app-varsler.** Egen tabell (hybridmodellen) med
+  modellklasse, varsler ved mention, kommentar/reaksjon på eget
+  innlegg, svar på eget behov og kobling der en er part.
+  REST: `GET samlab/v1/varsler` + markér-som-lest. Bjelle med
+  uleste-teller i skallet, enkel varselliste.
+  *Ferdig når:* hver utløser gir varsel i riggen, lest-markering
+  virker, og andres varsler er utilgjengelige (403). WPCS grønn.
+- [ ] **E3. Kontrollpanelet.** wp-admin-side for community-manageren
+  (planens kap. 3.4): koblingskø med godkjenn/avvis og statuskjede,
+  og «trenger oppmerksomhet»-listene (nye medlemmer uten
+  introduksjon, ubesvarte behov eldre enn X dager, ufullstendige
+  bedriftsprofiler, stille medlemmer).
+  *Ferdig når:* alle listene viser riktige treff mot seed-data
+  pluss konstruerte kanttilfeller, og godkjenning av en foreslått
+  kobling utløser varsel til partene.
+- [ ] **E4. Regelbasert matching.** Cron-jobb (`wp_schedule_event`,
+  daglig) som matcher åpne behov mot bedriftenes intensjonsfelter
+  og kompetanse/tjenester (tekstlig overlapp, terskel), og
+  oppretter foreslåtte koblinger i kontrollpanelet - aldri
+  automatiske introduksjoner. Dedupliserer mot eksisterende
+  koblinger. (LLM-assistert scoring er en senere utvidelse via
+  assistentens integrasjon - egen oppgave når F-fasen er levert.)
+  *Ferdig når:* kjøring mot seed-data gir forutsigbare forslag
+  (dokumentert i testen), ingen duplikater ved gjentatt kjøring.
+- [ ] **E5. Ukesbrev.** Cron-jobb som sender digest via `wp_mail`:
+  nye behov, nye innlegg, kommende arrangementer og nye medlemmer
+  siste uke. Innstillinger: av/på, ukedag, avsendernavn. Medlemmer
+  kan reservere seg (profilinnstilling). E-posten er ren tekst/enkel
+  HTML uten temaavhengighet.
+  *Ferdig når:* generert e-post inneholder riktig innhold mot
+  seed-data (fanget med mail-mock i riggen), reservasjon
+  respekteres, og jobben planlegges/avplanlegges ved
+  aktivering/deaktivering.
+- [ ] **E6. CPT: arrangement.** `samlab_arrangement` med dato/tid,
+  sted, arrangør (bedriftskobling valgfri) og beskrivelse; egen
+  portalflate (kommende først) som ny standardflate i nav og søk;
+  medlemmer med egen capability kan opprette fra portalen (som C3).
+  *Ferdig når:* som B5/C3: komplett arrangement fra wp-admin og
+  portal, listet riktig, i globalt søk, WPCS grønn.
+- [ ] **E7. Avstemninger.** Enkel avstemning på vegginnlegg
+  (spørsmål + 2-5 alternativer, egen tabell for stemmer, én stemme
+  per medlem, endring tillatt), stemming via REST med
+  resultatvisning etter avgitt stemme.
+  *Ferdig når:* opprette-stemme-endre-flyt virker ende til ende i
+  riggen, stemmetallene er riktige, uinnloggede avvises.
+- [ ] **E8. Lesebekreftelser.** «Bekreft lest» på festede oppslag
+  (moderator velger per innlegg), bekreftelse via REST, og
+  moderatoroversikt i kontrollpanelet over hvem som har/ikke har
+  bekreftet.
+  *Ferdig når:* medlem kan bekrefte én gang, oversikten stemmer,
+  kun moderator+ ser den.
+- [ ] **E9. Infoskjerm.** Read-only rute (`/portal-sti/skjerm/` e.l.)
+  med hemmelig nøkkel i URL-en (innstilling, regenererbar) som
+  viser festede oppslag, siste vegginnlegg og kommende
+  arrangementer i storskjerm-layout med auto-oppdatering.
+  Ingen innlogging - nøkkelen er porten; ingen persondata utover
+  det veggen viser.
+  *Ferdig når:* riktig nøkkel gir 200 med innhold og auto-refresh,
+  feil/manglende nøkkel gir 404, og flaten er noindex.
+- [ ] **E10. Seed og dokumentasjon for fase E.** Seed-kommandoen
+  utvides med arrangementer, koblinger i ulike statuser, varsler og
+  en avstemning; docs/hooks.md og docs/sikkerhet.md-tabellen
+  oppdateres med alle nye endepunkter/flater; README nevner
+  cron-kravene.
+  *Ferdig når:* fersk rigg + seed demonstrerer E1-E9, og
+  sikkerhetstabellen dekker alle nye flater med bekreftet status.
+
+## Fase F: Assistenten (planens fase 4)
+
+*Valgfri modul - portalen fungerer fullt ut uten. API-nøkkelen leses
+fra konstanten `SAMLAB_CLAUDE_API_KEY` i wp-config.php, aldri fra
+databasen. Kall går server-side via WordPress' HTTP-API mot Claude
+Messages API (pluginen shipper uten composer-runtime). Modell er en
+innstilling med standard `claude-opus-5`. Verifisering i riggen
+mocker API-et med `pre_http_request`-filteret, så ingen nøkkel
+trengs i test.*
+
+- [ ] **F1. Modulinnstillinger.** Egen seksjon på innstillingssiden:
+  modul av/på (standard av), assistentnavn, velkomstmelding,
+  toneinstruks, modell (standard `claude-opus-5`), eksterne kilder
+  (URL-liste), og statusvisning (nøkkel funnet i wp-config: ja/nei -
+  aldri selve nøkkelen). Ingen assistent-kode lastes når modulen er
+  av.
+  *Ferdig når:* innstillingene lagres sanitert, av/på styrer
+  faktisk lasting, status vises riktig med/uten konstant i riggen.
+- [ ] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
+  fra portalinnholdet (bedrifter med intensjoner, behov, håndbok,
+  arrangementer) pluss de eksterne URL-ene (hentet og strippet til
+  tekst). Hemmelighetsprinsippet: aldri passord/sensitive detaljer;
+  grunnlaget viser til innloggede sider for detaljer. Lagres
+  versjonert (option/fil) med tidsstempel og størrelse synlig i
+  innstillingene; manuell «bygg nå»-knapp.
+  *Ferdig når:* grunnlaget bygges korrekt fra seed-data i riggen,
+  eksterne kilder hentes (mocket), og innhold fra ikke-portal-sider
+  havner ikke i grunnlaget.
+- [ ] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
+  (innlogget + portal-capability): server-side kall til Messages
+  API via `wp_remote_post` med system-prompt (navn/tone +
+  kunnskapsgrunnlag) markert for prompt-caching (`cache_control`
+  på systemblokken), samtalehistorikk fra klienten (avgrenset
+  lengde), rate-limiting per bruker (transient-basert) og ryddige
+  feilsvar (503 uten nøkkel/modul av, 429 over grensen). Ingen
+  logging av spørsmål/svar utover feilsøking (av som standard).
+  *Ferdig når:* endepunktet svarer korrekt mot mocket API i riggen,
+  avviser uinnloggede (401), håndhever rate-limit (429), og gir
+  503 uten nøkkel - uten å lekke konfigurasjonsdetaljer.
+- [ ] **F4. Chat-widgeten.** Flytende assistentknapp i portalskallet
+  (kun når modulen er på): panel med velkomstmelding, meldingsliste,
+  «skriver …»-indikator og hel-svar-levering (planens plan B).
+  SSE-streaming dokumenteres som mulig oppgradering i docs/hooks.md
+  med testoppskrift for webhotellet - bygges ikke nå.
+  *Ferdig når:* hele samtaleflyten virker i riggen mot mocket API,
+  widgeten er fraværende for utloggede og når modulen er av,
+  og all output escapes.
+- [ ] **F5. Verifisering og dokumentasjon for fase F.** Røyk-test
+  (tests/rigg/) som dekker F1-F4 med mock; docs/sikkerhet.md
+  utvides med assistentflatene (inkl. trusselnotat om
+  prompt-injeksjon fra portalinnhold i kunnskapsgrunnlaget og at
+  assistenten aldri får skrivetilgang); README får
+  installasjonsavsnitt for modulen (konstanten, kostnad, av/på).
+  *Ferdig når:* fersk rigg demonstrerer assistenten mot mock kun
+  via README-stegene, og sikkerhetstabellen dekker alle nye flater.
+
+**Milepæl: Full pakke.** Når F5 er krysset av er hele planens fase
+0-4 levert. Neste beslutningspunkt (interaktivt): LLM-assistert
+matching-scoring, SSE-streaming etter webhotell-test, og
+erfaringene fra Lius-piloten.
