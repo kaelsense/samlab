@@ -1,0 +1,8 @@
+# Composer (dev-verktoy - WPCS m.m.)
+/vendor/
+
+# Node / wp-env
+/node_modules/
+
+# Diverse
+.DS_Store

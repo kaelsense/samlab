@@ -57,11 +57,15 @@ oppgave innfri sin «Ferdig når».*
   wp-env-oppskrift committet; JSON validert. Kjøretesten
   (`npx wp-env start`) gjenstår - samme miljøbegrensning som A1,
   se AVKLARINGER.md punkt 1.
-- [ ] **A3. Kodestandard.** Sett opp PHP_CodeSniffer med
+- [x] **A3. Kodestandard.** Sett opp PHP_CodeSniffer med
   WordPress-Coding-Standards i composer (dev-avhengighet er lov -
   regelen gjelder betal-plugins i runtime), med `composer lint` og
   `composer lint:fix`.
   *Ferdig når:* `composer lint` kjører grønt på A1-skjelettet.
+  *Notat (2026-08-29):* composer.json med WPCS 3.x,
+  PHPCompatibilityWP og skriptene lint/lint:fix; phpcs.xml.dist med
+  tekstdomene- og prefiks-regler. `composer lint` grønn på alle
+  7 filer. Lisensfelt utelatt fra composer.json (fase 0-beslutning).
 - [ ] **A4. CI.** GitHub Action som kjører `php -l` og `composer lint`
   på push og PR.
   *Ferdig når:* workflow-filen er committet og syntaktisk gyldig

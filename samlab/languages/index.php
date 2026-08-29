@@ -1,2 +1,6 @@
 <?php
-// Stillhet er gull.
+/**
+ * Stillhet er gull.
+ *
+ * @package Samlab
+ */
