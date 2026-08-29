@@ -109,6 +109,7 @@ register_activation_hook( __FILE__, 'samlab_activate' );
 function samlab_deactivate() {
 	wp_clear_scheduled_hook( 'samlab_matching' );
 	wp_clear_scheduled_hook( 'samlab_ukesbrev' );
+	wp_clear_scheduled_hook( 'samlab_assistent_kunnskap' );
 	flush_rewrite_rules();
 }
 register_deactivation_hook( __FILE__, 'samlab_deactivate' );

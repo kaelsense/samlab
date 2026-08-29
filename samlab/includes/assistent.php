@@ -94,6 +94,65 @@ function samlab_assistent_nokkel_status() {
 	return __( 'Ikke funnet. Legg til define( \'SAMLAB_CLAUDE_API_KEY\', \'…\' ); i wp-config.php - nøkkelen lagres aldri i databasen.', 'samlab' );
 }
 
+/**
+ * Statustekst for kunnskapsgrunnlaget til innstillingssiden. Leser
+ * option direkte så statusen vises også når modulen er av.
+ *
+ * @return string
+ */
+function samlab_assistent_kunnskap_status() {
+	$grunnlag = get_option( 'samlab_kunnskap', null );
+	if ( ! is_array( $grunnlag ) || empty( $grunnlag['bygget'] ) ) {
+		return __( 'Ikke bygget ennå - bygges automatisk hver dag når modulen er på, eller med knappen under.', 'samlab' );
+	}
+	$tekst = sprintf(
+		/* translators: 1: versjonsnummer, 2: dato og tid, 3: størrelse. */
+		__( 'Versjon %1$d, bygget %2$s (%3$s).', 'samlab' ),
+		(int) $grunnlag['versjon'],
+		date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), (int) $grunnlag['bygget'] ),
+		size_format( (int) $grunnlag['storrelse'] )
+	);
+	if ( ! empty( $grunnlag['kilder_feilet'] ) ) {
+		/* translators: %s: kommaseparert liste over kilder som feilet. */
+		$tekst .= ' ' . sprintf( __( 'Kilder som feilet: %s.', 'samlab' ), implode( ', ', $grunnlag['kilder_feilet'] ) );
+	}
+	return $tekst;
+}
+
+/**
+ * «Bygg nå»-seksjonen nederst på innstillingssiden - kun når
+ * modulen er på (handleren finnes bare da).
+ *
+ * @return void
+ */
+function samlab_assistent_settings_seksjon() {
+	if ( ! samlab_assistent_aktiv() ) {
+		return;
+	}
+	?>
+	<h2><?php esc_html_e( 'Kunnskapsgrunnlaget', 'samlab' ); ?></h2>
+	<p class="description"><?php esc_html_e( 'Bygges automatisk hver dag fra portalinnholdet og de eksterne kildene. Grunnlaget skal aldri inneholde passord eller sensitive detaljer.', 'samlab' ); ?></p>
+	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<input type="hidden" name="action" value="samlab_bygg_kunnskap" />
+		<?php wp_nonce_field( 'samlab_bygg_kunnskap' ); ?>
+		<button type="submit" class="button"><?php esc_html_e( 'Bygg nå', 'samlab' ); ?></button>
+	</form>
+	<?php
+}
+
+/**
+ * Rydder kunnskaps-cronen når modulen er av (planleggingen skjer i
+ * modulen, som bare lastes når den er på).
+ *
+ * @return void
+ */
+function samlab_assistent_rydd_cron() {
+	if ( ! samlab_assistent_aktiv() && wp_next_scheduled( 'samlab_assistent_kunnskap' ) ) {
+		wp_clear_scheduled_hook( 'samlab_assistent_kunnskap' );
+	}
+}
+add_action( 'init', 'samlab_assistent_rydd_cron' );
+
 /*
  * Selve modulen lastes kun når den er slått på - ingen
  * assistent-kode (cron, REST, widget) ellers.

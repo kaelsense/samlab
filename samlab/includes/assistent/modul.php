@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/kunnskap.php';
+
 /**
  * Markør for at modulen er lastet - brukes av røyk-testene for å
  * verifisere at av/på-bryteren faktisk styrer lastingen.

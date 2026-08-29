@@ -635,7 +635,7 @@ trengs i test.*
   konstant satt via wp config set - og aldri nøkkelverdien i
   HTML-en. Tom debug.log, WPCS grønn, sikkerhetstabellen
   oppdatert.
-- [ ] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
+- [x] **F2. Kunnskaps-cron.** Cron-jobb som bygger kunnskapsgrunnlag
   fra portalinnholdet (bedrifter med intensjoner, behov, håndbok,
   arrangementer) pluss de eksterne URL-ene (hentet og strippet til
   tekst). Hemmelighetsprinsippet: aldri passord/sensitive detaljer;
@@ -645,6 +645,27 @@ trengs i test.*
   *Ferdig når:* grunnlaget bygges korrekt fra seed-data i riggen,
   eksterne kilder hentes (mocket), og innhold fra ikke-portal-sider
   havner ikke i grunnlaget.
+  *Notat (2026-08-29):* includes/assistent/kunnskap.php (lastes kun
+  via modulen): seksjoner for bedrifter med intensjoner/tjenester/
+  kontaktperson, behov med retning og detaljer, kommende
+  arrangementer og håndbok-merkede sider - alle med portallenker
+  for detaljer. Hemmelighetsprinsippet håndhevet: kun
+  håndbok-MERKEDE sider, passordbeskyttet innhold hoppes alltid
+  over. Eksterne kilder via wp_remote_get, strippet (inkl.
+  script/style) med 20 000-tegns tak per kilde; feilede kilder
+  registreres og navngis i statusen. Lagres i samlab_kunnskap-
+  option (autoload av) med inkrementell versjon, tidsstempel og
+  størrelse; status på innstillingssiden (vises også når modulen
+  er av) + «Bygg nå»-knapp bak manage_options + nonce. Daglig cron
+  samlab_assistent_kunnskap planlegges når modulen er på og ryddes
+  ved av-slåing og deaktivering; `wp samlab kunnskap [--vis]` med
+  vakt når modulen er av. Action samlab_kunnskap_bygget. 17 tester
+  grønne med pre_http_request-mock (portalinnhold med, tidligere
+  arrangement/ikke-portal-side/passordside IKKE med, HTML-fritt,
+  404-kilde registrert, versjonstelling) + HTTP: status og knapp
+  rendres kun riktig, bygg via knappen 302 og versjonen teller
+  opp, 403 uten nonce. Tom debug.log, WPCS grønn, hooks- og
+  sikkerhetsdocs oppdatert.
 - [ ] **F3. REST: assistent-endepunktet.** `POST samlab/v1/assistent`
   (innlogget + portal-capability): server-side kall til Messages
   API via `wp_remote_post` med system-prompt (navn/tone +

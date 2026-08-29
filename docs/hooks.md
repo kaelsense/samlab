@@ -199,6 +199,22 @@ do_action( 'samlab_stemme_avgitt', $innlegg_id, $user_id, $valg );
 
 Siden: 0.2.0.
 
+### `samlab_kunnskap_bygget`
+
+Kjøres etter at assistentens kunnskapsgrunnlag er bygget (daglig
+cron `samlab_assistent_kunnskap`, «Bygg nå»-knappen eller `wp
+samlab kunnskap`). Kun tilgjengelig når assistent-modulen er på.
+
+```php
+do_action( 'samlab_kunnskap_bygget', $grunnlag );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$grunnlag` | array | `versjon`, `bygget` (timestamp), `storrelse`, `tekst`, `kilder_ok`, `kilder_feilet` |
+
+Siden: 0.2.0.
+
 ### `samlab_kobling_status_endret`
 
 Kjøres når en kobling/introduksjon endrer status i statuskjeden

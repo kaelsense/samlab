@@ -102,6 +102,40 @@ class Samlab_CLI_Command {
 	}
 
 	/**
+	 * Bygger assistentens kunnskapsgrunnlag nå (krever at modulen er på).
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--vis]
+	 * : Skriv grunnlaget til terminalen i stedet for å bygge på nytt.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab kunnskap
+	 *     wp samlab kunnskap --vis
+	 *
+	 * @param array $args       Posisjonsargumenter (ubrukt).
+	 * @param array $assoc_args Flagg.
+	 * @return void
+	 */
+	public function kunnskap( $args, $assoc_args ) {
+		if ( ! function_exists( 'samlab_assistent_bygg_kunnskap' ) ) {
+			WP_CLI::error( 'Assistent-modulen er av - slå den på under Innstillinger → Samlab først.' );
+		}
+		if ( isset( $assoc_args['vis'] ) ) {
+			$grunnlag = samlab_assistent_kunnskap();
+			if ( ! $grunnlag ) {
+				WP_CLI::log( 'Ikke bygget ennå - kjør `wp samlab kunnskap` først.' );
+				return;
+			}
+			WP_CLI::log( $grunnlag['tekst'] );
+			return;
+		}
+		$grunnlag = samlab_assistent_bygg_kunnskap();
+		WP_CLI::success( sprintf( 'Kunnskapsgrunnlag versjon %d bygget: %s, %d kilder hentet, %d feilet.', $grunnlag['versjon'], size_format( $grunnlag['storrelse'] ), $grunnlag['kilder_ok'], count( $grunnlag['kilder_feilet'] ) ) );
+	}
+
+	/**
 	 * Oppretter demo-brukere (medlemmer og bedriftsredaktører).
 	 *
 	 * @return array<string, int> Brukernavn => ID.

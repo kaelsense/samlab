@@ -113,6 +113,11 @@ function samlab_settings_fields() {
 			'type'      => 'status',
 			'status_cb' => 'samlab_assistent_nokkel_status',
 		),
+		'assistent_kunnskap' => array(
+			'label'     => __( 'Kunnskapsgrunnlag', 'samlab' ),
+			'type'      => 'status',
+			'status_cb' => 'samlab_assistent_kunnskap_status',
+		),
 		'assistent_navn'     => array(
 			'label' => __( 'Assistentens navn', 'samlab' ),
 			'type'  => 'text',
@@ -351,6 +356,7 @@ function samlab_render_settings_page() {
 			<?php submit_button(); ?>
 		</form>
 		<?php samlab_skjerm_settings_seksjon(); ?>
+		<?php samlab_assistent_settings_seksjon(); ?>
 	</div>
 	<?php
 }
