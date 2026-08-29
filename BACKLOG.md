@@ -150,12 +150,19 @@ oppgave innfri sin «Ferdig når».*
   reaksjoner med unik-indeks, kaskadesletting. 26 røyk-tester
   grønne i riggen (tests/rigg/test-b6.php), tom debug.log,
   WPCS grønn.
-- [ ] **B7. Portal-ruter og app-skall.** `add_rewrite_rule` for
+- [x] **B7. Portal-ruter og app-skall.** `add_rewrite_rule` for
   portal-stien (innstilling, standard `/portal/`) med eget komplett
   sideskall (egen `<html>`, ikke temaets template), noindex-meta, og
   ruting til undersider (vegg, behov, bedrifter, håndbok).
   *Ferdig når:* alle portal-ruter svarer 200 i wp-env med app-skallet,
   og resten av nettstedet bruker temaet som før.
+  *Notat (2026-08-29):* includes/rewrites.php (regler, query-vars,
+  pre_handle_404, ruting) + templates/skall.php og flater/-plasshol-
+  dere. Portal-sti, portalnavn og flatenavn leses fra
+  samlab_settings med nøytrale standarder. HTTP-verifisert i riggen
+  (php -S + router): alle 5 ruter 200 med eget skall og noindex,
+  ukjent rute 404, tema uberørt på resten, og sti/navn-innstilling
+  bekreftet med /intern/-test. WPCS grønn.
 - [ ] **B8. Innloggingsport.** `template_redirect`-sjekk: uinnloggede
   på portal-ruter sendes til wp-login med redirect tilbake.
   *Ferdig når:* utlogget curl mot portal-rute gir redirect til
