@@ -219,10 +219,17 @@ oppgave innfri sin «Ferdig når».*
 *Porter markup fra `prototype-kilde/` og `referanse/prototype-demo.html`
 - strukturen er fasit, fargene kommer fra temaet.*
 
-- [ ] **C1. Bedriftskatalogen.** Portal-siden med kort-grid, kategori-
+- [x] **C1. Bedriftskatalogen.** Portal-siden med kort-grid, kategori-
   chips og søk (WP_Query-basert).
   *Ferdig når:* katalogen viser seed-bedrifter (se C6) korrekt i
   wp-env og matcher prototypens struktur.
+  *Notat (2026-08-29):* templates/flater/bedrifter.php: WP_Query
+  med søk (?sok=) og kategorifilter (?kategori=), chips fra
+  taksonomien med «Alle», kort med logo/initial-avatar, kategori,
+  kort tekst og plass, lenket til C2-profilen. HTTP-verifisert i
+  riggen med tre manuelle testbedrifter: visning, filter, søk,
+  tom-tilstand. Kjøres på nytt mot ekte seed-data i C6-runden.
+  WPCS grønn.
 - [ ] **C2. Bedriftsprofilen.** Full profilside: logo, intensjonene
   («Dette ser vi etter»), tjenester, folkene, galleri, aktive behov,
   kontaktperson.
