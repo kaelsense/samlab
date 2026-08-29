@@ -358,3 +358,16 @@ function samlab_save_kobling_meta( $post_id ) {
 	}
 }
 add_action( 'save_post_samlab_kobling', 'samlab_save_kobling_meta' );
+
+/**
+ * Rydder varsler knyttet til koblingen når den slettes permanent.
+ *
+ * @param int $post_id Posten som slettes.
+ * @return void
+ */
+function samlab_kobling_slett_varsler( $post_id ) {
+	if ( 'samlab_kobling' === get_post_type( $post_id ) && class_exists( 'Samlab_Varsel' ) ) {
+		Samlab_Varsel::remove_for_object( 'kobling', $post_id );
+	}
+}
+add_action( 'before_delete_post', 'samlab_kobling_slett_varsler' );

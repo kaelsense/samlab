@@ -52,6 +52,8 @@ require_once SAMLAB_PLUGIN_DIR . 'admin/settings.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/database.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-innlegg.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-reaksjon.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-varsel.php';
+require_once SAMLAB_PLUGIN_DIR . 'includes/varsler.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once SAMLAB_PLUGIN_DIR . 'includes/class-samlab-cli-command.php';

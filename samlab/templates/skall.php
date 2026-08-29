@@ -87,6 +87,17 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 					<?php endforeach; ?>
 				</ul>
 			</nav>
+			<?php $samlab_uleste = Samlab_Varsel::unread_count( get_current_user_id() ); ?>
+			<div class="samlab-varsler">
+				<button type="button" class="samlab-varsel-knapp" id="samlab-varsel-knapp" aria-expanded="false" aria-controls="samlab-varsel-panel">
+					<span aria-hidden="true">&#128276;</span>
+					<span class="screen-reader-text"><?php esc_html_e( 'Varsler', 'samlab' ); ?></span>
+					<span class="samlab-varsel-teller" id="samlab-varsel-teller" <?php echo 0 === $samlab_uleste ? 'hidden' : ''; ?>><?php echo esc_html( (string) $samlab_uleste ); ?></span>
+				</button>
+				<div class="samlab-varsel-panel" id="samlab-varsel-panel" hidden>
+					<p class="samlab-kort-meta"><?php esc_html_e( 'Laster …', 'samlab' ); ?></p>
+				</div>
+			</div>
 			<form class="samlab-globalsok" method="get" action="<?php echo esc_url( samlab_portal_url() ); ?>" role="search">
 				<label class="screen-reader-text" for="samlab-globalsok-felt"><?php esc_html_e( 'Søk i portalen', 'samlab' ); ?></label>
 				<input type="search" id="samlab-globalsok-felt" name="sok" placeholder="<?php esc_attr_e( 'Søk …', 'samlab' ); ?>" />
@@ -109,6 +120,62 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 				url: <?php echo wp_json_encode( esc_url_raw( rest_url() ) ); ?>,
 				nonce: <?php echo wp_json_encode( wp_create_nonce( 'wp_rest' ) ); ?>
 			};
+			( function () {
+				var knapp  = document.getElementById( 'samlab-varsel-knapp' );
+				var panel  = document.getElementById( 'samlab-varsel-panel' );
+				var teller = document.getElementById( 'samlab-varsel-teller' );
+				if ( ! knapp || ! panel ) {
+					return;
+				}
+				knapp.addEventListener( 'click', function () {
+					var apen = ! panel.hidden;
+					panel.hidden = apen;
+					knapp.setAttribute( 'aria-expanded', String( ! apen ) );
+					if ( apen ) {
+						return;
+					}
+					fetch( window.samlabRest.url + 'samlab/v1/varsler', {
+						credentials: 'same-origin',
+						headers: { 'X-WP-Nonce': window.samlabRest.nonce }
+					} ).then( function ( svar ) {
+						return svar.json();
+					} ).then( function ( data ) {
+						panel.innerHTML = '';
+						if ( ! data.varsler || ! data.varsler.length ) {
+							var tom = document.createElement( 'p' );
+							tom.className = 'samlab-kort-meta';
+							tom.textContent = <?php echo wp_json_encode( __( 'Ingen varsler ennå.', 'samlab' ) ); ?>;
+							panel.appendChild( tom );
+							return;
+						}
+						var liste = document.createElement( 'ul' );
+						data.varsler.forEach( function ( varsel ) {
+							var li = document.createElement( 'li' );
+							if ( ! varsel.lest ) {
+								li.className = 'er-ulest';
+							}
+							var innhold = varsel.lenke ? document.createElement( 'a' ) : document.createElement( 'span' );
+							if ( varsel.lenke ) {
+								innhold.href = varsel.lenke;
+							}
+							innhold.textContent = varsel.tekst;
+							var tid = document.createElement( 'small' );
+							tid.textContent = varsel.tid;
+							li.appendChild( innhold );
+							li.appendChild( tid );
+							liste.appendChild( li );
+						} );
+						panel.appendChild( liste );
+						fetch( window.samlabRest.url + 'samlab/v1/varsler/lest', {
+							method: 'POST',
+							credentials: 'same-origin',
+							headers: { 'X-WP-Nonce': window.samlabRest.nonce }
+						} ).then( function () {
+							teller.hidden = true;
+						} );
+					} );
+				} );
+			}() );
 		</script>
 	<?php endif; ?>
 

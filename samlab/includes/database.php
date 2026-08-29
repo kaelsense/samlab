@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-const SAMLAB_DB_VERSION = '1';
+const SAMLAB_DB_VERSION = '2';
 
 /**
  * Fullt tabellnavn med nettstedets prefiks.
@@ -37,6 +37,7 @@ function samlab_create_tables() {
 	$charset    = $wpdb->get_charset_collate();
 	$innlegg    = samlab_table( 'innlegg' );
 	$reaksjoner = samlab_table( 'reaksjoner' );
+	$varsler    = samlab_table( 'varsler' );
 
 	dbDelta(
 		"CREATE TABLE {$innlegg} (
@@ -65,6 +66,22 @@ function samlab_create_tables() {
 			created_at datetime NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY unik_reaksjon (object_type,object_id,user_id,reaction),
+			KEY objekt (object_type,object_id)
+		) {$charset};"
+	);
+
+	dbDelta(
+		"CREATE TABLE {$varsler} (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			user_id bigint(20) unsigned NOT NULL,
+			type varchar(32) NOT NULL,
+			object_type varchar(20) NOT NULL DEFAULT 'innlegg',
+			object_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			actor_id bigint(20) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			read_at datetime DEFAULT NULL,
+			PRIMARY KEY  (id),
+			KEY mottaker (user_id,read_at),
 			KEY objekt (object_type,object_id)
 		) {$charset};"
 	);

@@ -130,6 +130,9 @@ class Samlab_Innlegg {
 		);
 		if ( $rader ) {
 			Samlab_Reaksjon::remove_all( 'innlegg', $id );
+			if ( class_exists( 'Samlab_Varsel' ) ) {
+				Samlab_Varsel::remove_for_object( 'innlegg', $id );
+			}
 		}
 
 		return (bool) $rader;

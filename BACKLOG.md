@@ -400,13 +400,25 @@ med `wp cron event run`.*
   kontaktperson for part-bedrift). 27 røyk-tester grønne i riggen
   (tests/rigg/test-e1.php) etter reaktivering, tom debug.log,
   sikkerhetstabellen oppdatert. WPCS grønn.
-- [ ] **E2. In-app-varsler.** Egen tabell (hybridmodellen) med
+- [x] **E2. In-app-varsler.** Egen tabell (hybridmodellen) med
   modellklasse, varsler ved mention, kommentar/reaksjon på eget
   innlegg, svar på eget behov og kobling der en er part.
   REST: `GET samlab/v1/varsler` + markér-som-lest. Bjelle med
   uleste-teller i skallet, enkel varselliste.
   *Ferdig når:* hver utløser gir varsel i riggen, lest-markering
   virker, og andres varsler er utilgjengelige (403). WPCS grønn.
+  *Notat (2026-08-29):* samlab_varsler-tabell (DB v2 med
+  oppgraderingssti), Samlab_Varsel (dedup mot uleste, aldri
+  selv-varsel, kaskade fra innlegg- og koblingssletting) og
+  includes/varsler.php med utløsere (mention, kommentar, reaksjon,
+  koblingsstatus godkjent+ til partene), tekst/lenke-rendring og
+  REST-rutene (dokumentert). Bjelle med teller og panel i skallet.
+  Behov-svar-utløseren aktiveres når svar-funksjon finnes (ingen i
+  MVP). 17 modell-tester + HTTP-verifisering (401 utlogget,
+  isolasjon per bruker - egne varsler hentes fra sesjonen så
+  andres er per konstruksjon utilgjengelige, lest-markering,
+  teller i skallet). Tom debug.log, WPCS grønn, sikkerhetstabellen
+  oppdatert.
 - [ ] **E3. Kontrollpanelet.** wp-admin-side for community-manageren
   (planens kap. 3.4): koblingskø med godkjenn/avvis og statuskjede,
   og «trenger oppmerksomhet»-listene (nye medlemmer uten

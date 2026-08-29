@@ -51,6 +51,21 @@ Brukerforslag til @-mentions. Krever `samlab_read_portal`.
 
 Svar: liste av `{ login, navn }`, maks 8.
 
+### `GET /wp-json/samlab/v1/varsler`
+
+Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller.
+Krever `samlab_read_portal`. Svar:
+`{ varsler: [{ id, tekst, lenke, tid, lest }], uleste }`.
+
+### `POST /wp-json/samlab/v1/varsler/lest`
+
+Markerer alle innlogget brukers varsler som lest. Samme auth.
+Svar: `{ uleste: 0 }`.
+
+Varseltyper: `mention`, `kommentar`, `reaksjon` (vegginnlegg) og
+`kobling_godkjent`/`kobling_introdusert`/`kobling_fulgt_opp`
+(partene varsles; foreslått/avvist er moderatorens arbeidsflate).
+
 ## Actions
 
 ### `samlab_reaksjon_endret`
