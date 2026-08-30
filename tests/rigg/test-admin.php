@@ -174,6 +174,44 @@ sjekk( 'hver statusgruppe hentes nøyaktig én gang', $ventet === $faktisk );
 // statuser for å finne nye uten introduksjon. Den er kjent og egen sak.
 sjekk( 'ingen uventede koblingsspørringer', 5 === count( $kobling_kall ) );
 
+// Fase 3b: hver brede tabell ligger i en merket, fokuserbar
+// scroll-region. Uten den skyver firekolonners-tabellene hele siden ut
+// i horisontal scroll ved 320 px.
+//
+// Testen lager sin egen kobling: uten data rendrer seksjonene «Ingen
+// ...» og ingen tabeller, og da hadde testen bestått uten å teste noe.
+$samlab_kobling = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Testkobling for tabellramme',
+		'post_status' => 'publish',
+		'meta_input'  => array( '_samlab_status' => 'foreslatt' ),
+	)
+);
+ob_start();
+samlab_render_kontrollpanel();
+$med_tabell = ob_get_clean();
+wp_delete_post( $samlab_kobling, true );
+
+$dom_t = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom_t->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $med_tabell . '</div>' );
+libxml_clear_errors();
+$xt       = new DOMXPath( $dom_t );
+$tabeller = $xt->query( '//table[contains(@class, "widefat")]' );
+$rammet   = $xt->query( '//div[contains(@class, "samlab-tabellramme")]/table[contains(@class, "widefat")]' );
+sjekk( 'det finnes en tabell å teste', $tabeller->length > 0 );
+sjekk( 'alle brede tabeller ligger i en scroll-region', $tabeller->length === $rammet->length );
+
+$rammer = $xt->query( '//div[contains(@class, "samlab-tabellramme")]' );
+$merket = 0;
+foreach ( $rammer as $samlab_r ) {
+	if ( 'region' === $samlab_r->getAttribute( 'role' ) && '0' === $samlab_r->getAttribute( 'tabindex' ) && '' !== $samlab_r->getAttribute( 'aria-label' ) ) {
+		++$merket;
+	}
+}
+sjekk( 'scroll-regionene er navngitt og tastaturnåbare', $rammer->length > 0 && $rammer->length === $merket );
+
 // Tekstene testene i G4/G5/G7 henger på skal være urørt.
 sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
 
