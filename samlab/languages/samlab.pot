@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-30T06:18:17+00:00\n"
+"POT-Creation-Date: 2026-08-30T13:57:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: samlab\n"
 
 #. Plugin Name of the plugin
 #: samlab.php
-#: admin/settings.php:297
-#: admin/settings.php:298
+#: admin/settings.php:338
+#: admin/settings.php:339
 msgid "Samlab"
 msgstr ""
 
@@ -41,53 +41,41 @@ msgstr ""
 msgid "https://digitelle.no"
 msgstr ""
 
-#: admin/kontrollpanel.php:28
-#: admin/kontrollpanel.php:394
-msgid "Samlab kontrollpanel"
+#: admin/assets.php:141
+msgid "Sammendrag"
 msgstr ""
 
 #: admin/kontrollpanel.php:29
+#: admin/kontrollpanel.php:539
+msgid "Samlab kontrollpanel"
+msgstr ""
+
+#: admin/kontrollpanel.php:30
 msgid "Kontrollpanel"
 msgstr ""
 
-#: admin/kontrollpanel.php:79
+#: admin/kontrollpanel.php:90
 #: includes/koblinger.php:169
 msgid "Slettet bruker"
 msgstr ""
 
-#: admin/kontrollpanel.php:155
-msgid "kort beskrivelse"
-msgstr ""
-
-#: admin/kontrollpanel.php:156
-msgid "kontaktperson"
-msgstr ""
-
-#: admin/kontrollpanel.php:157
-msgid "intensjoner"
-msgstr ""
-
-#: admin/kontrollpanel.php:178
-msgid "logo"
-msgstr ""
-
-#: admin/kontrollpanel.php:298
+#: admin/kontrollpanel.php:295
 msgid "Ukjent handling."
 msgstr ""
 
-#: admin/kontrollpanel.php:301
+#: admin/kontrollpanel.php:298
 #: includes/koblinger.php:375
 #: includes/koblinger.php:429
 #: includes/rest-api.php:374
 msgid "Fant ikke koblingen."
 msgstr ""
 
-#: admin/kontrollpanel.php:304
+#: admin/kontrollpanel.php:301
 msgid "Du har ikke tilgang til å endre koblinger."
 msgstr ""
 
-#: admin/kontrollpanel.php:331
-#: admin/rapport.php:301
+#: admin/kontrollpanel.php:328
+#: admin/rapport.php:337
 #: includes/assistent/ubesvart.php:174
 #: includes/assistent/ubesvart.php:195
 #: includes/forms.php:48
@@ -98,242 +86,380 @@ msgstr ""
 msgid "Ugyldig eller utløpt skjema - gå tilbake og prøv igjen."
 msgstr ""
 
-#: admin/kontrollpanel.php:363
-#: admin/kontrollpanel.php:479
-#: admin/kontrollpanel.php:484
-#: includes/koblinger.php:662
+#. translators: %d: antall rader som er brettet sammen.
+#: admin/kontrollpanel.php:389
+#, php-format
+msgid "Vis %d til"
+msgstr ""
+
+#. translators: 1: antall viste rader, 2: totalt antall.
+#: admin/kontrollpanel.php:449
+#, php-format
+msgid "Viser %1$d av %2$d."
+msgstr ""
+
+#: admin/kontrollpanel.php:466
+msgid "Se alle koblinger"
+msgstr ""
+
+#: admin/kontrollpanel.php:508
+#: admin/kontrollpanel.php:688
+#: admin/kontrollpanel.php:692
+#: admin/kontrollpanel.php:693
+#: admin/kontrollpanel.php:702
+#: admin/listetabeller.php:187
+#: includes/koblinger.php:641
 #: templates/flater/koblinger.php:103
 msgid "Utfall"
 msgstr ""
 
-#: admin/kontrollpanel.php:365
+#: admin/kontrollpanel.php:510
 msgid "- Utfall -"
 msgstr ""
 
-#: admin/kontrollpanel.php:370
+#: admin/kontrollpanel.php:515
 #: templates/flater/koblinger.php:109
 msgid "Notat (valgfritt)"
 msgstr ""
 
-#: admin/kontrollpanel.php:396
+#: admin/kontrollpanel.php:543
 msgid "Koblingen er oppdatert."
 msgstr ""
 
-#: admin/kontrollpanel.php:399
+#: admin/kontrollpanel.php:552
 msgid "Spørsmålet er fjernet fra køen."
 msgstr ""
 
-#: admin/kontrollpanel.php:403
-msgid "Foreslåtte koblinger"
+#: admin/kontrollpanel.php:576
+msgid "Forslag i køen"
 msgstr ""
 
-#: admin/kontrollpanel.php:406
-msgid "Ingen forslag i køen."
-msgstr ""
-
-#: admin/kontrollpanel.php:408
-#: admin/kontrollpanel.php:436
-#: admin/kontrollpanel.php:463
-#: admin/kontrollpanel.php:484
-msgid "Parter"
-msgstr ""
-
-#: admin/kontrollpanel.php:408
-msgid "Begrunnelse"
-msgstr ""
-
-#: admin/kontrollpanel.php:408
-#: includes/koblinger.php:640
-msgid "Kilde"
-msgstr ""
-
-#: admin/kontrollpanel.php:408
-#: admin/kontrollpanel.php:436
-#: admin/kontrollpanel.php:575
-msgid "Handling"
-msgstr ""
-
-#: admin/kontrollpanel.php:412
-#: admin/rapport.php:37
-#: includes/koblinger.php:641
-msgid "Matchforslag"
-msgstr ""
-
-#: admin/kontrollpanel.php:412
-#: includes/koblinger.php:641
-msgid "Manuell"
-msgstr ""
-
-#: admin/kontrollpanel.php:416
-msgid "Godkjenn og spør partene"
-msgstr ""
-
-#: admin/kontrollpanel.php:417
-msgid "Avvis"
-msgstr ""
-
-#: admin/kontrollpanel.php:426
+#: admin/kontrollpanel.php:583
+#: admin/kontrollpanel.php:627
+#: admin/kontrollpanel.php:636
+#: admin/kontrollpanel.php:656
 msgid "Venter på partene"
 msgstr ""
 
-#: admin/kontrollpanel.php:429
-msgid "Ingen forespørsler venter på svar."
-msgstr ""
-
-#: admin/kontrollpanel.php:432
-msgid "venter"
-msgstr ""
-
-#: admin/kontrollpanel.php:433
-msgid "ja"
-msgstr ""
-
-#: admin/kontrollpanel.php:434
-msgid "nei"
-msgstr ""
-
-#: admin/kontrollpanel.php:436
-#: includes/koblinger.php:649
-msgid "Samtykke"
-msgstr ""
-
-#. translators: 1: part A sitt samtykke, 2: part B sitt samtykke.
-#: admin/kontrollpanel.php:442
-#, php-format
-msgid "A: %1$s - B: %2$s"
-msgstr ""
-
-#: admin/kontrollpanel.php:449
-msgid "Trekk tilbake"
-msgstr ""
-
-#: admin/kontrollpanel.php:457
+#: admin/kontrollpanel.php:589
+#: admin/kontrollpanel.php:662
+#: admin/kontrollpanel.php:667
+#: admin/kontrollpanel.php:682
 #: templates/flater/koblinger.php:80
 msgid "Aktive koblinger"
 msgstr ""
 
-#: admin/kontrollpanel.php:461
+#: admin/kontrollpanel.php:594
+#: admin/kontrollpanel.php:709
+msgid "Trenger oppmerksomhet"
+msgstr ""
+
+#: admin/kontrollpanel.php:600
+#: admin/kontrollpanel.php:604
+#: admin/kontrollpanel.php:621
+msgid "Foreslåtte koblinger"
+msgstr ""
+
+#: admin/kontrollpanel.php:602
+msgid "Ingen forslag i køen."
+msgstr ""
+
+#: admin/kontrollpanel.php:605
+#: admin/kontrollpanel.php:637
+#: admin/kontrollpanel.php:668
+#: admin/kontrollpanel.php:693
+#: admin/listetabeller.php:184
+msgid "Parter"
+msgstr ""
+
+#: admin/kontrollpanel.php:605
+msgid "Begrunnelse"
+msgstr ""
+
+#: admin/kontrollpanel.php:605
+#: includes/koblinger.php:701
+msgid "Kilde"
+msgstr ""
+
+#: admin/kontrollpanel.php:605
+#: admin/kontrollpanel.php:637
+#: admin/kontrollpanel.php:819
+msgid "Handling"
+msgstr ""
+
+#: admin/kontrollpanel.php:609
+#: admin/rapport.php:37
+#: includes/koblinger.php:702
+msgid "Matchforslag"
+msgstr ""
+
+#: admin/kontrollpanel.php:609
+#: includes/koblinger.php:702
+msgid "Manuell"
+msgstr ""
+
+#: admin/kontrollpanel.php:613
+msgid "Godkjenn og spør partene"
+msgstr ""
+
+#: admin/kontrollpanel.php:614
+msgid "Avvis"
+msgstr ""
+
+#: admin/kontrollpanel.php:629
+msgid "Ingen forespørsler venter på svar."
+msgstr ""
+
+#: admin/kontrollpanel.php:632
+#: admin/listetabeller.php:213
+msgid "venter"
+msgstr ""
+
+#: admin/kontrollpanel.php:633
+#: admin/listetabeller.php:214
+msgid "ja"
+msgstr ""
+
+#: admin/kontrollpanel.php:634
+#: admin/listetabeller.php:215
+msgid "nei"
+msgstr ""
+
+#: admin/kontrollpanel.php:637
+#: admin/listetabeller.php:186
+#: includes/koblinger.php:710
+msgid "Samtykke"
+msgstr ""
+
+#. translators: 1: part A sitt samtykke, 2: part B sitt samtykke.
+#: admin/kontrollpanel.php:643
+#: admin/listetabeller.php:222
+#, php-format
+msgid "A: %1$s - B: %2$s"
+msgstr ""
+
+#: admin/kontrollpanel.php:650
+msgid "Trekk tilbake"
+msgstr ""
+
+#: admin/kontrollpanel.php:665
 msgid "Ingen aktive koblinger."
 msgstr ""
 
-#: admin/kontrollpanel.php:463
+#: admin/kontrollpanel.php:668
+#: admin/listetabeller.php:185
 #: includes/koblinger.php:633
 msgid "Status"
 msgstr ""
 
-#: admin/kontrollpanel.php:463
+#: admin/kontrollpanel.php:668
 msgid "Neste steg"
 msgstr ""
 
-#: admin/kontrollpanel.php:469
+#: admin/kontrollpanel.php:674
 msgid "Marker introdusert"
 msgstr ""
 
-#: admin/kontrollpanel.php:471
+#: admin/kontrollpanel.php:676
 msgid "Marker fulgt opp"
 msgstr ""
 
-#: admin/kontrollpanel.php:482
+#: admin/kontrollpanel.php:690
 msgid "Ingen fulgte opp koblinger ennå."
 msgstr ""
 
-#: admin/kontrollpanel.php:484
+#: admin/kontrollpanel.php:693
 msgid "Notat"
 msgstr ""
 
-#: admin/kontrollpanel.php:488
+#: admin/kontrollpanel.php:697
+#: admin/listetabeller.php:231
 msgid "Ikke registrert"
 msgstr ""
 
-#: admin/kontrollpanel.php:495
-msgid "Trenger oppmerksomhet"
-msgstr ""
-
-#: admin/kontrollpanel.php:497
+#: admin/kontrollpanel.php:713
 msgid "Nye medlemmer uten introduksjon (siste 30 dager)"
 msgstr ""
 
-#: admin/kontrollpanel.php:500
+#: admin/kontrollpanel.php:719
 msgid "Ingen - alle nye er introdusert."
 msgstr ""
 
-#: admin/kontrollpanel.php:507
+#: admin/kontrollpanel.php:724
 msgid "Åpne behov eldre enn 14 dager"
 msgstr ""
 
-#: admin/kontrollpanel.php:510
-#: admin/kontrollpanel.php:532
+#: admin/kontrollpanel.php:730
+#: admin/kontrollpanel.php:754
 msgid "Ingen."
 msgstr ""
 
-#: admin/kontrollpanel.php:517
+#: admin/kontrollpanel.php:735
 msgid "Ufullstendige bedriftsprofiler"
 msgstr ""
 
-#: admin/kontrollpanel.php:520
-msgid "Ingen - alle profiler er komplette."
-msgstr ""
-
 #. translators: %s: kommaseparert liste over manglende felter.
-#: admin/kontrollpanel.php:525
+#: admin/kontrollpanel.php:741
 #, php-format
 msgid "mangler %s"
 msgstr ""
 
-#: admin/kontrollpanel.php:529
+#: admin/kontrollpanel.php:743
+msgid "Ingen - alle profiler er komplette."
+msgstr ""
+
+#: admin/kontrollpanel.php:748
 msgid "Stille medlemmer (ingen aktivitet siste 30 dager)"
 msgstr ""
 
-#: admin/kontrollpanel.php:540
+#: admin/kontrollpanel.php:761
 msgid "Lesebekreftelser"
 msgstr ""
 
-#: admin/kontrollpanel.php:543
+#: admin/kontrollpanel.php:764
 msgid "Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest»."
 msgstr ""
 
 #. translators: 1: antall som har bekreftet, 2: antall medlemmer totalt.
-#: admin/kontrollpanel.php:551
+#: admin/kontrollpanel.php:778
 #, php-format
 msgid "%1$d av %2$d har bekreftet."
 msgstr ""
 
-#: admin/kontrollpanel.php:561
-msgid "(ikke bekreftet)"
+#: admin/kontrollpanel.php:786
+msgid "Alle har bekreftet."
 msgstr ""
 
-#: admin/kontrollpanel.php:569
+#. translators: %d: antall medlemmer som ikke har bekreftet.
+#: admin/kontrollpanel.php:793
+#, php-format
+msgid "Ikke bekreftet (%d)"
+msgstr ""
+
+#. translators: %d: antall navn som ikke vises.
+#: admin/kontrollpanel.php:801
+#, php-format
+msgid "og %d til"
+msgstr ""
+
+#: admin/kontrollpanel.php:812
+#: admin/kontrollpanel.php:818
 msgid "Ubesvarte spørsmål til assistenten"
 msgstr ""
 
-#: admin/kontrollpanel.php:572
+#: admin/kontrollpanel.php:815
 msgid "Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder."
 msgstr ""
 
-#: admin/kontrollpanel.php:574
+#: admin/kontrollpanel.php:817
 msgid "Anonyme spørsmål assistenten ikke fant svar på. Publiser svaret som håndbok-side - neste kunnskapsbygg tar den med, og assistenten kan svare."
 msgstr ""
 
-#: admin/kontrollpanel.php:575
+#: admin/kontrollpanel.php:819
 #: templates/flater/vegg.php:45
 msgid "Spørsmål"
 msgstr ""
 
-#: admin/kontrollpanel.php:575
-#: admin/rapport.php:273
+#: admin/kontrollpanel.php:819
+#: admin/rapport.php:308
 msgid "Antall"
 msgstr ""
 
-#: admin/kontrollpanel.php:575
+#: admin/kontrollpanel.php:819
 msgid "Sist spurt"
 msgstr ""
 
-#: admin/kontrollpanel.php:581
+#: admin/kontrollpanel.php:825
 msgid "Legg i håndboken"
 msgstr ""
 
-#: admin/kontrollpanel.php:582
+#: admin/kontrollpanel.php:826
 msgid "Håndtert"
+msgstr ""
+
+#: admin/listetabeller.php:89
+#: includes/assistent/kunnskap.php:98
+#: includes/post-types.php:225
+#: templates/flater/bedrift-profil.php:142
+msgid "Kontaktperson"
+msgstr ""
+
+#: admin/listetabeller.php:90
+#: includes/assistent/kunnskap.php:115
+msgid "Profil"
+msgstr ""
+
+#: admin/listetabeller.php:106
+msgid "Ingen kontaktperson"
+msgstr ""
+
+#: admin/listetabeller.php:112
+msgid "Komplett"
+msgstr ""
+
+#. translators: %s: kommaseparert liste over det som mangler.
+#: admin/listetabeller.php:116
+#, php-format
+msgid "Mangler %s"
+msgstr ""
+
+#: admin/listetabeller.php:135
+#: includes/post-types.php:28
+#: includes/post-types.php:659
+#: templates/flater/behov.php:197
+msgid "Bedrift"
+msgstr ""
+
+#: admin/listetabeller.php:136
+#: includes/post-types.php:631
+#: templates/flater/behov.php:180
+msgid "Frist"
+msgstr ""
+
+#: admin/listetabeller.php:156
+msgid "Ingen bedrift"
+msgstr ""
+
+#: admin/listetabeller.php:314
+msgid "Tid"
+msgstr ""
+
+#: admin/listetabeller.php:315
+#: includes/arrangementer.php:173
+#: templates/flater/arrangementer.php:99
+msgid "Sted"
+msgstr ""
+
+#: admin/listetabeller.php:316
+msgid "Arrangør"
+msgstr ""
+
+#: admin/listetabeller.php:342
+msgid "Huset"
+msgstr ""
+
+#: admin/listetabeller.php:380
+msgid "Alle kategorier"
+msgstr ""
+
+#: admin/listetabeller.php:391
+msgid "Filtrer på status"
+msgstr ""
+
+#: admin/listetabeller.php:393
+msgid "Alle statuser"
+msgstr ""
+
+#: admin/listetabeller.php:400
+msgid "Filtrer på utfall"
+msgstr ""
+
+#: admin/listetabeller.php:402
+msgid "Alle utfall"
+msgstr ""
+
+#: admin/listetabeller.php:461
+msgid "Se i portalen"
 msgstr ""
 
 #: admin/rapport.php:36
@@ -374,13 +500,14 @@ msgid "Aktive medlemmer"
 msgstr ""
 
 #: admin/rapport.php:182
-#: admin/rapport.php:273
+#: admin/rapport.php:307
+#: admin/rapport.php:308
 msgid "Måltall"
 msgstr ""
 
 #. translators: %d: antall dager.
 #: admin/rapport.php:185
-#: admin/rapport.php:264
+#: admin/rapport.php:273
 #, php-format
 msgid "Siste %d dager"
 msgstr ""
@@ -389,262 +516,292 @@ msgstr ""
 msgid "Lesebekreftelsesgrad nå (%)"
 msgstr ""
 
-#: admin/rapport.php:223
-#: admin/rapport.php:251
+#: admin/rapport.php:224
+#: admin/rapport.php:253
 msgid "Samlab rapport"
 msgstr ""
 
-#: admin/rapport.php:224
+#: admin/rapport.php:225
 msgid "Rapport"
 msgstr ""
 
-#: admin/rapport.php:252
+#: admin/rapport.php:255
 msgid "Hva fasiliteringen skaper - aggregert, aldri hvem som gjorde hva, og aldri beløp."
 msgstr ""
 
-#: admin/rapport.php:277
+#: admin/rapport.php:312
 msgid "Lesebekreftelsesgrad nå"
 msgstr ""
 
-#: admin/rapport.php:278
+#: admin/rapport.php:313
 msgid "Ingen krav-oppslag"
 msgstr ""
 
-#: admin/rapport.php:285
+#: admin/rapport.php:321
 msgid "Last ned som CSV (alle periodene)"
 msgstr ""
 
-#: admin/rapport.php:289
+#: admin/rapport.php:325
 msgid "Koblingstallene teller hendelser i perioden (en kobling kan telle i flere rader). Lesebekreftelsesgraden er et nå-bilde av dagens festede oppslag med lest-krav. Fornyelsesgrad, frafall og bruk av lokaler bor i drifts- og leiesystemene og er utenfor portalens datagrunnlag - se avklaring 8 i AVKLARINGER.md."
 msgstr ""
 
-#: admin/rapport.php:304
+#: admin/rapport.php:340
 msgid "Du har ikke tilgang til rapporten."
 msgstr ""
 
 #: admin/settings.php:22
-msgid "Portalnavn"
+#: includes/rewrites.php:47
+msgid "Portalen"
 msgstr ""
 
 #: admin/settings.php:24
-msgid "Vises i toppen av portalen. Standard: «Portalen»."
+msgid "Navnet medlemmene ser, og stien portalen bor på."
 msgstr ""
 
 #: admin/settings.php:27
-msgid "Portal-sti"
+msgid "Portalnavn"
 msgstr ""
 
 #: admin/settings.php:29
-msgid "URL-stien portalen bor under. Standard: «portal»."
+msgid "Vises i toppen av portalen. Standard: «Portalen»."
 msgstr ""
 
 #: admin/settings.php:32
+msgid "Portal-sti"
+msgstr ""
+
+#: admin/settings.php:34
+msgid "URL-stien portalen bor under. Standard: «portal»."
+msgstr ""
+
+#: admin/settings.php:37
+msgid "Flater og stier"
+msgstr ""
+
+#: admin/settings.php:39
+msgid "Hva hver flate heter i menyen, og hvilken sti den får. Endres en sti, oppdateres permalenkene automatisk."
+msgstr ""
+
+#: admin/settings.php:42
 msgid "Navn på veggen"
 msgstr ""
 
-#: admin/settings.php:36
+#: admin/settings.php:46
 msgid "Slug for veggen"
 msgstr ""
 
-#: admin/settings.php:40
+#: admin/settings.php:50
 msgid "Navn på behovsflaten"
 msgstr ""
 
-#: admin/settings.php:44
+#: admin/settings.php:54
 msgid "Slug for behovsflaten"
 msgstr ""
 
-#: admin/settings.php:48
+#: admin/settings.php:58
 msgid "Navn på bedriftskatalogen"
 msgstr ""
 
-#: admin/settings.php:52
+#: admin/settings.php:62
 msgid "Slug for bedriftskatalogen"
 msgstr ""
 
-#: admin/settings.php:56
+#: admin/settings.php:66
 msgid "Navn på koblingsflaten"
 msgstr ""
 
-#: admin/settings.php:60
+#: admin/settings.php:70
 msgid "Slug for koblingsflaten"
 msgstr ""
 
-#: admin/settings.php:64
+#: admin/settings.php:74
 msgid "Navn på arrangementsflaten"
 msgstr ""
 
-#: admin/settings.php:68
+#: admin/settings.php:78
 msgid "Slug for arrangementsflaten"
 msgstr ""
 
-#: admin/settings.php:72
+#: admin/settings.php:82
 msgid "Navn på håndboken"
 msgstr ""
 
-#: admin/settings.php:76
+#: admin/settings.php:86
 msgid "Slug for håndboken"
 msgstr ""
 
-#: admin/settings.php:80
+#: admin/settings.php:90
 msgid "Slug for infoskjermen"
 msgstr ""
 
-#: admin/settings.php:82
+#: admin/settings.php:92
 msgid "URL-delen før nøkkelen. Standard: «skjerm»."
 msgstr ""
 
-#: admin/settings.php:85
+#: admin/settings.php:95
+msgid "Utseende"
+msgstr ""
+
+#: admin/settings.php:97
+msgid "Aksentfarge og logo gjelder portalen, ikke wp-admin. Temaets egen design er utgangspunktet."
+msgstr ""
+
+#: admin/settings.php:100
 msgid "Aksentfarge"
 msgstr ""
 
-#: admin/settings.php:87
+#: admin/settings.php:102
 msgid "Valgfri overstyring som heksverdi, f.eks. #3a5a40. Tom = temaets aksentfarge."
 msgstr ""
 
-#: admin/settings.php:90
+#: admin/settings.php:105
 msgid "Logo-URL"
 msgstr ""
 
-#: admin/settings.php:92
+#: admin/settings.php:107
 msgid "Valgfri. Last opp i mediebiblioteket og lim inn URL-en her."
 msgstr ""
 
-#: admin/settings.php:95
+#: admin/settings.php:110
+#: admin/settings.php:115
 #: includes/ukesbrev.php:285
 msgid "Ukesbrev"
 msgstr ""
 
-#: admin/settings.php:97
+#: admin/settings.php:112
+msgid "Et felles ukesbrev til medlemmene. Sendes på den innstilte ukedagen, og droppes når det ikke er noe å melde."
+msgstr ""
+
+#: admin/settings.php:117
 msgid "Send et ukentlig oppsummerings-brev på e-post til medlemmene. Medlemmer kan reservere seg på profilsiden sin."
 msgstr ""
 
-#: admin/settings.php:100
+#: admin/settings.php:120
 msgid "Ukesbrevets ukedag"
 msgstr ""
 
-#: admin/settings.php:102
+#: admin/settings.php:122
 msgid "Dagen brevet sendes. Standard: mandag."
 msgstr ""
 
-#: admin/settings.php:105
+#: admin/settings.php:125
 msgid "Ukesbrevets avsendernavn"
 msgstr ""
 
-#: admin/settings.php:107
+#: admin/settings.php:127
 msgid "Navnet e-posten sendes fra. Tom = portalnavnet."
 msgstr ""
 
-#: admin/settings.php:110
+#: admin/settings.php:130
 #: includes/assistent.php:46
 msgid "Assistenten"
 msgstr ""
 
-#: admin/settings.php:112
+#: admin/settings.php:132
 msgid "Valgfri KI-modul - portalen fungerer fullt ut uten. Kall går server-side mot Claude API."
 msgstr ""
 
-#: admin/settings.php:115
+#: admin/settings.php:135
 msgid "Assistent på"
 msgstr ""
 
-#: admin/settings.php:117
+#: admin/settings.php:137
 msgid "Standard av. Når modulen er av, lastes ingen assistent-kode."
 msgstr ""
 
-#: admin/settings.php:120
+#: admin/settings.php:140
 msgid "Claude API-nøkkel"
 msgstr ""
 
-#: admin/settings.php:125
+#: admin/settings.php:145
 msgid "Kunnskapsgrunnlag"
 msgstr ""
 
-#: admin/settings.php:130
+#: admin/settings.php:150
 msgid "Assistentens navn"
 msgstr ""
 
-#: admin/settings.php:132
+#: admin/settings.php:152
 msgid "Standard: «Assistenten»."
 msgstr ""
 
-#: admin/settings.php:135
+#: admin/settings.php:155
 msgid "Velkomstmelding"
 msgstr ""
 
-#: admin/settings.php:137
+#: admin/settings.php:157
 msgid "Meldingen som møter medlemmene i chatten."
 msgstr ""
 
-#: admin/settings.php:140
+#: admin/settings.php:160
 msgid "Toneinstruks"
 msgstr ""
 
-#: admin/settings.php:142
+#: admin/settings.php:162
 msgid "Hvordan assistenten skal svare, f.eks. «kortfattet og uformell, på bokmål»."
 msgstr ""
 
-#: admin/settings.php:145
+#: admin/settings.php:165
 msgid "Modell"
 msgstr ""
 
-#: admin/settings.php:147
+#: admin/settings.php:167
 msgid "Claude-modell-ID. Standard: claude-opus-5."
 msgstr ""
 
-#: admin/settings.php:150
+#: admin/settings.php:170
 msgid "Eksterne kilder"
 msgstr ""
 
-#: admin/settings.php:152
+#: admin/settings.php:172
 msgid "Én URL per linje - hentes inn i kunnskapsgrunnlaget av den daglige jobben. Aldri sider med passord eller sensitivt innhold."
 msgstr ""
 
-#: admin/settings.php:155
+#: admin/settings.php:175
 msgid "Ubesvart-kø"
 msgstr ""
 
-#: admin/settings.php:158
+#: admin/settings.php:178
 msgid "På (standard) - ubesvarte spørsmål lagres anonymt"
 msgstr ""
 
-#: admin/settings.php:159
+#: admin/settings.php:179
 msgid "Av - lagre aldri noe"
 msgstr ""
 
-#: admin/settings.php:161
+#: admin/settings.php:181
 msgid "Når assistenten ikke finner svar i kunnskapsgrunnlaget, lagres KUN spørsmålsteksten og datoen - aldri hvem som spurte, og aldri svaret. Køen vises for verten og brukes til å fylle håndboken. Samtaler logges uansett aldri."
 msgstr ""
 
-#: admin/settings.php:173
+#: admin/settings.php:193
 msgid "Mandag"
 msgstr ""
 
-#: admin/settings.php:174
+#: admin/settings.php:194
 msgid "Tirsdag"
 msgstr ""
 
-#: admin/settings.php:175
+#: admin/settings.php:195
 msgid "Onsdag"
 msgstr ""
 
-#: admin/settings.php:176
+#: admin/settings.php:196
 msgid "Torsdag"
 msgstr ""
 
-#: admin/settings.php:177
+#: admin/settings.php:197
 msgid "Fredag"
 msgstr ""
 
-#: admin/settings.php:178
+#: admin/settings.php:198
 msgid "Lørdag"
 msgstr ""
 
-#: admin/settings.php:179
+#: admin/settings.php:199
 msgid "Søndag"
 msgstr ""
 
-#: admin/settings.php:318
+#: admin/settings.php:360
 msgid "Samlab-innstillinger"
 msgstr ""
 
@@ -692,21 +849,16 @@ msgstr ""
 msgid "Slutt (valgfri)"
 msgstr ""
 
-#: includes/arrangementer.php:173
-#: templates/flater/arrangementer.php:99
-msgid "Sted"
-msgstr ""
-
-#: includes/arrangementer.php:186
+#: includes/arrangementer.php:178
 msgid "Arrangør (bedrift, valgfri)"
 msgstr ""
 
-#: includes/arrangementer.php:188
+#: includes/arrangementer.php:180
 #: templates/flater/arrangementer.php:110
 msgid "- Huset / ingen bedrift -"
 msgstr ""
 
-#: includes/arrangementer.php:259
+#: includes/arrangementer.php:253
 #: includes/assistent/kunnskap.php:179
 #: templates/skjerm.php:106
 msgid "Kommende arrangementer"
@@ -819,18 +971,8 @@ msgstr ""
 msgid "Ideelle kunder"
 msgstr ""
 
-#: includes/assistent/kunnskap.php:98
-#: includes/post-types.php:225
-#: templates/flater/bedrift-profil.php:142
-msgid "Kontaktperson"
-msgstr ""
-
 #: includes/assistent/kunnskap.php:112
 msgid "Tjeneste"
-msgstr ""
-
-#: includes/assistent/kunnskap.php:115
-msgid "Profil"
 msgstr ""
 
 #: includes/assistent/kunnskap.php:137
@@ -1071,70 +1213,79 @@ msgstr[1] ""
 msgid "Koblingsdetaljer"
 msgstr ""
 
-#: includes/koblinger.php:645
+#: includes/koblinger.php:615
+#: templates/flater/koblinger.php:121
+msgid "Historikk"
+msgstr ""
+
+#: includes/koblinger.php:643
+msgid "- Ikke registrert -"
+msgstr ""
+
+#: includes/koblinger.php:648
+msgid "Notat:"
+msgstr ""
+
+#: includes/koblinger.php:649
+msgid "Kun kategori og notat - aldri beløp eller salgsdetaljer. Krever at koblingen er introdusert eller fulgt opp."
+msgstr ""
+
+#: includes/koblinger.php:655
+msgid "Part A"
+msgstr ""
+
+#: includes/koblinger.php:656
+msgid "Part B"
+msgstr ""
+
+#: includes/koblinger.php:662
+msgid "Bedrift:"
+msgstr ""
+
+#: includes/koblinger.php:664
+#: includes/koblinger.php:675
+msgid "- Ingen -"
+msgstr ""
+
+#: includes/koblinger.php:670
+msgid "eller bruker:"
+msgstr ""
+
+#: includes/koblinger.php:680
+msgid "Velg bedrift eller bruker - bedrift vinner om begge er satt."
+msgstr ""
+
+#: includes/koblinger.php:706
 msgid "venter på svar"
 msgstr ""
 
-#: includes/koblinger.php:646
+#: includes/koblinger.php:707
 msgid "takket ja"
 msgstr ""
 
-#: includes/koblinger.php:647
+#: includes/koblinger.php:708
 msgid "takket nei"
 msgstr ""
 
 #. translators: 1: part A sitt samtykke, 2: part B sitt samtykke.
-#: includes/koblinger.php:653
+#: includes/koblinger.php:714
 #, php-format
 msgid "Part A: %1$s - Part B: %2$s"
 msgstr ""
 
-#: includes/koblinger.php:658
+#: includes/koblinger.php:720
 msgid "Settes av partenes egne svar på en forespurt kobling. Settes status godkjent manuelt, føres samtykkene som ja - da har du innhentet dem utenfor portalen."
 msgstr ""
 
-#: includes/koblinger.php:664
-msgid "- Ikke registrert -"
+#: includes/koblinger.php:724
+msgid "Ingen statusendringer ennå."
 msgstr ""
 
-#: includes/koblinger.php:669
-msgid "Notat:"
-msgstr ""
-
-#: includes/koblinger.php:670
-msgid "Kun kategori og notat - aldri beløp eller salgsdetaljer. Krever at koblingen er introdusert eller fulgt opp."
-msgstr ""
-
-#: includes/koblinger.php:684
-msgid "Part A"
-msgstr ""
-
-#: includes/koblinger.php:685
-msgid "Part B"
-msgstr ""
-
-#: includes/koblinger.php:691
-msgid "Bedrift:"
-msgstr ""
-
-#: includes/koblinger.php:693
-#: includes/koblinger.php:704
-msgid "- Ingen -"
-msgstr ""
-
-#: includes/koblinger.php:699
-msgid "eller bruker:"
-msgstr ""
-
-#: includes/koblinger.php:709
-msgid "Velg bedrift eller bruker - bedrift vinner om begge er satt."
-msgstr ""
-
-#: includes/koblinger.php:717
+#: includes/koblinger.php:728
 msgid "Statuslogg"
 msgstr ""
 
-#: includes/koblinger.php:723
+#: includes/koblinger.php:734
 msgid "system"
 msgstr ""
 
@@ -1147,12 +1298,6 @@ msgstr ""
 #: includes/post-types.php:27
 #: includes/rewrites.php:68
 msgid "Bedrifter"
-msgstr ""
-
-#: includes/post-types.php:28
-#: includes/post-types.php:594
-#: templates/flater/behov.php:197
-msgid "Bedrift"
 msgstr ""
 
 #: includes/post-types.php:29
@@ -1261,65 +1406,108 @@ msgstr ""
 msgid "- Velg kontaktperson -"
 msgstr ""
 
-#: includes/post-types.php:315
+#: includes/post-types.php:320
 msgid "Legg til tjeneste"
 msgstr ""
 
+#: includes/post-types.php:344
+msgid "kort beskrivelse"
+msgstr ""
+
+#: includes/post-types.php:345
+msgid "kontaktperson"
+msgstr ""
+
+#: includes/post-types.php:346
+msgid "intensjoner"
+msgstr ""
+
 #: includes/post-types.php:356
+msgid "logo"
+msgstr ""
+
+#: includes/post-types.php:375
+msgid "Ingen bedrifter er lagt inn ennå."
+msgstr ""
+
+#: includes/post-types.php:377
+msgid "Legg til den første"
+msgstr ""
+
+#: includes/post-types.php:419
 #: templates/flater/arrangementer.php:87
 #: templates/flater/behov.php:156
 msgid "Tittel"
 msgstr ""
 
-#: includes/post-types.php:357
+#: includes/post-types.php:420
 msgid "Punkter (ett per linje)"
 msgstr ""
 
-#: includes/post-types.php:358
+#. translators: %s: tjenestens tittel, eller «uten tittel».
+#: includes/post-types.php:421
+#, php-format
+msgid "Fjern tjenesten %s"
+msgstr ""
+
+#. translators: %s: tjenestens tittel, eller «uten tittel».
+#: includes/post-types.php:421
+msgid "uten tittel"
+msgstr ""
+
+#. translators: %s: tjenestens tittel, eller «uten tittel».
+#: includes/post-types.php:421
 msgid "Fjern tjeneste"
 msgstr ""
 
-#: includes/post-types.php:379
+#: includes/post-types.php:442
 msgid "Åpne for (ett per linje)"
 msgstr ""
 
-#: includes/post-types.php:504
+#: includes/post-types.php:567
 msgid "Samlab-portalen"
 msgstr ""
 
-#: includes/post-types.php:517
+#: includes/post-types.php:580
 msgid "Vis i portalens håndbok"
 msgstr ""
 
-#: includes/post-types.php:518
+#: includes/post-types.php:581
 msgid "Rekkefølgen styres av sidens «Rekkefølge»-felt."
 msgstr ""
 
-#: includes/post-types.php:553
+#: includes/post-types.php:616
 msgid "Behovsdetaljer"
 msgstr ""
 
-#: includes/post-types.php:567
-#: templates/flater/behov.php:180
-msgid "Frist"
+#: includes/post-types.php:632
+msgid "Fritekst - f.eks. «før sommeren» eller «15. mars». Feltet sorteres ikke, så skriv det som er tydeligst for medlemmene."
 msgstr ""
 
-#: includes/post-types.php:568
+#: includes/post-types.php:635
 #: templates/flater/behov.php:184
 msgid "Budsjett"
 msgstr ""
 
-#: includes/post-types.php:569
+#: includes/post-types.php:636
+msgid "Valgfritt. En ramme hjelper tilbydere å vurdere om det passer."
+msgstr ""
+
+#: includes/post-types.php:639
 #: templates/flater/behov.php:192
 msgid "Ønsket kontaktform"
 msgstr ""
 
-#: includes/post-types.php:581
+#: includes/post-types.php:640
+msgid "Hvordan innsenderen vil bli kontaktet - f.eks. «e-post» eller «stikk innom»."
+msgstr ""
+
+#: includes/post-types.php:654
 #: templates/flater/behov.php:188
 msgid "Kompetanse (én per linje)"
 msgstr ""
 
-#: includes/post-types.php:596
+#: includes/post-types.php:661
 msgid "- Velg bedrift -"
 msgstr ""
 
@@ -1350,10 +1538,6 @@ msgstr ""
 
 #: includes/rest-api.php:377
 msgid "Du er ikke part i denne koblingen."
-msgstr ""
-
-#: includes/rewrites.php:47
-msgid "Portalen"
 msgstr ""
 
 #: includes/rewrites.php:60
@@ -1696,10 +1880,6 @@ msgstr ""
 
 #: templates/flater/koblinger.php:110
 msgid "Registrer utfall"
-msgstr ""
-
-#: templates/flater/koblinger.php:121
-msgid "Historikk"
 msgstr ""
 
 #: templates/flater/koblinger.php:173

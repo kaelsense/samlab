@@ -1050,3 +1050,156 @@ pitch-decket og koden lukket i programvaren: to-parts samtykke
 (slide 6), utfall og aggregert rapport (slide 7), og
 ubesvart-løkken (slide 10). Det som gjenstår mot decket er
 redaksjonelt (se G8-notatet) og avgjort i avklaring 8.
+
+## Fase H: Admin-design (moderne grensesnitt i wp-admin)
+
+*Samlab hadde null admin-CSS og null admin-JS: alt i wp-admin var
+arvet fra kjernen, med rundt fjorten inline `style=""` som eneste
+avvik. Ikke stygt, men heller ikke designet - innstillingssiden var
+28 felt i én `form-table`, kontrollpanelet sju seksjoner i én
+kolonne, og de fire CPT-listetabellene urørt standard uten kolonner,
+filtre eller visninger. Fase H gir flatene et moderne uttrykk uten å
+bryte konvensjonene og uten å ofre kompatibilitet.*
+
+*Forbildet er **WP Crontrol** (johnbillion, GPL): CSS-en skrives som
+et lag oppå kjernen framfor et parallelt system, kjerneklassene
+brukes som de er, og kun egne tilstandsklasser prefikses - da arves
+fargeskjema, RTL og framtidige reskins gratis. Fra **ACF 6** er kun
+ett visuelt grep lånt (klebrig lagre-rad), ikke arkitekturen.
+Bevisst valgt bort: **Yoast SEO** og **Rank Math** (egne React-UI i
+admin), **`@wordpress/components`** (Gutenbergs egen
+bakoverkompatibilitets-dokumentasjon sier at komponentenes DOM og
+CSS ikke er del av det offentlige API-et) og **DataViews** (krever
+Node og JSX).*
+
+**Beslutningen som formet resten:** brukerens fargeskjema skal styre.
+Mekanismen ble korrigert underveis, og korreksjonen er verifisert:
+`--wp-admin-theme-color` **defineres aldri** av fargeskjemafilene
+(`wp-admin/css/colors/*/colors.css`) - de sju ikke-fresh-skjemaene
+*leser* den 58 ganger hver, `fresh` nevner den ikke - og den settes
+kun i Gutenberg-pakkenes stilark, som ikke lastes på klassiske
+admin-sider. Å lese den ville låst Samlab til fresh-blå mens resten
+av skjermen er Midnight. Intensjonen overlevde, mekanismen byttet:
+**Samlab maler ingen interaktiv farge i det hele tatt.** Kjernens
+skjema-stilark eier knapper, lenker, aktive tilstander og
+fokusringer, og `--wpds-*` brukes kun til geometri og nøytrale
+streker. Det gjorde CSS-laget mindre, ikke større.
+
+- [x] **H0. Enqueue-laget.** Ny `samlab/admin/assets.php`:
+  skjermregister som fanger returverdien fra `add_menu_page()` og
+  søsknene (framfor å gjette handtak som
+  «toplevel_page_samlab-kontrollpanel» - de faktiske suffiksene er
+  `admin_page_samlab`, `toplevel_page_samlab-kontrollpanel` og
+  `kontrollpanel_page_samlab-rapport`, så gjetting ville feilet),
+  én gating-funksjon `samlab_admin_flate()` delt av
+  `admin_enqueue_scripts` og `admin_body_class`, og
+  `samlab/assets/css/admin.css` med tokenblokk.
+  *Notat:* `wp_style_is( 'wp-theme', 'registered' )`-vakt på
+  avhengigheten - en uregistrert avhengighet får `wp_enqueue_style`
+  til å droppe HELE stilarket stille. Hver token har fallback
+  (pluginen krever 6.4, `--wpds-*` kom i 7.1), og alle egenskaper
+  er logiske (`margin-inline-*`, `padding-block`), så en egen
+  `admin-rtl.css` er unødvendig framfor utsatt.
+- [x] **H1. Hygiene på de tre sidene.** `<hr class="wp-header-end">`,
+  `wp_admin_notice()`, `scope="col"`, seksjons-`id`-er, og alle ~14
+  inline-stiler flyttet til klasser.
+- [x] **H2. Innstillingssiden.** Fem seksjonskort via den
+  eksisterende `overskrift`-felttypen og kjernens egen
+  `.postbox`-idiom (null egne kortstiler), pluss klebrig lagre-rad.
+  *Ikke faner:* `samlab_sanitize_settings()` bygger `$ren` fra tom
+  array, så én `<form>` per fane ville **slettet alle felt utenfor
+  den aktive fanen** ved lagring. Faner krever at saniteringen
+  først flettes mot eksisterende verdi - en atferdsendring som
+  fortjener egen beslutning, ikke å smugles inn i et redesign.
+- [x] **H3. Kontrollpanelet.** Sammendragsrad med fire tall som
+  lenker til hver sin seksjon, kort per seksjon, og
+  «trenger oppmerksomhet» i grid.
+  *Notat:* `minmax( 22rem, 1fr )` holdt sporet på minst 352 px og
+  skjøv hele siden ut i horisontal scroll ved 320 px;
+  `minmax( min( 22rem, 100% ), 1fr )` retter det. Fanget i
+  nettleser, ikke i kode.
+- [x] **H3b. Nettleserverifisering.** Playwright + Chromium mot
+  riggen, med `tests/rigg/test-admin-flyt.js` (13 sjekker:
+  stilark lastet, klebrig rad faktisk klebrig målt ved fire
+  scrollposisjoner, float-klarering, repeater, reflow ved 320 px).
+  *Notat:* fullside-skjermbilder flater ut `position: sticky` - et
+  gammelt skjermbilde ble først feillest som bevis på at raden
+  ikke klebet. Måling ved flere scrollposisjoner er det som
+  faktisk svarer.
+- [x] **H4. Rapporten.** Periodevalget som kjernens `.subsubsub`
+  (gjensidig utelukkende visninger av samme datasett - semantisk
+  riktigere enn `.nav-tab-wrapper`, som bytter mellom *skjermer*)
+  med `aria-current="page"`, tallkolonne med `tabular-nums`, og
+  sammendrag som speiler tabellradene.
+  *Notat:* `.subsubsub` flyter, og grid-beholderen ved siden av
+  fikk null bredde. `<br class="clear" />` (kjernens eget idiom)
+  retter det. Også dette fanget kun i nettleser.
+- [x] **H5. Volumlappene.** Lesebekreftelser rendrer nå kun
+  `mangler`-listen (det handlingsbare settet), kappet på 25 med
+  «og N til», i `<details>` med tallet i `<summary>` - verste
+  tilfelle fra ~10 000 `<li>` til ~500. Koblingstabellene får
+  «Viser 100 av N»-lenke til listetabellen, de fire
+  oppmerksomhetslistene viser 10 med resten i `<details>`.
+  *Ærlig om hva dette er:* en lapp, ikke en løsning. 10 000 `<li>`
+  er et dataproblem; `<details>` skjuler noder, den fjerner dem
+  ikke. Den ordentlige løsningen er `WP_List_Table` med `?paged=`.
+- [x] **H6. CPT-listetabellene.** Kolonner, filtre og visninger på
+  alle fire post-typer i ny `samlab/admin/listetabeller.php`,
+  utelukkende via kjernens egne kroker.
+  *Notat:* ingen Samlab-egne filtre - kjernen gir allerede
+  `manage_{$post_type}_posts_columns` til enhver vert gratis, og
+  et filter oppå ville duplisert en kjernekrok og skapt en
+  API-forpliktelse uten gevinst. Derfor **ingen endring i
+  `docs/hooks.md`**. Frist på behov er bevisst **ikke** sorterbar
+  (feltet er fritekst, ikke dato - sortering ville lovet en
+  rekkefølge dataene ikke kan levere); tid på arrangement er det
+  (`_samlab_start` lagres som `Y-m-d H:i` og sorterer
+  leksikografisk riktig). Statustellingen er én gruppert
+  `$wpdb`-spørring framfor seks `WP_Query`.
+- [x] **H7. Metaboksene.** Koblings-metaboksen delt i
+  «Koblingsdetaljer» (redigerbar, `normal`) og «Historikk»
+  (skrivebeskyttet, `side`) - begge poster til samme skjema, så
+  lagringen er urørt. Tomtilstander med lenke til
+  `post-new.php?post_type=samlab_bedrift` under alle tre
+  bedriftsnedtrekk, hjelpetekst som `.description` (ikke
+  `wp_get_tooltip()`, som er `@since 7.1` og mot 6.4-baselinen
+  ville krevd to kodeveier for samme felt), og repeater-JS-en
+  flyttet til `samlab/assets/js/admin-tjenester.js` med
+  fokusflytting til den nye radens tittelfelt og `aria-label` på
+  fjern-knappene.
+- [x] **H8. Dokumentasjon, temategest og lint.**
+  *Notat:* `docs/hooks.md` er revidert mot koden og trengte
+  **ingen** endring - fase H innførte verken ny rute, ny
+  `do_action` eller ny `apply_filters`. Revisjonen er gjort som
+  sammenligning, ikke antakelse: alle 14 `do_action` og begge
+  `samlab_*`-filtre i koden står dokumentert, og alle 10
+  registrerte REST-ruter likeså - inkludert de to regex-rutene
+  `koblinger/<id>/svar` og `koblinger/<id>/utfall`, og de fem øvrige `samlab_*`-navnene i
+  dokumentet er cron-hendelser, options og capabilities - riktig
+  merket, ikke kroker som ikke finnes. `docs/sikkerhet.md` fikk to
+  presiseringer (stilark-/JS-laget, og at noncen ligger i den
+  redigerbare halvdelen av den delte koblings-metaboksen).
+  `docs/tema-test.md` fikk et admin-avsnitt som sier rett ut at
+  admin-flatene er temauavhengige - gesten er kjørt og målt
+  (byte-identiske computed styles under TT24 og TT25 på fem
+  flater), men den prøven som betyr noe her er fargeskjemaet, og
+  den er ført som egen tabell.
+
+**Milepæl: Fase H - admin-flatene designet.** Alle elleve
+Samlab-flater i wp-admin (tre egne sider, fire listetabeller, fire
+editorer) er verifisert i ekte nettleser: riktig kroppsklasse,
+stilark lastet, ingen horisontal scroll ved 320 px, ingen JS-feil.
+Sammendragstallene har samme farge som kjernens lenkefarge i Fresh,
+Modern, Midnight og Ocean - fargeskjemaet arves, ikke gjettes.
+Riggtestene er grønne (25 PHP-filer, 574 sjekker) med
+`tests/rigg/test-admin.php` (78 sjekker) og
+`tests/rigg/test-admin-flyt.js` (13 nettleser-sjekker) som nye.
+De to nye testfilene er bevisst navngitt etter *flaten* framfor
+fasebokstaven, siden de dekker admin-laget som helhet og ikke ett
+punkt i denne listen.
+
+*To beslutninger er lagt fram og står ubesvart:* å senke `LIMIT 20`
+på lesebekreftelser (produktbeslutning, ville hjulpet volumet mest),
+og å endre **standard**sortering på arrangementslisten fra
+`post_date` til `_samlab_start` (atferdsendring, ikke tatt i
+forbifarten).
