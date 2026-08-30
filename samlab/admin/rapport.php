@@ -273,6 +273,7 @@ function samlab_render_rapport() {
 	}
 	echo '</p>';
 
+	samlab_admin_tabellramme( __( 'Måltall', 'samlab' ) );
 	echo '<table class="widefat striped samlab-tabell-smal"><thead><tr><th scope="col">' . esc_html__( 'Måltall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Antall', 'samlab' ) . '</th></tr></thead><tbody>';
 	foreach ( samlab_rapport_etiketter() as $nokkel => $etikett ) {
 		echo '<tr><td>' . esc_html( $etikett ) . '</td><td>' . esc_html( (string) $tall[ $nokkel ] ) . '</td></tr>';
@@ -281,6 +282,7 @@ function samlab_render_rapport() {
 	echo esc_html( null === $lesegrad ? __( 'Ingen krav-oppslag', 'samlab' ) : $lesegrad . ' %' );
 	echo '</td></tr>';
 	echo '</tbody></table>';
+	samlab_admin_tabellramme_slutt();
 
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="samlab-toppmargin">';
 	echo '<input type="hidden" name="action" value="samlab_rapport_csv" />';

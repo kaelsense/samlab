@@ -510,6 +510,7 @@ function samlab_render_kontrollpanel() {
 	if ( array() === $foreslatte ) {
 		echo '<p>' . esc_html__( 'Ingen forslag i køen.', 'samlab' ) . '</p>';
 	} else {
+		samlab_admin_tabellramme( __( 'Foreslåtte koblinger', 'samlab' ) );
 		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Begrunnelse', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Kilde', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $foreslatte as $kobling ) {
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
@@ -525,6 +526,7 @@ function samlab_render_kontrollpanel() {
 			echo '</td></tr>';
 		}
 		echo '</tbody></table>';
+		samlab_admin_tabellramme_slutt();
 	}
 
 	samlab_kp_kort_slutt();
@@ -539,6 +541,7 @@ function samlab_render_kontrollpanel() {
 			'ja'     => __( 'ja', 'samlab' ),
 			'nei'    => __( 'nei', 'samlab' ),
 		);
+		samlab_admin_tabellramme( __( 'Venter på partene', 'samlab' ) );
 		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Samtykke', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $forespurte as $kobling ) {
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
@@ -557,6 +560,7 @@ function samlab_render_kontrollpanel() {
 			echo '</td></tr>';
 		}
 		echo '</tbody></table>';
+		samlab_admin_tabellramme_slutt();
 	}
 
 	samlab_kp_kort_slutt();
@@ -567,6 +571,7 @@ function samlab_render_kontrollpanel() {
 	if ( array() === $aktive ) {
 		echo '<p>' . esc_html__( 'Ingen aktive koblinger.', 'samlab' ) . '</p>';
 	} else {
+		samlab_admin_tabellramme( __( 'Aktive koblinger', 'samlab' ) );
 		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Status', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Neste steg', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $aktive as $kobling ) {
 			$status = get_post_meta( $kobling->ID, '_samlab_status', true );
@@ -580,6 +585,7 @@ function samlab_render_kontrollpanel() {
 			echo '</td></tr>';
 		}
 		echo '</tbody></table>';
+		samlab_admin_tabellramme_slutt();
 	}
 
 	samlab_kp_kort_slutt();
@@ -589,6 +595,7 @@ function samlab_render_kontrollpanel() {
 	if ( array() === $fulgte ) {
 		echo '<p>' . esc_html__( 'Ingen fulgte opp koblinger ennå.', 'samlab' ) . '</p>';
 	} else {
+		samlab_admin_tabellramme( __( 'Utfall', 'samlab' ) );
 		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Utfall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Notat', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $fulgte as $kobling ) {
 			$utfall = samlab_kobling_utfall( $kobling->ID );
@@ -597,6 +604,7 @@ function samlab_render_kontrollpanel() {
 			echo '<td>' . esc_html( $utfall ? $utfall['notat'] : '' ) . '</td></tr>';
 		}
 		echo '</tbody></table>';
+		samlab_admin_tabellramme_slutt();
 	}
 
 	samlab_kp_kort_slutt();
@@ -688,6 +696,7 @@ function samlab_render_kontrollpanel() {
 			echo '<p>' . esc_html__( 'Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder.', 'samlab' ) . '</p>';
 		} else {
 			echo '<p>' . esc_html__( 'Anonyme spørsmål assistenten ikke fant svar på. Publiser svaret som håndbok-side - neste kunnskapsbygg tar den med, og assistenten kan svare.', 'samlab' ) . '</p>';
+			samlab_admin_tabellramme( __( 'Ubesvarte spørsmål til assistenten', 'samlab' ) );
 			echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Spørsmål', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Antall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Sist spurt', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 			foreach ( $ubesvarte as $rad ) {
 				echo '<tr><td>' . esc_html( $rad['sporsmal'] ) . '</td>';
@@ -710,6 +719,7 @@ function samlab_render_kontrollpanel() {
 				echo '</td></tr>';
 			}
 			echo '</tbody></table>';
+			samlab_admin_tabellramme_slutt();
 		}
 		samlab_kp_kort_slutt();
 	}

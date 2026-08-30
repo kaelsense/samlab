@@ -102,7 +102,7 @@
  */
 .samlab-admin-side .samlab-sammendrag {
 	display: grid;
-	grid-template-columns: repeat( auto-fit, minmax( 12rem, 1fr ) );
+	grid-template-columns: repeat( auto-fit, minmax( min( 12rem, 100% ), 1fr ) );
 	gap: var( --samlab-a-gap );
 	margin-block: var( --samlab-a-gap );
 	padding: 0;
@@ -132,17 +132,51 @@
 
 /**
  * «Trenger oppmerksomhet»: fire lister side om side der det er plass.
- * auto-fit med minmax, aldri fast kolonnetall - ellers ryker WCAG
- * 1.4.10 Reflow ved 320 px.
+ *
+ * min() rundt minimumsverdien er ikke pynt. auto-fit kollapser til én
+ * kolonne på smale skjermer, men minmax( 22rem, 1fr ) holder sporet på
+ * minst 352 px uansett - og da skyves hele siden ut i horisontal
+ * scroll ved 320 px. min( 22rem, 100% ) lar sporet krympe med
+ * beholderen. Verifisert i nettleser, ikke antatt.
  */
 .samlab-admin-side .samlab-oppmerksomhet {
 	display: grid;
-	grid-template-columns: repeat( auto-fit, minmax( 22rem, 1fr ) );
+	grid-template-columns: repeat( auto-fit, minmax( min( 22rem, 100% ), 1fr ) );
 	gap: 0 var( --samlab-a-gap );
 }
 
 .samlab-admin-side .samlab-oppmerksomhet-gruppe ul {
 	margin-block-start: 0;
+}
+
+/**
+ * Scroll-region rundt de brede tabellene (WCAG 1.4.10 Reflow).
+ *
+ * Uten denne skyver en firekolonners widefat-tabell hele siden ut i
+ * horisontal scroll ved 320 px. Regionen er fokuserbar fra PHP-siden,
+ * så den også kan scrolles med tastatur (2.1.1).
+ *
+ * Fokusmarkeringen er det ene stedet vi tegner en selv: elementet er
+ * vår egen div, så det finnes ingen core-stil å arve. currentColor
+ * framfor en fast farge - da følger den teksten, og vi slipper å
+ * gjette på en fargeskjemaverdi som ikke er tilgjengelig her uansett.
+ */
+.samlab-admin-side .samlab-tabellramme {
+	overflow-x: auto;
+	max-inline-size: 100%;
+}
+
+.samlab-admin-side .samlab-tabellramme:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+/**
+ * Lange, ubrytelige strenger - infoskjermens nøkkel-URL er den lengste
+ * - skal brekke framfor å dra siden ut i bredden.
+ */
+.samlab-admin-side .postbox .inside p {
+	overflow-wrap: anywhere;
 }
 
 /**

@@ -1,7 +1,7 @@
 <?php
 /**
- * Admin-assets: skjermregister, screen-gating, enqueue og kroppsklasse
- * for Samlabs egne flater i wp-admin.
+ * Admin-laget: skjermregister, screen-gating, enqueue og kroppsklasse
+ * for Samlabs egne flater i wp-admin, pluss små delte flate-hjelpere.
  *
  * Stilarket lastes kun på skjermer Samlab faktisk eier - egne sider,
  * egne listetabeller og editorene som har Samlab-metabokser. Se
@@ -114,3 +114,34 @@ function samlab_admin_body_class( $classes ) {
 	return $classes . ' samlab-admin samlab-admin-' . $flate;
 }
 add_filter( 'admin_body_class', 'samlab_admin_body_class' );
+
+/**
+ * Åpner en vannrett scroll-region rundt en bred tabell.
+ *
+ * De håndskrevne widefat-tabellene er bredere enn 320 px og ga
+ * horisontal scroll på hele siden (WCAG 1.4.10 Reflow). Core sine egne
+ * listetabeller slipper unna fordi WP_List_Table-markupen får den
+ * responsive behandlingen fra list-tables.css - den arver vi ikke.
+ *
+ * Regionen må kunne nås med tastatur, ellers bytter vi 1.4.10 mot et
+ * brudd på 2.1.1: tabindex="0" gjør den scrollbar uten mus, og
+ * role="region" med navn gjør at skjermlesere annonserer den. Prisen
+ * er ett ekstra tabbstopp per tabell også på brede skjermer der
+ * ingenting scroller - det krever JS å unngå, og det er ikke verdt
+ * en scriptfil her.
+ *
+ * @param string $etikett Tilgjengelig navn, normalt seksjonens overskrift.
+ * @return void
+ */
+function samlab_admin_tabellramme( $etikett ) {
+	echo '<div class="samlab-tabellramme" role="region" tabindex="0" aria-label="' . esc_attr( $etikett ) . '">';
+}
+
+/**
+ * Lukker scroll-regionen rundt en tabell.
+ *
+ * @return void
+ */
+function samlab_admin_tabellramme_slutt() {
+	echo '</div>';
+}
