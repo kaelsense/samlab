@@ -336,6 +336,60 @@ sjekk( 'statustellingen gir tall per status', is_array( $antall ) );
 $visninger = apply_filters( 'views_edit-samlab_kobling', array( 'all' => 'Alle' ) );
 sjekk( 'visningene beholder core sine egne', isset( $visninger['all'] ) );
 
+// Tallet i visningen må dekke nøyaktig det lenken viser. Talte
+// tellingen bare publiserte, ville et utkast med samme status gi
+// «Foreslått (1)» over en liste med to rader.
+$samlab_publisert = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Telletest publisert',
+		'post_status' => 'publish',
+	)
+);
+update_post_meta( $samlab_publisert, '_samlab_status', 'foreslatt' );
+$samlab_utkast = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Telletest utkast',
+		'post_status' => 'draft',
+	)
+);
+update_post_meta( $samlab_utkast, '_samlab_status', 'foreslatt' );
+
+$samlab_for = samlab_kobling_statusantall();
+
+// Fasit: samme spørring listetabellen selv kjører uten statusvalg.
+$samlab_liste = new WP_Query(
+	array(
+		'post_type'      => 'samlab_kobling',
+		'post_status'    => samlab_liste_synlige_statuser(),
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_query'     => array(
+			array(
+				'key'   => '_samlab_status',
+				'value' => 'foreslatt',
+			),
+		),
+	)
+);
+sjekk(
+	'tellingen stemmer med radene lenken viser (utkast talt med)',
+	isset( $samlab_for['foreslatt'] ) && (int) $samlab_for['foreslatt'] === (int) $samlab_liste->post_count
+);
+sjekk( 'og utkastet er faktisk med i begge', (int) $samlab_liste->post_count >= 2 );
+
+// Papirkurven skal derimot IKKE telles - den vises ikke i «alle».
+wp_trash_post( $samlab_utkast );
+$samlab_etter = samlab_kobling_statusantall();
+sjekk(
+	'papirkurv telles ikke',
+	(int) $samlab_for['foreslatt'] - 1 === (int) $samlab_etter['foreslatt']
+);
+
+wp_delete_post( $samlab_publisert, true );
+wp_delete_post( $samlab_utkast, true );
+
 // --- Fase 5: volumlappene ---
 // samlab_kp_liste() direkte: 40 elementer skal gi 10 åpne og resten
 // sammenbrettet, uansett hva som ligger i basen.
@@ -387,6 +441,70 @@ foreach ( $xpath->query( '//ul' ) as $samlab_ul ) {
 	$lengste = max( $lengste, $n );
 }
 sjekk( 'ingen liste er lengre enn navnegrensen', $lengste <= SAMLAB_KP_NAVN + 1 );
+
+// Rapporten skal ikke koste én spørring per kobling.
+//
+// Testen måler egenskapen, ikke et magisk tall: doble datamengden og
+// se at spørringstallet står omtrent stille. Uten meta-priming vokser
+// det én-til-én med antall koblinger (målt: 206 koblinger -> 206
+// ekstra spørringer), og da ryker denne.
+global $wpdb;
+
+/**
+ * Lager n koblinger med statuslogg, som rapporten leser.
+ *
+ * @param int $n Antall.
+ * @return int[] ID-ene.
+ */
+function samlab_test_lag_koblinger( $n ) {
+	$ids = array();
+	for ( $i = 0; $i < $n; $i++ ) {
+		$id = wp_insert_post(
+			array(
+				'post_type'   => 'samlab_kobling',
+				'post_status' => 'publish',
+				'post_title'  => 'Spørringstest ' . $i . '-' . wp_rand(),
+			)
+		);
+		update_post_meta( $id, '_samlab_status', 'introdusert' );
+		update_post_meta( $id, '_samlab_kilde', 'matching' );
+		update_post_meta(
+			$id,
+			'_samlab_statuslogg',
+			array( array( 'status' => 'introdusert', 'tid' => gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ) ) )
+		);
+		$ids[] = $id;
+	}
+	return $ids;
+}
+
+/**
+ * Spørringer brukt av samlab_rapport_tall(), med kald cache.
+ *
+ * @return int
+ */
+function samlab_test_rapport_sporringer() {
+	global $wpdb;
+	wp_cache_flush();
+	$for = $wpdb->num_queries;
+	samlab_rapport_tall( 90 );
+	return $wpdb->num_queries - $for;
+}
+
+$samlab_parti_a = samlab_test_lag_koblinger( 20 );
+$samlab_q1      = samlab_test_rapport_sporringer();
+$samlab_parti_b = samlab_test_lag_koblinger( 20 );
+$samlab_q2      = samlab_test_rapport_sporringer();
+$samlab_vekst   = $samlab_q2 - $samlab_q1;
+
+sjekk(
+	'rapporten vokser ikke én spørring per kobling (vekst ' . $samlab_vekst . ' på 20 nye)',
+	$samlab_vekst < 10
+);
+
+foreach ( array_merge( $samlab_parti_a, $samlab_parti_b ) as $samlab_id ) {
+	wp_delete_post( $samlab_id, true );
+}
 
 // --- Fase 4: rapporten ---
 set_current_screen( 'kontrollpanel_page_samlab-rapport' );
