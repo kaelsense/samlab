@@ -307,9 +307,14 @@ function samlab_render_tjenester_box( $post ) {
 		);
 	}
 
+	// Løpende teller, ikke nøkkelen fra meta: skulle noen ha skrevet
+	// _samlab_tjenester utenfra med hull eller strengnøkler, ville
+	// nøklene kunne kollidere i skjemaet og slå to rader sammen til én.
 	echo '<div id="samlab-tjenester">';
-	foreach ( $tjenester as $i => $tjeneste ) {
-		samlab_render_tjeneste_row( (int) $i, $tjeneste );
+	$i = 0;
+	foreach ( $tjenester as $tjeneste ) {
+		samlab_render_tjeneste_row( $i, $tjeneste );
+		++$i;
 	}
 	echo '</div>';
 	echo '<p><button type="button" class="button" id="samlab-legg-til-tjeneste">' . esc_html__( 'Legg til tjeneste', 'samlab' ) . '</button></p>';
@@ -324,7 +329,15 @@ function samlab_render_tjenester_box( $post ) {
 		var beholder = document.getElementById( 'samlab-tjenester' );
 		var knapp    = document.getElementById( 'samlab-legg-til-tjeneste' );
 		var mal      = document.getElementById( 'samlab-tjeneste-mal' );
-		var teller   = beholder.children.length;
+		// Neste indeks fra den høyeste som allerede finnes - ikke fra
+		// antall rader, som ville kollidert om indeksene har hull.
+		var teller = 0;
+		Array.prototype.forEach.call( beholder.children, function ( rad ) {
+			var i = parseInt( rad.getAttribute( 'data-samlab-indeks' ), 10 );
+			if ( ! isNaN( i ) && i >= teller ) {
+				teller = i + 1;
+			}
+		} );
 		knapp.addEventListener( 'click', function () {
 			var div = document.createElement( 'div' );
 			div.innerHTML = mal.innerHTML.replace( /__i__/g, String( teller++ ) );
@@ -341,6 +354,31 @@ function samlab_render_tjenester_box( $post ) {
 }
 
 /**
+ * Publiserte bedrifter til nedtrekksvalg, sortert på tittel.
+ *
+ * Bevisst ubundet: et nedtrekk som kapper på et tak skjuler bedriften
+ * brukeren skal velge, og det er verre enn en litt større spørring.
+ * Kostnaden ved -1 ligger i hydreringen av meta og termer, ikke i
+ * radene - kallerne trenger bare ID og tittel, så den slås av.
+ * (`get_posts()` setter `no_found_rows` selv.)
+ *
+ * @return WP_Post[]
+ */
+function samlab_bedrifter_for_valg() {
+	return get_posts(
+		array(
+			'post_type'              => 'samlab_bedrift',
+			'post_status'            => 'publish',
+			'posts_per_page'         => -1,
+			'orderby'                => 'title',
+			'order'                  => 'ASC',
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		)
+	);
+}
+
+/**
  * Én tjeneste-rad i metaboksen.
  *
  * @param int|string           $i        Radindeks, eller «__i__» i JS-malen.
@@ -352,7 +390,7 @@ function samlab_render_tjeneste_row( $i, $tjeneste ) {
 	$punkter = isset( $tjeneste['punkter'] ) && is_array( $tjeneste['punkter'] ) ? implode( "\n", $tjeneste['punkter'] ) : '';
 	$i       = (string) $i;
 
-	echo '<div class="samlab-tjeneste" style="border:1px solid #ccd0d4;padding:8px 12px;margin-bottom:8px;">';
+	echo '<div class="samlab-tjeneste" data-samlab-indeks="' . esc_attr( $i ) . '" style="border:1px solid #ccd0d4;padding:8px 12px;margin-bottom:8px;">';
 	echo '<p><label>' . esc_html__( 'Tittel', 'samlab' ) . '<br /><input type="text" class="regular-text" name="samlab_tjenester[' . esc_attr( $i ) . '][tittel]" value="' . esc_attr( $tittel ) . '" /></label></p>';
 	echo '<p><label>' . esc_html__( 'Punkter (ett per linje)', 'samlab' ) . '<br /><textarea class="large-text" rows="3" name="samlab_tjenester[' . esc_attr( $i ) . '][punkter]">' . esc_textarea( $punkter ) . '</textarea></label></p>';
 	echo '<p><button type="button" class="button-link-delete samlab-fjern-tjeneste">' . esc_html__( 'Fjern tjeneste', 'samlab' ) . '</button></p>';
@@ -582,15 +620,7 @@ function samlab_render_behov_box( $post ) {
 	echo '<td><textarea class="large-text" rows="3" id="samlab_kompetanse" name="samlab_kompetanse">' . esc_textarea( $kompetanse ) . '</textarea></td></tr>';
 
 	$valgt     = (int) get_post_meta( $post->ID, '_samlab_bedrift', true );
-	$bedrifter = get_posts(
-		array(
-			'post_type'   => 'samlab_bedrift',
-			'numberposts' => -1,
-			'orderby'     => 'title',
-			'order'       => 'ASC',
-			'post_status' => 'publish',
-		)
-	);
+	$bedrifter = samlab_bedrifter_for_valg();
 	echo '<tr><th scope="row"><label for="samlab_bedrift">' . esc_html__( 'Bedrift', 'samlab' ) . '</label></th><td>';
 	echo '<select id="samlab_bedrift" name="samlab_bedrift">';
 	echo '<option value="0">' . esc_html__( '- Velg bedrift -', 'samlab' ) . '</option>';
