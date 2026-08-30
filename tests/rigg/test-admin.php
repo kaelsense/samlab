@@ -215,6 +215,53 @@ sjekk( 'scroll-regionene er navngitt og tastaturnåbare', $rammer->length > 0 &&
 // Tekstene testene i G4/G5/G7 henger på skal være urørt.
 sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
 
+// --- Fase 6: listetabellene ---
+// Kolonnene registreres gjennom core sine egne kroker, så filtrene
+// kjøres direkte - det er dem core kaller.
+$b_kol = apply_filters( 'manage_samlab_bedrift_posts_columns', array( 'cb' => '', 'title' => 'Tittel', 'date' => 'Dato' ) );
+sjekk( 'bedrifter får kontakt- og profilkolonne', isset( $b_kol['samlab_kontakt'], $b_kol['samlab_komplett'] ) );
+sjekk( 'nye kolonner kommer før datokolonnen', array_search( 'samlab_komplett', array_keys( $b_kol ), true ) < array_search( 'date', array_keys( $b_kol ), true ) );
+
+$k_kol = apply_filters( 'manage_samlab_kobling_posts_columns', array( 'cb' => '', 'title' => 'Tittel', 'date' => 'Dato' ) );
+sjekk( 'koblinger får parter, status, samtykke og utfall', isset( $k_kol['samlab_parter'], $k_kol['samlab_status'], $k_kol['samlab_samtykke'], $k_kol['samlab_utfall'] ) );
+sjekk( 'tittelen beholder plassen som primærkolonne', 'title' === array_keys( $k_kol )[1] );
+
+$a_sort = apply_filters( 'manage_edit-samlab_arrangement_sortable_columns', array() );
+sjekk( 'tidskolonnen er sorterbar', isset( $a_sort['samlab_tid'] ) );
+$b_sort = apply_filters( 'manage_edit-samlab_behov_sortable_columns', array() );
+sjekk( 'fristen er IKKE sorterbar - feltet er fritekst, ikke dato', ! isset( $b_sort['samlab_frist'] ) );
+
+// Kolonneinnholdet skal gi samme svar som resten av pluginen.
+$samlab_b = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_bedrift',
+		'post_title'  => 'Ufullstendig testbedrift',
+		'post_status' => 'publish',
+	)
+);
+ob_start();
+do_action( 'manage_samlab_bedrift_posts_custom_column', 'samlab_komplett', $samlab_b );
+$kol_html = ob_get_clean();
+$fasit    = samlab_bedrift_mangler( $samlab_b );
+sjekk( 'profilkolonnen speiler samlab_bedrift_mangler()', array() !== $fasit && false !== strpos( $kol_html, $fasit[0] ) );
+
+ob_start();
+do_action( 'manage_samlab_bedrift_posts_custom_column', 'samlab_kontakt', $samlab_b );
+sjekk( 'tom kontaktperson vises med skjermlesertekst', false !== strpos( ob_get_clean(), 'screen-reader-text' ) );
+wp_delete_post( $samlab_b, true );
+
+// pre_get_posts-vaktene: alt utenfor Samlabs egne lister skal stå urørt.
+$samlab_fremmed = new WP_Query( array( 'post_type' => 'post' ) );
+sjekk( 'fremmed spørring er ikke hovedliste', ! samlab_liste_er_hovedliste( $samlab_fremmed, 'samlab_kobling' ) );
+$samlab_egen = new WP_Query( array( 'post_type' => 'samlab_kobling' ) );
+sjekk( 'ikke-hovedspørring på egen type er heller ikke hovedliste', ! samlab_liste_er_hovedliste( $samlab_egen, 'samlab_kobling' ) );
+
+// Statustellingen bak visningslenkene.
+$antall = samlab_kobling_statusantall();
+sjekk( 'statustellingen gir tall per status', is_array( $antall ) );
+$visninger = apply_filters( 'views_edit-samlab_kobling', array( 'all' => 'Alle' ) );
+sjekk( 'visningene beholder core sine egne', isset( $visninger['all'] ) );
+
 // --- Fase 5: volumlappene ---
 // samlab_kp_liste() direkte: 40 elementer skal gi 10 åpne og resten
 // sammenbrettet, uansett hva som ligger i basen.
