@@ -159,6 +159,20 @@ function samlab_kp_gamle_behov( $dager = 14 ) {
 /**
  * Bedrifter med manglende profilfelter.
  *
+ * Alle publiserte bedrifter undersøkes, ikke bare de første.
+ *
+ * De tre andre oppmerksomhetslistene kan trygt hente et vindu, fordi
+ * sorteringen deres peker samme vei som filteret: nyeste medlemmer
+ * først når vi leter etter nye, eldste behov først når vi leter etter
+ * gamle. «Ufullstendig» har ingen slik sortering - en bedrift kan
+ * mangle felter uansett hvor den står i alfabetet. Et tak på
+ * spørringen ville derfor ikke bare kortet av listen, men gjort selve
+ * søket vilkårlig: med 135 bedrifter og 131 ufullstendige rapporterte
+ * den 100, og ingen av dem var blant de faktisk ufullstendige som lå
+ * sist i alfabetet.
+ *
+ * Rendringen holdes bundet av samlab_kp_liste(), ikke av spørringen.
+ *
  * @return array<int, array{bedrift: WP_Post, mangler: string[]}>
  */
 function samlab_kp_ufullstendige_bedrifter() {
@@ -169,7 +183,7 @@ function samlab_kp_ufullstendige_bedrifter() {
 			'post_status'    => 'publish',
 			'orderby'        => 'title',
 			'order'          => 'ASC',
-			'posts_per_page' => SAMLAB_KP_TAK,
+			'posts_per_page' => -1,
 		)
 	);
 	foreach ( $bedrifter as $bedrift ) {
@@ -361,16 +375,29 @@ const SAMLAB_KP_NAVN = 25;
  * er paginering per seksjon med WP_List_Table. Lappen fjerner likevel
  * det verste - en side man må scrolle forbi hundrevis av rader på.
  *
+ * $maks binder DOM-en uavhengig av hvor mange elementer som sendes
+ * inn, så en liste som med rette er ubundet i datalaget ikke drar
+ * tusenvis av noder inn i siden. Overskytende oppsummeres med «og N
+ * til» - samme idiom som lesebekreftelsene.
+ *
  * @param array    $elementer Elementene.
  * @param callable $rad       Rendrer ett <li> for ett element.
  * @param string   $tom       Teksten når listen er tom.
  * @param int      $vis       Hvor mange som står åpne.
+ * @param int      $maks      Maks antall rader som rendres i det hele tatt, 0 for alle.
  * @return void
  */
-function samlab_kp_liste( $elementer, $rad, $tom, $vis = SAMLAB_KP_VIS ) {
+function samlab_kp_liste( $elementer, $rad, $tom, $vis = SAMLAB_KP_VIS, $maks = 0 ) {
 	if ( array() === $elementer ) {
 		echo '<ul><li>' . esc_html( $tom ) . '</li></ul>';
 		return;
+	}
+
+	$totalt  = count( $elementer );
+	$utelatt = 0;
+	if ( $maks > 0 && $totalt > $maks ) {
+		$elementer = array_slice( $elementer, 0, $maks );
+		$utelatt   = $totalt - $maks;
 	}
 
 	echo '<ul>';
@@ -380,16 +407,22 @@ function samlab_kp_liste( $elementer, $rad, $tom, $vis = SAMLAB_KP_VIS ) {
 	echo '</ul>';
 
 	$resten = array_slice( $elementer, $vis );
-	if ( array() === $resten ) {
+	if ( array() === $resten && 0 === $utelatt ) {
 		return;
 	}
 
 	echo '<details><summary>';
 	/* translators: %d: antall rader som er brettet sammen. */
-	echo esc_html( sprintf( __( 'Vis %d til', 'samlab' ), count( $resten ) ) );
+	echo esc_html( sprintf( __( 'Vis %d til', 'samlab' ), count( $resten ) + $utelatt ) );
 	echo '</summary><ul>';
 	foreach ( $resten as $samlab_e ) {
 		call_user_func( $rad, $samlab_e );
+	}
+	if ( $utelatt > 0 ) {
+		echo '<li class="description">';
+		/* translators: %d: antall rader som ikke rendres i det hele tatt. */
+		echo esc_html( sprintf( __( 'og %d til', 'samlab' ), $utelatt ) );
+		echo '</li>';
 	}
 	echo '</ul></details>';
 }
@@ -592,6 +625,13 @@ function samlab_render_kontrollpanel() {
 				'id'      => 'samlab-oppmerksomhet',
 				'tall'    => count( $nye ) + count( $gamle ) + count( $ufullstendige ) + count( $stille ),
 				'etikett' => __( 'Trenger oppmerksomhet', 'samlab' ),
+				// Summen er et gulv, ikke en fasit, når minst én av de
+				// tre vindusbaserte listene har truffet taket sitt.
+				// Bedriftslisten er ikke med i sjekken: den undersøker
+				// alle bedrifter, så tallet derfra er eksakt.
+				'minst'   => count( $nye ) >= SAMLAB_KP_TAK
+					|| count( $gamle ) >= SAMLAB_KP_TAK
+					|| count( $stille ) >= SAMLAB_KP_TAK,
 			),
 		)
 	);
@@ -740,7 +780,11 @@ function samlab_render_kontrollpanel() {
 			/* translators: %s: kommaseparert liste over manglende felter. */
 			echo esc_html( sprintf( __( 'mangler %s', 'samlab' ), implode( ', ', $rad['mangler'] ) ) ) . '</li>';
 		},
-		__( 'Ingen - alle profiler er komplette.', 'samlab' )
+		__( 'Ingen - alle profiler er komplette.', 'samlab' ),
+		SAMLAB_KP_VIS,
+		// Listen er ubundet i datalaget fordi søket må se alle
+		// bedrifter; taket hører hjemme her, i rendringen.
+		SAMLAB_KP_TAK
 	);
 	echo '</div>';
 

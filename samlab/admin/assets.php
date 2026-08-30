@@ -131,17 +131,30 @@ add_filter( 'admin_body_class', 'samlab_admin_body_class' );
  * «tak» sier hvor listen bak tallet er avkortet. Treffer tallet taket,
  * vises «100+» framfor et presist tall det ikke er dekning for.
  *
+ * «minst» sier det samme for et tall som ikke selv treffer et tak,
+ * men som summerer lister der minst én er avkortet. Da er tallet et
+ * gulv, ikke en fasit, og skal vises som «108+». Uten dette lover
+ * flisen en presisjon den ikke har: en sum på 108 av fire lister der
+ * én er kappet på 100 kan i virkeligheten være hva som helst over
+ * 108.
+ *
  * Raden setter ingen farge: tallet arver lenkefargen fra brukerens
  * fargeskjema.
  *
- * @param array<int, array{tall: int, etikett: string, id?: string, tak?: int}> $tall Radene.
+ * @param array<int, array{tall: int, etikett: string, id?: string, tak?: int, minst?: bool}> $tall Radene.
  * @return void
  */
 function samlab_admin_sammendrag( $tall ) {
 	echo '<ul class="samlab-sammendrag" aria-label="' . esc_attr__( 'Sammendrag', 'samlab' ) . '">';
 	foreach ( $tall as $rad ) {
-		$tak  = isset( $rad['tak'] ) ? (int) $rad['tak'] : 0;
-		$vist = ( $tak > 0 && $rad['tall'] >= $tak ) ? $tak . '+' : (string) $rad['tall'];
+		$tak = isset( $rad['tak'] ) ? (int) $rad['tak'] : 0;
+		if ( $tak > 0 && $rad['tall'] >= $tak ) {
+			$vist = $tak . '+';
+		} elseif ( ! empty( $rad['minst'] ) ) {
+			$vist = $rad['tall'] . '+';
+		} else {
+			$vist = (string) $rad['tall'];
+		}
 		$inni = '<span class="samlab-sammendrag-tall">' . esc_html( $vist ) . '</span>'
 			. '<span class="samlab-sammendrag-etikett">' . esc_html( $rad['etikett'] ) . '</span>';
 

@@ -289,6 +289,58 @@ wp_scripts()->queue = array();
 samlab_test_admin_skjerm( 'samlab_kobling', 'samlab_kobling' );
 sjekk( 'repeater-skriptet lastes ikke på andre editorer', ! wp_script_is( 'samlab-admin-tjenester', 'enqueued' ) );
 
+// Sammendragsflisene skal aldri love mer presisjon enn de har.
+ob_start();
+samlab_admin_sammendrag(
+	array(
+		array( 'tall' => 100, 'etikett' => 'Truffet tak', 'tak' => 100 ),
+		array( 'tall' => 108, 'etikett' => 'Gulv', 'minst' => true ),
+		array( 'tall' => 42, 'etikett' => 'Eksakt' ),
+	)
+);
+$samlab_flis = ob_get_clean();
+sjekk( 'tall som treffer taket vises som «100+»', false !== strpos( $samlab_flis, '>100+<' ) );
+sjekk( 'sum av avkortede lister vises som gulv «108+»', false !== strpos( $samlab_flis, '>108+<' ) );
+sjekk( 'eksakt tall får ingen plusstegn', false !== strpos( $samlab_flis, '>42<' ) );
+
+// Ufullstendige bedrifter må finnes uansett hvor de står i alfabetet.
+// Sorteringen (tittel) peker ikke samme vei som filteret
+// (ufullstendig), så et tak på spørringen gjør ikke bare listen
+// kortere - det gjør selve søket vilkårlig.
+//
+// Testen MÅ fylle forbi taket for å bety noe: med en håndfull
+// bedrifter i riggen biter et tak på 100 aldri, og en test som ikke
+// fyller opp ville vært grønn også med feilen på plass. Derfor
+// opprettes SAMLAB_KP_TAK bedrifter som sorterer foran målet.
+$samlab_fyll = array();
+for ( $samlab_i = 0; $samlab_i < SAMLAB_KP_TAK; $samlab_i++ ) {
+	$samlab_fyll[] = wp_insert_post(
+		array(
+			'post_type'   => 'samlab_bedrift',
+			'post_title'  => sprintf( 'AAA fyll %03d', $samlab_i ),
+			'post_status' => 'publish',
+		)
+	);
+}
+$samlab_sist = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_bedrift',
+		'post_title'  => 'ÖÖÖ sist i alfabetet',
+		'post_status' => 'publish',
+	)
+);
+$samlab_treff = false;
+foreach ( samlab_kp_ufullstendige_bedrifter() as $samlab_rad ) {
+	if ( (int) $samlab_rad['bedrift']->ID === (int) $samlab_sist ) {
+		$samlab_treff = true;
+	}
+}
+sjekk( 'ufullstendig bedrift bakerst i alfabetet blir funnet forbi taket', $samlab_treff );
+
+foreach ( array_merge( $samlab_fyll, array( $samlab_sist ) ) as $samlab_id ) {
+	wp_delete_post( $samlab_id, true );
+}
+
 // --- Fase 6: listetabellene ---
 // Kolonnene registreres gjennom core sine egne kroker, så filtrene
 // kjøres direkte - det er dem core kaller.
@@ -410,6 +462,28 @@ $xl = new DOMXPath( $dom_l );
 sjekk( 'lista viser ti rader åpent', SAMLAB_KP_VIS === $xl->query( '//div[@id="rot"]/ul/li' )->length );
 sjekk( 'resten ligger i details', 30 === $xl->query( '//details/ul/li' )->length );
 sjekk( 'summary sier hvor mange som er brettet sammen', false !== strpos( $liste_html, 'Vis 30 til' ) );
+
+// $maks binder DOM-en selv om datalaget sender inn en ubundet liste.
+ob_start();
+samlab_kp_liste(
+	range( 1, 250 ),
+	function ( $n ) {
+		echo '<li>' . esc_html( (string) $n ) . '</li>';
+	},
+	'tom',
+	SAMLAB_KP_VIS,
+	SAMLAB_KP_TAK
+);
+$maks_html = ob_get_clean();
+$dom_m     = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom_m->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $maks_html . '</div>' );
+libxml_clear_errors();
+$xm         = new DOMXPath( $dom_m );
+$maks_rader = $xm->query( '//div[@id="rot"]//li[not(@class)]' )->length;
+sjekk( '250 elementer med tak på 100 rendrer 100 rader', SAMLAB_KP_TAK === $maks_rader );
+sjekk( 'de utelatte oppsummeres framfor å forsvinne stille', false !== strpos( $maks_html, 'og 150 til' ) );
+sjekk( 'summary teller både sammenbrettede og utelatte', false !== strpos( $maks_html, 'Vis 240 til' ) );
 
 ob_start();
 samlab_kp_liste( array(), 'esc_html', 'Ingen her.' );

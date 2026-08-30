@@ -1203,3 +1203,47 @@ på lesebekreftelser (produktbeslutning, ville hjulpet volumet mest),
 og å endre **standard**sortering på arrangementslisten fra
 `post_date` til `_samlab_start` (atferdsendring, ikke tatt i
 forbifarten).
+
+- [x] **H9. Kodegjennomgang av admin-laget, med retting.** Seks funn,
+  alle verifisert mot kjørende rigg framfor lesning alene, og alle
+  rettet. Fire hypoteser fra lesningen falt på måling og ble
+  forkastet: kategorifilterets `samlab_kategori=0` viser alle
+  bedrifter (ikke ingen), innstillingssiden viser «Settings saved.»,
+  visningsraden har nøyaktig én `current` ved aktivt filter, og
+  CSV-en koster ikke tre ganger rapportsidens spørringer (periodene
+  deler meta-cachen).
+  1. **Statustellingen stemte ikke med radene lenken viser.**
+     `samlab_kobling_statusantall()` talte kun publiserte, mens
+     lenken arver listetabellens statusutvalg: «Foreslått (1)» over
+     to rader. Statusene hentes nå fra `get_post_stati( array(
+     'show_in_admin_all_list' => true ) )`. Målt i nettleser før og
+     etter: 1/2 rader → 2/2.
+  2. **N+1 i rapporten.** Begge løkkene i `samlab_rapport_tall()`
+     henter med `fields => ids`, som hopper over meta-primingen, og
+     leste meta per post. Ny `samlab_rapport_prim_meta()`. Målt med
+     200 koblinger: rapportsiden 216 → 10 spørringer (131 → 20 ms),
+     CSV 227 → 21 (139 → 23 ms).
+  3. **«Trenger oppmerksomhet»-flisen lovet presisjon den ikke
+     hadde.** Den summerer fire lister som hver er kappet, men var
+     den eneste flisen uten `tak`. Nytt `minst`-flagg i
+     `samlab_admin_sammendrag()` gjør tallet til et synlig gulv
+     («229+») når minst én kilde er avkortet.
+  4. **Ufullstendige bedrifter ble søkt i et vilkårlig vindu.**
+     Spørringen hentet 100 sortert på tittel og filtrerte etterpå -
+     men «ufullstendig» har ingen alfabetisk orden, så bedrifter
+     bakerst i alfabetet ble aldri undersøkt. Målt: 131 faktisk
+     ufullstendige, 100 rapportert, null av dem de faktiske. Søket
+     ser nå alle; taket flyttet til rendringen via nytt `$maks` i
+     `samlab_kp_liste()`, som oppsummerer resten med «og N til».
+     Etter: 121 av 121 funnet, fortsatt 100 rader i DOM-en.
+  5. **`scroll-padding` forsvant helt uten `:has()`-støtte.** De to
+     selektorene sto i én liste, og et ugyldig ledd kasserer hele
+     regelen - verifisert i nettleser. Delt i to selvstendige regler,
+     så WCAG 2.4.11-tiltaket overlever at den ene ikke forstås.
+  6. **CSS-filens egen regel 1 var ikke lenger bokstavelig sann**
+     etter `html:has(...)`. Ordlyden er rettet, med unntaket navngitt.
+  *Tester:* `test-admin.php` 78 → 89 sjekker. Hver nye test er
+  verifisert ved å sette rettingen tilbake og se den bli rød - den
+  første utgaven av bedriftstesten var grønn med feilen på plass,
+  fordi riggen har for få bedrifter til at et tak på 100 biter, og
+  måtte fylle forbi taket for å bety noe.
