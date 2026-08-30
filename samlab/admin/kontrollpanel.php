@@ -162,12 +162,6 @@ function samlab_kp_gamle_behov( $dager = 14 ) {
  * @return array<int, array{bedrift: WP_Post, mangler: string[]}>
  */
 function samlab_kp_ufullstendige_bedrifter() {
-	$sjekker = array(
-		'_samlab_kort'          => __( 'kort beskrivelse', 'samlab' ),
-		'_samlab_kontaktperson' => __( 'kontaktperson', 'samlab' ),
-		'_samlab_leverer'       => __( 'intensjoner', 'samlab' ),
-	);
-
 	$resultat  = array();
 	$bedrifter = get_posts(
 		array(
@@ -179,15 +173,7 @@ function samlab_kp_ufullstendige_bedrifter() {
 		)
 	);
 	foreach ( $bedrifter as $bedrift ) {
-		$mangler = array();
-		foreach ( $sjekker as $meta => $etikett ) {
-			if ( '' === (string) get_post_meta( $bedrift->ID, $meta, true ) ) {
-				$mangler[] = $etikett;
-			}
-		}
-		if ( ! has_post_thumbnail( $bedrift ) ) {
-			$mangler[] = __( 'logo', 'samlab' );
-		}
+		$mangler = samlab_bedrift_mangler( $bedrift );
 		if ( array() !== $mangler ) {
 			$resultat[] = array(
 				'bedrift' => $bedrift,
@@ -465,7 +451,18 @@ function samlab_kp_avkortet( $vist, $statuser, $hva ) {
 			$totalt
 		)
 	);
-	echo ' <a href="' . esc_url( admin_url( 'edit.php?post_type=samlab_kobling' ) ) . '">';
+	// Fra fase 6 finnes statusfilteret på listetabellen, så lenken kan
+	// være presis. Grupper med flere statuser lenker uten filter.
+	$url = add_query_arg(
+		1 === count( $statuser )
+			? array(
+				'post_type'     => 'samlab_kobling',
+				'samlab_status' => $statuser[0],
+			)
+			: array( 'post_type' => 'samlab_kobling' ),
+		admin_url( 'edit.php' )
+	);
+	echo ' <a href="' . esc_url( $url ) . '">';
 	echo esc_html__( 'Se alle koblinger', 'samlab' );
 	echo '<span class="screen-reader-text"> ' . esc_html( $hva ) . '</span></a></p>';
 }

@@ -51,6 +51,7 @@ require_once SAMLAB_PLUGIN_DIR . 'includes/forms.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/rest-api.php';
 require_once SAMLAB_PLUGIN_DIR . 'includes/search.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/assets.php';
+require_once SAMLAB_PLUGIN_DIR . 'admin/listetabeller.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/settings.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/kontrollpanel.php';
 require_once SAMLAB_PLUGIN_DIR . 'admin/rapport.php';

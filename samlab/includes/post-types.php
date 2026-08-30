@@ -354,6 +354,39 @@ function samlab_render_tjenester_box( $post ) {
 }
 
 /**
+ * Hva en bedriftsprofil mangler for å regnes som komplett.
+ *
+ * Delt av kontrollpanelets liste og bedriftenes listetabell - ellers
+ * ville de to driftet fra hverandre og gitt ulike svar om samme profil.
+ *
+ * @param int|WP_Post $bedrift Bedriften.
+ * @return string[] Etikettene for det som mangler, tom array når alt er på plass.
+ */
+function samlab_bedrift_mangler( $bedrift ) {
+	$post = get_post( $bedrift );
+	if ( ! $post ) {
+		return array();
+	}
+
+	$sjekker = array(
+		'_samlab_kort'          => __( 'kort beskrivelse', 'samlab' ),
+		'_samlab_kontaktperson' => __( 'kontaktperson', 'samlab' ),
+		'_samlab_leverer'       => __( 'intensjoner', 'samlab' ),
+	);
+
+	$mangler = array();
+	foreach ( $sjekker as $meta => $etikett ) {
+		if ( '' === (string) get_post_meta( $post->ID, $meta, true ) ) {
+			$mangler[] = $etikett;
+		}
+	}
+	if ( ! has_post_thumbnail( $post ) ) {
+		$mangler[] = __( 'logo', 'samlab' );
+	}
+	return $mangler;
+}
+
+/**
  * Publiserte bedrifter til nedtrekksvalg, sortert på tittel.
  *
  * Bevisst ubundet: et nedtrekk som kapper på et tak skjuler bedriften
