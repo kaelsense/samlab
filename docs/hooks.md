@@ -105,8 +105,11 @@ til.
 Svar: `{ svar, navn }`. Feilsvar: 503 uten API-nøkkel, 400 når
 meldingen er tom etter sanitering, 429 over rate-grensen (15 kall per
 5 minutter per bruker), 502 ved API-feil - alle med generiske
-meldinger uten konfigurasjonsdetaljer. Spørsmål og svar logges
-aldri.
+meldinger uten konfigurasjonsdetaljer. Samtaler logges aldri;
+finner ikke assistenten svar i grunnlaget, strippes
+`[UBESVART]`-markøren fra svaret og spørsmålet lagres anonymt i
+ubesvart-køen (kun spørsmålstekst, dato og teller - aldri hvem som
+spurte, aldri svaret) når innstillingen er på (G6, standard på).
 
 **Mulig oppgradering: SSE-streaming.** Widgeten leverer i dag hele
 svaret i ett (planens plan B). Streaming ville gitt ord-for-ord-

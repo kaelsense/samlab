@@ -84,6 +84,14 @@ den på:
 4. Chat-knappen dukker opp nede til høyre i portalen for innloggede
    medlemmer.
 
+**Personvern og ubesvart-køen:** samtaler logges aldri. Spørsmål
+assistenten ikke finner svar på i kunnskapsgrunnlaget, lagres
+derimot anonymt i ubesvart-køen - kun spørsmålsteksten, datoen og
+en teller, aldri hvem som spurte og aldri svaret - så verten kan
+fylle håndboken og FAQ-en med det som mangler. Køen er på som
+standard og slås av under Innstillinger → Samlab → «Ubesvart-kø»;
+av betyr at ingenting lagres.
+
 **Kostnad:** hvert spørsmål går mot Claude API og betales per bruk
 hos Anthropic (modell velges i innstillingene, standard
 `claude-opus-5`). Pluginen begrenser kostnadene med prompt-caching

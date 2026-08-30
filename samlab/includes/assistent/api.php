@@ -9,8 +9,10 @@
  * Systemprompten består av to blokker: instruks (navn, tone,
  * regler) og kunnskapsgrunnlaget fra F2, der grunnlaget er merket
  * med cache_control for prompt-caching. Rate-limiting per bruker
- * er transient-basert. Spørsmål og svar logges aldri - ved
- * API-feil logges kun statuskoden, og bare når WP_DEBUG er på.
+ * er transient-basert. Samtaler logges aldri; ubesvarte spørsmål
+ * lagres anonymt i køen (G6, kun spørsmålstekst - se ubesvart.php)
+ * når innstillingen er på. Ved API-feil logges kun statuskoden,
+ * og bare når WP_DEBUG er på.
  *
  * Lastes kun via modul.php (modulen på); med modulen av finnes
  * ikke ruten (404).
@@ -135,7 +137,7 @@ function samlab_assistent_rate_ok( $user_id ) {
 function samlab_assistent_systemblokker() {
 	$instruks = sprintf(
 		/* translators: 1: assistentens navn, 2: portalnavnet. */
-		__( 'Du er %1$s, assistenten i portalen «%2$s» for et norsk kontorfellesskap. Svar på norsk bokmål, kort og konkret. Bruk kun kunnskapsgrunnlaget under - ikke gjett, og si ifra når du ikke vet. Henvis til portalsidene (URL-ene i grunnlaget) for detaljer og kontakt. Del aldri passord eller sensitive detaljer, og uttal deg ikke om personer utover det grunnlaget sier.', 'samlab' ),
+		__( 'Du er %1$s, assistenten i portalen «%2$s» for et norsk kontorfellesskap. Svar på norsk bokmål, kort og konkret. Bruk kun kunnskapsgrunnlaget under - ikke gjett, og si ifra når du ikke vet. Finner du ikke svaret i grunnlaget, start svaret ditt med nøyaktig [UBESVART] (inkludert klammene) og forklar deretter høflig at du ikke vet - markøren fjernes før medlemmet ser svaret. Henvis til portalsidene (URL-ene i grunnlaget) for detaljer og kontakt. Del aldri passord eller sensitive detaljer, og uttal deg ikke om personer utover det grunnlaget sier.', 'samlab' ),
 		samlab_assistent_navn(),
 		samlab_portal_name()
 	);
@@ -311,6 +313,14 @@ function samlab_rest_assistent( $request ) {
 	$svar = samlab_assistent_kall_api( $meldinger );
 	if ( is_wp_error( $svar ) ) {
 		return $svar;
+	}
+
+	// Ubesvart-markøren (G6): strippes alltid før svaret går til
+	// medlemmet; spørsmålet legges anonymt i køen når innstillingen
+	// er på - aldri hvem som spurte, og aldri svaret.
+	if ( 0 === strpos( ltrim( $svar ), '[UBESVART]' ) ) {
+		$svar = ltrim( substr( ltrim( $svar ), strlen( '[UBESVART]' ) ) );
+		samlab_ubesvart_registrer( $melding );
 	}
 
 	/**

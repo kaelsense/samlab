@@ -943,7 +943,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   regenerert. Med G5 er slide 7s rapportløfte levert - minus
   gårdeier-metrikkene som er avklart bort (avklaring 8), og
   møter/avtaler/henvisninger som telles via G4-utfallene.
-- [ ] **G6. Ubesvart-deteksjon i assistenten.**
+- [x] **G6. Ubesvart-deteksjon i assistenten.**
   Systemprompten instruerer modellen til å starte svaret med
   markøren `[UBESVART]` når kunnskapsgrunnlaget ikke holder;
   api.php stripper markøren før svaret går til medlemmet og legger
@@ -958,6 +958,28 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   (og medlemmet ser svaret uten markør), svar uten markør lagres
   aldri, tak og dedupe holder i riggtest, og innstillingen av
   stopper all lagring.
+  *Notat (2026-08-30):* includes/assistent/ubesvart.php (lastes kun
+  via modulen): kø i option samlab_ubesvart med autoload av
+  (verifisert mot wp_load_alloptions), kun spørsmålstekst (sanitert,
+  kappet 500 tegn), dato og teller - aldri bruker-ID/svar; dedupe
+  på normalisert tekst (lowercase, sammenslått blank, uten
+  slutt-tegnsetting), FIFO-tak 200. Systemprompten instruerer om
+  [UBESVART]-markøren; api.php stripper den ALLTID (også når køen
+  er av) før svaret går til medlemmet, og registrerer kun når
+  innstillingen er på. Innstillingen assistent_ubesvart via ny
+  gjenbrukbar felttype «valg» (select med whitelist-sanitering) -
+  avkryssing kunne ikke ha standard på, siden ulagret avkryssing
+  er fravær; standard på per avklaring 7, med klartekst om
+  nøyaktig hva som lagres. Personvernløftet omformulert alle
+  steder («samtaler logges aldri; ubesvarte spørsmål lagres
+  anonymt når innstillingen er på»): README, docs/hooks.md,
+  docs/sikkerhet.md (F3-raden + egen G6-rad + trusselnotatet) og
+  api.php-headeren. Riggtest test-g6.php (15 sjekker, i modulen
+  på-gruppen) dekker hele Ferdig når pluss autoload,
+  markør-stripping med køen av, og sanitize-veien er verifisert
+  manuelt (av/pa lagres, ugyldig droppes). Alle 23 riggtester
+  grønne to ganger på rad, WPCS grønn, POT regenerert.
+  CM-visningen av køen er G7.
 - [ ] **G7. Ubesvart-køen i kontrollpanelet.** Seksjon i
   kontrollpanelet (CM-ens flate) som lister køen med
   antall-per-spørsmål, «håndtert»-knapp (fjerner innslaget) og

@@ -41,7 +41,7 @@ for t in test-b3.php test-b4.php test-b5.php test-b6.php \
 done
 
 assistent pa
-for t in test-f2.php test-f3.php test-f4.php; do
+for t in test-f2.php test-f3.php test-f4.php test-g6.php; do
 	kjor "$t"
 done
 assistent av

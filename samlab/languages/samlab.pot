@@ -9,15 +9,15 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-30T05:56:51+00:00\n"
+"POT-Creation-Date: 2026-08-30T06:03:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: samlab\n"
 
 #. Plugin Name of the plugin
 #: samlab.php
-#: admin/settings.php:285
-#: admin/settings.php:286
+#: admin/settings.php:297
+#: admin/settings.php:298
 msgid "Samlab"
 msgstr ""
 
@@ -499,7 +499,7 @@ msgid "Navnet e-posten sendes fra. Tom = portalnavnet."
 msgstr ""
 
 #: admin/settings.php:110
-#: includes/assistent.php:35
+#: includes/assistent.php:46
 msgid "Assistenten"
 msgstr ""
 
@@ -563,35 +563,51 @@ msgstr ""
 msgid "Én URL per linje - hentes inn i kunnskapsgrunnlaget av den daglige jobben. Aldri sider med passord eller sensitivt innhold."
 msgstr ""
 
-#: admin/settings.php:164
+#: admin/settings.php:155
+msgid "Ubesvart-kø"
+msgstr ""
+
+#: admin/settings.php:158
+msgid "På (standard) - ubesvarte spørsmål lagres anonymt"
+msgstr ""
+
+#: admin/settings.php:159
+msgid "Av - lagre aldri noe"
+msgstr ""
+
+#: admin/settings.php:161
+msgid "Når assistenten ikke finner svar i kunnskapsgrunnlaget, lagres KUN spørsmålsteksten og datoen - aldri hvem som spurte, og aldri svaret. Køen vises for verten og brukes til å fylle håndboken. Samtaler logges uansett aldri."
+msgstr ""
+
+#: admin/settings.php:173
 msgid "Mandag"
 msgstr ""
 
-#: admin/settings.php:165
+#: admin/settings.php:174
 msgid "Tirsdag"
 msgstr ""
 
-#: admin/settings.php:166
+#: admin/settings.php:175
 msgid "Onsdag"
 msgstr ""
 
-#: admin/settings.php:167
+#: admin/settings.php:176
 msgid "Torsdag"
 msgstr ""
 
-#: admin/settings.php:168
+#: admin/settings.php:177
 msgid "Fredag"
 msgstr ""
 
-#: admin/settings.php:169
+#: admin/settings.php:178
 msgid "Lørdag"
 msgstr ""
 
-#: admin/settings.php:170
+#: admin/settings.php:179
 msgid "Søndag"
 msgstr ""
 
-#: admin/settings.php:306
+#: admin/settings.php:318
 msgid "Samlab-innstillinger"
 msgstr ""
 
@@ -659,77 +675,77 @@ msgstr ""
 msgid "Kommende arrangementer"
 msgstr ""
 
-#: includes/assistent.php:44
+#: includes/assistent.php:55
 msgid "Hei! Spør meg om huset, medlemmene eller det praktiske."
 msgstr ""
 
-#: includes/assistent.php:92
+#: includes/assistent.php:103
 msgid "Funnet i wp-config.php (SAMLAB_CLAUDE_API_KEY er satt)."
 msgstr ""
 
-#: includes/assistent.php:94
+#: includes/assistent.php:105
 msgid "Ikke funnet. Legg til define( 'SAMLAB_CLAUDE_API_KEY', '…' ); i wp-config.php - nøkkelen lagres aldri i databasen."
 msgstr ""
 
-#: includes/assistent.php:106
+#: includes/assistent.php:117
 msgid "Ikke bygget ennå - bygges automatisk hver dag når modulen er på, eller med knappen under."
 msgstr ""
 
 #. translators: 1: versjonsnummer, 2: dato og tid, 3: størrelse.
-#: includes/assistent.php:110
+#: includes/assistent.php:121
 #, php-format
 msgid "Versjon %1$d, bygget %2$s (%3$s)."
 msgstr ""
 
 #. translators: %s: kommaseparert liste over kilder som feilet.
-#: includes/assistent.php:117
+#: includes/assistent.php:128
 #, php-format
 msgid "Kilder som feilet: %s."
 msgstr ""
 
-#: includes/assistent.php:133
+#: includes/assistent.php:144
 msgid "Kunnskapsgrunnlaget"
 msgstr ""
 
-#: includes/assistent.php:134
+#: includes/assistent.php:145
 msgid "Bygges automatisk hver dag fra portalinnholdet og de eksterne kildene. Grunnlaget skal aldri inneholde passord eller sensitive detaljer."
 msgstr ""
 
-#: includes/assistent.php:138
+#: includes/assistent.php:149
 msgid "Bygg nå"
 msgstr ""
 
 #. translators: 1: assistentens navn, 2: portalnavnet.
-#: includes/assistent/api.php:138
+#: includes/assistent/api.php:140
 #, php-format
-msgid "Du er %1$s, assistenten i portalen «%2$s» for et norsk kontorfellesskap. Svar på norsk bokmål, kort og konkret. Bruk kun kunnskapsgrunnlaget under - ikke gjett, og si ifra når du ikke vet. Henvis til portalsidene (URL-ene i grunnlaget) for detaljer og kontakt. Del aldri passord eller sensitive detaljer, og uttal deg ikke om personer utover det grunnlaget sier."
+msgid "Du er %1$s, assistenten i portalen «%2$s» for et norsk kontorfellesskap. Svar på norsk bokmål, kort og konkret. Bruk kun kunnskapsgrunnlaget under - ikke gjett, og si ifra når du ikke vet. Finner du ikke svaret i grunnlaget, start svaret ditt med nøyaktig [UBESVART] (inkludert klammene) og forklar deretter høflig at du ikke vet - markøren fjernes før medlemmet ser svaret. Henvis til portalsidene (URL-ene i grunnlaget) for detaljer og kontakt. Del aldri passord eller sensitive detaljer, og uttal deg ikke om personer utover det grunnlaget sier."
 msgstr ""
 
-#: includes/assistent/api.php:144
+#: includes/assistent/api.php:146
 msgid "Toneinstruks fra verten:"
 msgstr ""
 
-#: includes/assistent/api.php:148
+#: includes/assistent/api.php:150
 msgid "(Kunnskapsgrunnlaget er ikke bygget ennå.)"
 msgstr ""
 
-#: includes/assistent/api.php:263
+#: includes/assistent/api.php:265
 msgid "Assistenten fikk ikke kontakt - prøv igjen om litt."
 msgstr ""
 
-#: includes/assistent/api.php:273
+#: includes/assistent/api.php:275
 msgid "Assistenten fikk ikke svar - prøv igjen om litt."
 msgstr ""
 
-#: includes/assistent/api.php:289
+#: includes/assistent/api.php:291
 msgid "Assistenten er ikke tilgjengelig ennå - kontakt verten."
 msgstr ""
 
-#: includes/assistent/api.php:297
+#: includes/assistent/api.php:299
 msgid "Skriv et spørsmål med tekst i."
 msgstr ""
 
-#: includes/assistent/api.php:302
+#: includes/assistent/api.php:304
 msgid "Rolig nå - du har sendt mange spørsmål på kort tid. Prøv igjen om noen minutter."
 msgstr ""
 
