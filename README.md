@@ -181,6 +181,7 @@ kommentaren i filen). CI (GitHub Actions) kjører `php -l` og
 
 ## Dokumentasjon
 
+- [CHANGELOG.md](CHANGELOG.md) - hva som er endret mellom versjoner
 - [docs/hooks.md](docs/hooks.md) - REST-endepunkter, actions og
   filters (API-flaten for integrasjoner)
 - [docs/sikkerhet.md](docs/sikkerhet.md) - sikkerhetsgjennomgangen:

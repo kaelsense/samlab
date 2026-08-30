@@ -56,6 +56,16 @@ Konsept og kravspesifikasjon ligger i
   som dokumentet beskriver (grenser, avgrensninger, standardverdier).
   Rører endringen auth, escaping, hemmeligheter eller restrisiko,
   oppdateres `docs/sikkerhet.md` på samme måte.
+- **Changeloggen følger koden.** Merkbare endringer - ny eller endret
+  funksjonalitet, sikkerhetsrettinger, endrede krav - føres under
+  `## [Uutgitt]` i `CHANGELOG.md` i samme endring som koden. Interne
+  omskrivinger uten synlig utslag hører ikke hjemme der.
+- **Versjonsheving:** patch (0.5.0 → 0.5.1) for rettinger, småting og
+  det aller meste. Minor (0.5.x → 0.6.0) kun når det er kommet ny
+  funksjonalitet verdt å nevne. Ikke hev minor for en liten
+  oppdatering. Tallet står tre steder som skal være like - headeren,
+  `SAMLAB_VERSION` og nyeste utgivelse i changeloggen -
+  `tests/rigg/test-versjon.php` håndhever det.
 - Spør før: nye avhengigheter, force-push/rebase, endring av slug
   eller tekstdomene, og alt som rører lisens- eller prismodell.
 - Test mot minst ett standardtema (f.eks. Twenty Twenty-Four) i
