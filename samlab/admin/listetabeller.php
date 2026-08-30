@@ -436,6 +436,42 @@ function samlab_liste_filtre( $post_type ) {
 add_action( 'restrict_manage_posts', 'samlab_liste_filtre' );
 
 /**
+ * Sorterer arrangementslisten på starttid uten å skjule noe.
+ *
+ * «meta_key + orderby => meta_value» ville vært det åpenbare valget,
+ * men det gir en INNER JOIN mot postmeta: arrangementer UTEN
+ * _samlab_start faller da ut av listen i det hele tatt. Verifisert i
+ * riggen - seks arrangementer ble til fem, og den som forsvant var
+ * nettopp den med manglende tid. Det er den man må inn i listen for å
+ * finne og rette, så å skjule den er verre enn å sortere den feil.
+ *
+ * OR-en med NOT EXISTS gir en LEFT JOIN i stedet. Postene uten tid
+ * havner sist i DESC og først i ASC - de er synlige, og rekkefølgen
+ * deres er en detalj ved siden av det.
+ *
+ * @param WP_Query $query   Spørringen.
+ * @param string   $retning ASC eller DESC.
+ * @return void
+ */
+function samlab_arrangement_sorter_pa_tid( $query, $retning ) {
+	$query->set( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Sortering på en admin-liste.
+		'meta_query',
+		array(
+			'relation'   => 'OR',
+			'har_start'  => array(
+				'key'     => '_samlab_start',
+				'compare' => 'EXISTS',
+			),
+			'uten_start' => array(
+				'key'     => '_samlab_start',
+				'compare' => 'NOT EXISTS',
+			),
+		)
+	);
+	$query->set( 'orderby', array( 'har_start' => $retning ) );
+}
+
+/**
  * Setter meta-filtrene og sorteringen på listetabellene.
  *
  * @param WP_Query $query Spørringen.
@@ -462,9 +498,21 @@ function samlab_liste_query( $query ) {
 		return;
 	}
 
-	if ( samlab_liste_er_hovedliste( $query, 'samlab_arrangement' ) && 'samlab_tid' === $query->get( 'orderby' ) ) {
-		$query->set( 'meta_key', '_samlab_start' ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Sortering på en admin-liste.
-		$query->set( 'orderby', 'meta_value' );
+	if ( samlab_liste_er_hovedliste( $query, 'samlab_arrangement' ) ) {
+		$valgt = (string) $query->get( 'orderby' );
+
+		// Standardsortering: arrangementer sorteres på når de skjer, ikke
+		// på når noen skrev dem inn. En arrangementsliste sortert på
+		// post_date er nesten aldri det man vil se.
+		if ( '' === $valgt ) {
+			samlab_arrangement_sorter_pa_tid( $query, 'DESC' );
+			return;
+		}
+
+		if ( 'samlab_tid' === $valgt ) {
+			$retning = 'ASC' === strtoupper( (string) $query->get( 'order' ) ) ? 'ASC' : 'DESC';
+			samlab_arrangement_sorter_pa_tid( $query, $retning );
+		}
 	}
 }
 add_action( 'pre_get_posts', 'samlab_liste_query' );

@@ -182,7 +182,10 @@ function samlab_rapport_tall( $dager ) {
 function samlab_rapport_lesegrad() {
 	$bekreftet = 0;
 	$totalt    = 0;
-	foreach ( samlab_kp_lesebekreftelser() as $rad ) {
+	// Eget, høyere tak enn kontrollpanelets: dette er et måltall, ikke
+	// en arbeidsliste, og skal ikke endre seg fordi dashbordet ble
+	// trimmet.
+	foreach ( samlab_kp_lesebekreftelser( SAMLAB_RAPPORT_LESEKRAV ) as $rad ) {
 		$bekreftet += count( $rad['bekreftet'] );
 		$totalt    += count( $rad['bekreftet'] ) + count( $rad['mangler'] );
 	}

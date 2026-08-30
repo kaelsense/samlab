@@ -1198,11 +1198,8 @@ De to nye testfilene er bevisst navngitt etter *flaten* framfor
 fasebokstaven, siden de dekker admin-laget som helhet og ikke ett
 punkt i denne listen.
 
-*To beslutninger er lagt fram og står ubesvart:* å senke `LIMIT 20`
-på lesebekreftelser (produktbeslutning, ville hjulpet volumet mest),
-og å endre **standard**sortering på arrangementslisten fra
-`post_date` til `_samlab_start` (atferdsendring, ikke tatt i
-forbifarten).
+*De to beslutningene som ble lagt fram, er avgjort av Kay
+2026-08-30 - begge ja.* Se H10.
 
 - [x] **H9. Kodegjennomgang av admin-laget, med retting.** Seks funn,
   alle verifisert mot kjørende rigg framfor lesning alene, og alle
@@ -1247,3 +1244,36 @@ forbifarten).
   første utgaven av bedriftstesten var grønn med feilen på plass,
   fordi riggen har for få bedrifter til at et tak på 100 biter, og
   måtte fylle forbi taket for å bety noe.
+
+- [x] **H10. De to utestående beslutningene, gjennomført.**
+  1. **Lesekrav-taket senket fra 20 til 5** (`SAMLAB_KP_LESEKRAV`).
+     Seksjonen krysser hvert oppslag mot hvert medlem, så kostnaden er
+     oppslag x medlemmer; et lesekrav er dessuten ferskvare, og eldre
+     oppslag er historikk framfor noe man handler på i dag.
+     Avkortingen er synlig - «Viser de 5 nyeste av N oppslag med
+     lesekrav» - framfor å skje stille.
+     *Rapporten beholder sitt eget tak på 20* (`SAMLAB_RAPPORT_LESEKRAV`):
+     `samlab_rapport_lesegrad()` bruker samme funksjon, og å senke der
+     ville endret en rapportert prosent uten at noen ba om det. Grensen
+     er derfor et argument, ikke en hardkodet verdi.
+  2. **Standardsortering på arrangementslisten** er nå `_samlab_start`
+     synkende framfor `post_date` - arrangementer sorteres på når de
+     skjer, ikke på når noen skrev dem inn.
+     *Funn i forbifarten, rettet samtidig:* den eksisterende
+     kolonnesorteringen brukte `meta_key` + `orderby => meta_value`,
+     som gir INNER JOIN mot postmeta - arrangementer UTEN
+     `_samlab_start` falt da ut av listen i det hele tatt. Verifisert i
+     riggen: seks arrangementer ble til fem, og den som forsvant var
+     nettopp den med manglende tid, altså den man må inn i listen for å
+     rette. Begge veier går nå gjennom
+     `samlab_arrangement_sorter_pa_tid()` med en OR/NOT EXISTS som gir
+     LEFT JOIN. Postene uten tid havner sist i synkende og først i
+     stigende - synlige, og rekkefølgen deres er en detalj ved siden av
+     det.
+  *Tester:* `test-admin.php` 89 -> 99 sjekker, hver verifisert ved å
+  sette endringen tilbake og se den bli rød. Testharnessen måtte
+  rettes underveis: `is_main_query()` sammenligner mot globalen
+  `$wp_the_query`, så å sette egenskapen `$q->is_main_query` gjorde
+  ingenting - kroken fyrte aldri, og de første sorteringstestene var
+  grønne uten å teste noe. Harnessen returnerer nå OM kroken fyrte, og
+  det er en egen sjekk.
