@@ -56,8 +56,25 @@ Konsept og kravspesifikasjon ligger i
   som dokumentet beskriver (grenser, avgrensninger, standardverdier).
   Rører endringen auth, escaping, hemmeligheter eller restrisiko,
   oppdateres `docs/sikkerhet.md` på samme måte.
+- **Changeloggen følger koden.** `CHANGELOG.md` er fasit for hva som
+  er endret mellom versjoner, i Keep a Changelog-format. Merkbare
+  endringer føres under `## [Uutgitt]` i samme endring som koden -
+  ikke etterpå, og ikke samlet før en utgivelse. Merkbart er: ny,
+  endret eller fjernet brukervendt funksjonalitet; endret oppførsel
+  noen kan ha innrettet seg etter; sikkerhetsrettinger; og endringer
+  i krav (WP-/PHP-versjon, konstanter i `wp-config.php`). Rent
+  interne omskrivinger uten synlig utslag hører ikke hjemme der.
+- **Versjonsnummeret står tre steder og skal alltid være like:**
+  `Version:` i plugin-headeren, konstanten `SAMLAB_VERSION` (begge i
+  `samlab/samlab.php`) og nyeste utgivelse i `CHANGELOG.md`.
+  `tests/rigg/test-versjon.php` håndhever det. Ved utgivelse: gi
+  `[Uutgitt]`-avsnittet versjonsnummer og dato, hev de to i koden, og
+  tagg commiten `vX.Y.Z` - oppdaterings-URL-en sammenligner nettopp
+  headeren, så en glemt heving betyr at ingen installasjon får vite at
+  det finnes noe nytt. Semantisk versjonering.
 - Spør før: nye avhengigheter, force-push/rebase, endring av slug
-  eller tekstdomene, og alt som rører lisens- eller prismodell.
+  eller tekstdomene, versjonsheving og utgivelse, og alt som rører
+  lisens- eller prismodell.
 - Test mot minst ett standardtema (f.eks. Twenty Twenty-Four) i
   tillegg til kundens tema før noe erklæres ferdig - tema-arven er et
   produktløfte.
