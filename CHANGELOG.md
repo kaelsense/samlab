@@ -5,11 +5,6 @@ Alle merkbare endringer i Samlab føres her.
 Formatet følger [Keep a Changelog](https://keepachangelog.com/no/1.1.0/),
 og versjonsnumrene følger [semantisk versjonering](https://semver.org/lang/no/).
 
-Versjonsnummeret står to steder, og de skal alltid være like:
-`Version:`-linjen i plugin-headeren og konstanten `SAMLAB_VERSION`,
-begge i `samlab/samlab.php`. Riggtesten `test-versjon.php` slår fast at
-de stemmer med hverandre og med den nyeste utgivelsen her.
-
 ## [Uutgitt]
 
 Ingenting ennå.
