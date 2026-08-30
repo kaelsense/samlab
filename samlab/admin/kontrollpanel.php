@@ -240,18 +240,56 @@ function samlab_kp_stille_medlemmer( $dager = 30 ) {
 }
 
 /**
+ * Hvor mange lesekrav-oppslag kontrollpanelet viser.
+ *
+ * Seksjonen var den tyngste på siden: hvert oppslag krysses mot hvert
+ * medlem, så kostnaden er oppslag x medlemmer. Fem dekker det som
+ * faktisk er aktuelt - et lesekrav er ferskvare, og eldre oppslag er
+ * historikk, ikke noe man handler på i dag.
+ */
+const SAMLAB_KP_LESEKRAV = 5;
+
+/**
+ * Hvor mange oppslag lesebekreftelsesgraden i rapporten regnes over.
+ *
+ * Bevisst høyere enn kontrollpanelets tak: dette er et måltall, ikke
+ * en arbeidsliste, og å senke det ville endret en rapportert prosent
+ * uten at noen ba om det.
+ */
+const SAMLAB_RAPPORT_LESEKRAV = 20;
+
+/**
+ * Antall publiserte oppslag med lesekrav, uten tak.
+ *
+ * @return int
+ */
+function samlab_kp_lesekrav_antall() {
+	global $wpdb;
+	$tabell = samlab_table( 'innlegg' );
+
+	return (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Egen tabell, admin-liste.
+		"SELECT COUNT(*) FROM {$tabell} WHERE confirm_read = 1 AND status = 'publish'" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellnavn fra samlab_table(), ingen brukerdata.
+	);
+}
+
+/**
  * Lesebekreftelses-oversikten: oppslag med lest-krav og hvem som
  * har/ikke har bekreftet (E8). Kun for moderator+ (siden er bak
  * edit_samlab_koblinger).
  *
+ * @param int $grense Maks antall oppslag.
  * @return array<int, array{innlegg: object, bekreftet: WP_User[], mangler: WP_User[]}>
  */
-function samlab_kp_lesebekreftelser() {
+function samlab_kp_lesebekreftelser( $grense = SAMLAB_KP_LESEKRAV ) {
 	global $wpdb;
 	$tabell = samlab_table( 'innlegg' );
+	$grense = max( 1, (int) $grense );
 
 	$oppslag = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Egen tabell, admin-liste.
-		"SELECT * FROM {$tabell} WHERE confirm_read = 1 AND status = 'publish' ORDER BY created_at DESC LIMIT 20" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellnavn fra samlab_table(), ingen brukerdata.
+		$wpdb->prepare(
+			"SELECT * FROM {$tabell} WHERE confirm_read = 1 AND status = 'publish' ORDER BY created_at DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Tabellnavn fra samlab_table(), ingen brukerdata.
+			$grense
+		)
 	);
 	if ( array() === $oppslag ) {
 		return array();
@@ -806,6 +844,22 @@ function samlab_render_kontrollpanel() {
 	$lesekrav = samlab_kp_lesebekreftelser();
 	if ( array() === $lesekrav ) {
 		echo '<p>' . esc_html__( 'Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest».', 'samlab' ) . '</p>';
+	} else {
+		// Avkortingen skal være synlig. Stille avkorting er verre enn en
+		// linje som sier hva man ikke ser.
+		$samlab_krav_totalt = samlab_kp_lesekrav_antall();
+		if ( $samlab_krav_totalt > count( $lesekrav ) ) {
+			echo '<p class="description">';
+			echo esc_html(
+				sprintf(
+					/* translators: 1: antall viste oppslag, 2: totalt antall oppslag med lesekrav. */
+					__( 'Viser de %1$d nyeste av %2$d oppslag med lesekrav.', 'samlab' ),
+					count( $lesekrav ),
+					$samlab_krav_totalt
+				)
+			);
+			echo '</p>';
+		}
 	}
 	// Kun de som mangler rendres. Hvem som HAR bekreftet er ikke et
 	// handlingsbart sett - tallet over dekker det - og seksjonen var

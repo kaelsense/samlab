@@ -442,6 +442,154 @@ sjekk(
 wp_delete_post( $samlab_publisert, true );
 wp_delete_post( $samlab_utkast, true );
 
+// Lesekrav-taket: kontrollpanelet er en arbeidsliste og kappes, mens
+// rapportens måltall beholder sitt eget, høyere tak. Å senke begge
+// ville stille endret en rapportert prosent.
+$samlab_kari  = get_user_by( 'login', 'kari.demo' );
+$samlab_krav  = array();
+$samlab_antall = SAMLAB_KP_LESEKRAV + 2;
+for ( $samlab_i = 0; $samlab_i < $samlab_antall; $samlab_i++ ) {
+	$samlab_iid = Samlab_Innlegg::create(
+		array(
+			'user_id' => $samlab_kari->ID,
+			'content' => 'Lesekrav-test ' . $samlab_i,
+			'pinned'  => 1,
+		)
+	);
+	Samlab_Innlegg::update( $samlab_iid, array( 'confirm_read' => 1 ) );
+	$samlab_krav[] = $samlab_iid;
+}
+
+$samlab_totalt = samlab_kp_lesekrav_antall();
+sjekk( 'tellingen ser alle oppslag med lesekrav', $samlab_totalt >= $samlab_antall );
+sjekk(
+	'kontrollpanelet kappes på SAMLAB_KP_LESEKRAV',
+	SAMLAB_KP_LESEKRAV === count( samlab_kp_lesebekreftelser() )
+);
+sjekk(
+	'rapportens måltall bruker sitt eget, høyere tak',
+	count( samlab_kp_lesebekreftelser( SAMLAB_RAPPORT_LESEKRAV ) ) > SAMLAB_KP_LESEKRAV
+);
+sjekk( 'rapporttaket er faktisk høyere enn dashbordtaket', SAMLAB_RAPPORT_LESEKRAV > SAMLAB_KP_LESEKRAV );
+
+foreach ( $samlab_krav as $samlab_iid ) {
+	Samlab_Innlegg::delete( $samlab_iid );
+}
+
+// Standardsortering på arrangementslisten: starttid, ikke post_date -
+// og uten å skjule noe.
+//
+// «meta_key + orderby => meta_value» gir INNER JOIN mot postmeta, så
+// arrangementer UTEN _samlab_start faller ut av listen. Testen har en
+// slik post nettopp for å fange det: den skal være med i BEGGE
+// retninger, og totalen skal stemme med basen.
+$samlab_arr = array();
+foreach ( array( '2027-03-01 10:00', '2027-01-01 10:00' ) as $samlab_i => $samlab_start ) {
+	$samlab_id = wp_insert_post(
+		array(
+			'post_type'   => 'samlab_arrangement',
+			'post_title'  => 'Sorteringstest ' . $samlab_i,
+			'post_status' => 'publish',
+		)
+	);
+	update_post_meta( $samlab_id, '_samlab_start', $samlab_start );
+	$samlab_arr[] = $samlab_id;
+}
+$samlab_utenlos = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_arrangement',
+		'post_title'  => 'Sorteringstest uten starttid',
+		'post_status' => 'publish',
+	)
+);
+$samlab_arr[] = $samlab_utenlos;
+
+$samlab_fasit = count(
+	get_posts(
+		array(
+			'post_type'      => 'samlab_arrangement',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	)
+);
+
+/**
+ * Kjører listetabellens hovedspørring slik pre_get_posts-kroken ser den.
+ *
+ * To ting må stemme for at kroken i det hele tatt skal fyre, og begge
+ * er lette å bomme på: is_main_query() sammenligner mot GLOBALEN
+ * $wp_the_query - å sette egenskapen $q->is_main_query gjør ingenting -
+ * og is_admin() må være sann. Bommer man på én av dem, kjører
+ * spørringen usortert og en test som bare teller poster blir grønn uten
+ * å ha testet noe. Derfor returneres også om kroken faktisk fyrte.
+ *
+ * @param string $orderby Sorteringsvalget, tom streng for standard.
+ * @param string $order   Retning.
+ * @return array{poster: WP_Post[], fyrte: bool}
+ */
+function samlab_test_arrangementsliste( $orderby = '', $order = '' ) {
+	global $wp_the_query;
+
+	$q = new WP_Query();
+	$q->init();
+	$q->set( 'post_type', 'samlab_arrangement' );
+	$q->set( 'post_status', 'publish' );
+	$q->set( 'posts_per_page', -1 );
+	$q->set( 'orderby', $orderby );
+	$q->set( 'order', $order );
+
+	$forrige      = $wp_the_query;
+	$wp_the_query = $q;
+	samlab_liste_query( $q );
+	$wp_the_query = $forrige;
+
+	$fyrte = (bool) $q->get( 'meta_query' );
+
+	return array(
+		'poster' => get_posts(
+			array_merge(
+				$q->query_vars,
+				array(
+					'post_type'      => 'samlab_arrangement',
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+				)
+			)
+		),
+		'fyrte'  => $fyrte,
+	);
+}
+
+$samlab_standard = samlab_test_arrangementsliste();
+$samlab_titler   = wp_list_pluck( $samlab_standard['poster'], 'post_title' );
+sjekk( 'sorteringskroken fyrer i det hele tatt (ellers tester resten ingenting)', $samlab_standard['fyrte'] );
+sjekk( 'standardsorteringen mister ingen arrangementer', $samlab_fasit === count( $samlab_standard['poster'] ) );
+sjekk(
+	'arrangement uten starttid er fortsatt i listen',
+	in_array( 'Sorteringstest uten starttid', $samlab_titler, true )
+);
+sjekk(
+	'standard er nyeste starttid først, ikke post_date',
+	'Sorteringstest 0' === $samlab_titler[0]
+);
+
+$samlab_asc      = samlab_test_arrangementsliste( 'samlab_tid', 'ASC' );
+$samlab_stigende = wp_list_pluck( $samlab_asc['poster'], 'post_title' );
+sjekk(
+	'kolonnesortering stigende mister heller ingen',
+	$samlab_fasit === count( $samlab_stigende )
+);
+sjekk(
+	'stigende snur rekkefølgen',
+	array_search( 'Sorteringstest 1', $samlab_stigende, true ) < array_search( 'Sorteringstest 0', $samlab_stigende, true )
+);
+
+foreach ( $samlab_arr as $samlab_id ) {
+	wp_delete_post( $samlab_id, true );
+}
+
 // --- Fase 5: volumlappene ---
 // samlab_kp_liste() direkte: 40 elementer skal gi 10 åpne og resten
 // sammenbrettet, uansett hva som ligger i basen.
