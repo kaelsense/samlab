@@ -93,6 +93,59 @@
 }
 
 /**
+ * Sammendragsraden på kontrollpanelet. Fire tall som hopper til hver
+ * sin seksjon, så siden svarer på «hva trenger meg i dag?» uten at man
+ * scroller forbi hundrevis av rader.
+ *
+ * Ingen fargedeklarasjoner: tallet arver lenkefargen fra brukerens
+ * fargeskjema, som er nøyaktig det vi vil.
+ */
+.samlab-admin-side .samlab-sammendrag {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 12rem, 1fr ) );
+	gap: var( --samlab-a-gap );
+	margin-block: var( --samlab-a-gap );
+	padding: 0;
+	list-style: none;
+}
+
+.samlab-admin-side .samlab-sammendrag a {
+	display: block;
+	padding: var( --samlab-a-pad );
+	border: 1px solid var( --samlab-a-linje );
+	border-radius: var( --samlab-a-radius );
+	background: var( --wpds-color-background-surface-neutral-strong, #fff );
+	text-decoration: none;
+}
+
+.samlab-admin-side .samlab-sammendrag-tall {
+	display: block;
+	font-size: var( --samlab-a-tall );
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.samlab-admin-side .samlab-sammendrag-etikett {
+	display: block;
+	color: var( --samlab-a-demp );
+}
+
+/**
+ * «Trenger oppmerksomhet»: fire lister side om side der det er plass.
+ * auto-fit med minmax, aldri fast kolonnetall - ellers ryker WCAG
+ * 1.4.10 Reflow ved 320 px.
+ */
+.samlab-admin-side .samlab-oppmerksomhet {
+	display: grid;
+	grid-template-columns: repeat( auto-fit, minmax( 22rem, 1fr ) );
+	gap: 0 var( --samlab-a-gap );
+}
+
+.samlab-admin-side .samlab-oppmerksomhet-gruppe ul {
+	margin-block-start: 0;
+}
+
+/**
  * Klebrig lagre-rad. submit_button() gir <p class="submit">, så dette
  * krever ingen markupendring.
  *

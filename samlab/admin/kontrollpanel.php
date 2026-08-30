@@ -39,6 +39,15 @@ function samlab_kontrollpanel_menu() {
 add_action( 'admin_menu', 'samlab_kontrollpanel_menu' );
 
 /**
+ * Taket på kontrollpanelets lister.
+ *
+ * Ingen av seksjonene har paginering, så listene er avkortet. Der
+ * taket er nådd, viser sammendraget «100+» framfor å love et presist
+ * tall det ikke har dekning for. Fase 5 gjør avkortingen navigerbar.
+ */
+const SAMLAB_KP_TAK = 100;
+
+/**
  * Koblinger med gitt status, eldste først.
  *
  * @param string[] $statuser Status-slugs.
@@ -51,7 +60,7 @@ function samlab_kp_koblinger( $statuser ) {
 			'post_status'    => 'publish',
 			'orderby'        => 'date',
 			'order'          => 'ASC',
-			'posts_per_page' => 100,
+			'posts_per_page' => SAMLAB_KP_TAK,
 			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Lavvolum admin-liste.
 				array(
 					'key'     => '_samlab_status',
@@ -112,7 +121,7 @@ function samlab_kp_nye_uten_intro( $dager = 30 ) {
 			'role__in' => array_keys( samlab_get_roles() ),
 			'orderby'  => 'registered',
 			'order'    => 'DESC',
-			'number'   => 100,
+			'number'   => SAMLAB_KP_TAK,
 		)
 	);
 
@@ -139,7 +148,7 @@ function samlab_kp_gamle_behov( $dager = 14 ) {
 			'post_status'    => 'publish',
 			'orderby'        => 'date',
 			'order'          => 'ASC',
-			'posts_per_page' => 100,
+			'posts_per_page' => SAMLAB_KP_TAK,
 			'date_query'     => array(
 				array( 'before' => $dager . ' days ago' ),
 			),
@@ -166,7 +175,7 @@ function samlab_kp_ufullstendige_bedrifter() {
 			'post_status'    => 'publish',
 			'orderby'        => 'title',
 			'order'          => 'ASC',
-			'posts_per_page' => 100,
+			'posts_per_page' => SAMLAB_KP_TAK,
 		)
 	);
 	foreach ( $bedrifter as $bedrift ) {
@@ -216,7 +225,7 @@ function samlab_kp_stille_medlemmer( $dager = 30 ) {
 			'role__in' => array_keys( samlab_get_roles() ),
 			'orderby'  => 'registered',
 			'order'    => 'ASC',
-			'number'   => 100,
+			'number'   => SAMLAB_KP_TAK,
 		)
 	);
 
@@ -349,6 +358,52 @@ function samlab_kontrollpanel_post() {
 add_action( 'admin_post_samlab_kobling', 'samlab_kontrollpanel_post' );
 
 /**
+ * Åpner et seksjonskort med overskrift.
+ *
+ * .postbox er core sin egen kort-idiom - stilene er alt lastet, så
+ * Samlab-CSS-en trenger bare avstanden mellom kortene.
+ *
+ * @param string $id      Ankeret sammendraget hopper til.
+ * @param string $tittel  Seksjonsoverskriften.
+ * @return void
+ */
+function samlab_kp_kort( $id, $tittel ) {
+	echo '<div class="postbox"><div class="inside">';
+	echo '<h2 id="' . esc_attr( $id ) . '">' . esc_html( $tittel ) . '</h2>';
+}
+
+/**
+ * Lukker et seksjonskort.
+ *
+ * @return void
+ */
+function samlab_kp_kort_slutt() {
+	echo '</div></div>';
+}
+
+/**
+ * Sammendragsraden: fire tall som hopper til hver sin seksjon.
+ *
+ * Tallene er navigasjon, ikke handlinger, så de er lenker og ikke
+ * knapper. De kommer fra listene seksjonene allerede har hentet -
+ * ingen nye spørringer.
+ *
+ * @param array<int, array{id: string, tall: int, etikett: string}> $tall Sammendraget.
+ * @return void
+ */
+function samlab_kp_sammendrag( $tall ) {
+	echo '<ul class="samlab-sammendrag" aria-label="' . esc_attr__( 'Sammendrag', 'samlab' ) . '">';
+	foreach ( $tall as $rad ) {
+		$vist = $rad['tall'] >= SAMLAB_KP_TAK ? SAMLAB_KP_TAK . '+' : (string) $rad['tall'];
+		echo '<li><a href="#' . esc_attr( $rad['id'] ) . '">';
+		echo '<span class="samlab-sammendrag-tall">' . esc_html( $vist ) . '</span>';
+		echo '<span class="samlab-sammendrag-etikett">' . esc_html( $rad['etikett'] ) . '</span>';
+		echo '</a></li>';
+	}
+	echo '</ul>';
+}
+
+/**
  * Skjemaknappene for en koblingsrad.
  *
  * @param int      $kobling_id Koblingen.
@@ -414,9 +469,44 @@ function samlab_render_kontrollpanel() {
 		);
 	}
 
+	// Hentes én gang og gjenbrukes: sammendraget teller de samme
+	// listene seksjonene under rendrer, uten en eneste ny spørring.
+	$foreslatte    = samlab_kp_koblinger( array( 'foreslatt' ) );
+	$forespurte    = samlab_kp_koblinger( array( 'forespurt' ) );
+	$aktive        = samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) );
+	$fulgte        = samlab_kp_koblinger( array( 'fulgt_opp' ) );
+	$nye           = samlab_kp_nye_uten_intro();
+	$gamle         = samlab_kp_gamle_behov();
+	$ufullstendige = samlab_kp_ufullstendige_bedrifter();
+	$stille        = samlab_kp_stille_medlemmer();
+
+	samlab_kp_sammendrag(
+		array(
+			array(
+				'id'      => 'samlab-forslag',
+				'tall'    => count( $foreslatte ),
+				'etikett' => __( 'Forslag i køen', 'samlab' ),
+			),
+			array(
+				'id'      => 'samlab-venter',
+				'tall'    => count( $forespurte ),
+				'etikett' => __( 'Venter på partene', 'samlab' ),
+			),
+			array(
+				'id'      => 'samlab-aktive',
+				'tall'    => count( $aktive ),
+				'etikett' => __( 'Aktive koblinger', 'samlab' ),
+			),
+			array(
+				'id'      => 'samlab-oppmerksomhet',
+				'tall'    => count( $nye ) + count( $gamle ) + count( $ufullstendige ) + count( $stille ),
+				'etikett' => __( 'Trenger oppmerksomhet', 'samlab' ),
+			),
+		)
+	);
+
 	// 1) Koblingskøen.
-	echo '<h2 id="samlab-forslag">' . esc_html__( 'Foreslåtte koblinger', 'samlab' ) . '</h2>';
-	$foreslatte = samlab_kp_koblinger( array( 'foreslatt' ) );
+	samlab_kp_kort( 'samlab-forslag', __( 'Foreslåtte koblinger', 'samlab' ) );
 	if ( array() === $foreslatte ) {
 		echo '<p>' . esc_html__( 'Ingen forslag i køen.', 'samlab' ) . '</p>';
 	} else {
@@ -437,9 +527,10 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
+	samlab_kp_kort_slutt();
+
 	// 2) Forespurte koblinger som venter på partenes samtykke (G1).
-	echo '<h2 id="samlab-venter">' . esc_html__( 'Venter på partene', 'samlab' ) . '</h2>';
-	$forespurte = samlab_kp_koblinger( array( 'forespurt' ) );
+	samlab_kp_kort( 'samlab-venter', __( 'Venter på partene', 'samlab' ) );
 	if ( array() === $forespurte ) {
 		echo '<p>' . esc_html__( 'Ingen forespørsler venter på svar.', 'samlab' ) . '</p>';
 	} else {
@@ -468,9 +559,10 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
+	samlab_kp_kort_slutt();
+
 	// 3) Aktive koblinger med statuskjeden.
-	echo '<h2 id="samlab-aktive">' . esc_html__( 'Aktive koblinger', 'samlab' ) . '</h2>';
-	$aktive   = samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) );
+	samlab_kp_kort( 'samlab-aktive', __( 'Aktive koblinger', 'samlab' ) );
 	$statuser = samlab_kobling_statuser();
 	if ( array() === $aktive ) {
 		echo '<p>' . esc_html__( 'Ingen aktive koblinger.', 'samlab' ) . '</p>';
@@ -490,9 +582,10 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
+	samlab_kp_kort_slutt();
+
 	// 3b) Utfall på fulgte opp koblinger (G4).
-	echo '<h2 id="samlab-utfall">' . esc_html__( 'Utfall', 'samlab' ) . '</h2>';
-	$fulgte = samlab_kp_koblinger( array( 'fulgt_opp' ) );
+	samlab_kp_kort( 'samlab-utfall', __( 'Utfall', 'samlab' ) );
 	if ( array() === $fulgte ) {
 		echo '<p>' . esc_html__( 'Ingen fulgte opp koblinger ennå.', 'samlab' ) . '</p>';
 	} else {
@@ -506,31 +599,35 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
-	// 4) Trenger oppmerksomhet.
-	echo '<h2 id="samlab-oppmerksomhet">' . esc_html__( 'Trenger oppmerksomhet', 'samlab' ) . '</h2>';
+	samlab_kp_kort_slutt();
 
+	// 4) Trenger oppmerksomhet - fire lister i et grid som brekker til
+	// én kolonne på smale skjermer (WCAG 1.4.10).
+	samlab_kp_kort( 'samlab-oppmerksomhet', __( 'Trenger oppmerksomhet', 'samlab' ) );
+	echo '<div class="samlab-oppmerksomhet">';
+
+	echo '<div class="samlab-oppmerksomhet-gruppe">';
 	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3><ul>';
-	$nye = samlab_kp_nye_uten_intro();
 	if ( array() === $nye ) {
 		echo '<li>' . esc_html__( 'Ingen - alle nye er introdusert.', 'samlab' ) . '</li>';
 	}
 	foreach ( $nye as $bruker ) {
 		echo '<li>' . esc_html( $bruker->display_name ) . ' <span class="description">(' . esc_html( gmdate( 'd.m.Y', strtotime( $bruker->user_registered ) ) ) . ')</span></li>';
 	}
-	echo '</ul>';
+	echo '</ul></div>';
 
+	echo '<div class="samlab-oppmerksomhet-gruppe">';
 	echo '<h3>' . esc_html__( 'Åpne behov eldre enn 14 dager', 'samlab' ) . '</h3><ul>';
-	$gamle = samlab_kp_gamle_behov();
 	if ( array() === $gamle ) {
 		echo '<li>' . esc_html__( 'Ingen.', 'samlab' ) . '</li>';
 	}
 	foreach ( $gamle as $behov ) {
 		echo '<li><a href="' . esc_url( get_edit_post_link( $behov->ID ) ) . '">' . esc_html( get_the_title( $behov ) ) . '</a> <span class="description">(' . esc_html( get_the_date( 'd.m.Y', $behov ) ) . ')</span></li>';
 	}
-	echo '</ul>';
+	echo '</ul></div>';
 
+	echo '<div class="samlab-oppmerksomhet-gruppe">';
 	echo '<h3>' . esc_html__( 'Ufullstendige bedriftsprofiler', 'samlab' ) . '</h3><ul>';
-	$ufullstendige = samlab_kp_ufullstendige_bedrifter();
 	if ( array() === $ufullstendige ) {
 		echo '<li>' . esc_html__( 'Ingen - alle profiler er komplette.', 'samlab' ) . '</li>';
 	}
@@ -539,20 +636,22 @@ function samlab_render_kontrollpanel() {
 		/* translators: %s: kommaseparert liste over manglende felter. */
 		echo esc_html( sprintf( __( 'mangler %s', 'samlab' ), implode( ', ', $rad['mangler'] ) ) ) . '</li>';
 	}
-	echo '</ul>';
+	echo '</ul></div>';
 
+	echo '<div class="samlab-oppmerksomhet-gruppe">';
 	echo '<h3>' . esc_html__( 'Stille medlemmer (ingen aktivitet siste 30 dager)', 'samlab' ) . '</h3><ul>';
-	$stille = samlab_kp_stille_medlemmer();
 	if ( array() === $stille ) {
 		echo '<li>' . esc_html__( 'Ingen.', 'samlab' ) . '</li>';
 	}
 	foreach ( $stille as $bruker ) {
 		echo '<li>' . esc_html( $bruker->display_name ) . '</li>';
 	}
-	echo '</ul>';
+	echo '</ul></div>';
+	echo '</div>';
+	samlab_kp_kort_slutt();
 
 	// 5) Lesebekreftelser.
-	echo '<h2 id="samlab-lest">' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
+	samlab_kp_kort( 'samlab-lest', __( 'Lesebekreftelser', 'samlab' ) );
 	$lesekrav = samlab_kp_lesebekreftelser();
 	if ( array() === $lesekrav ) {
 		echo '<p>' . esc_html__( 'Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest».', 'samlab' ) . '</p>';
@@ -578,10 +677,12 @@ function samlab_render_kontrollpanel() {
 		echo '</ul>';
 	}
 
+	samlab_kp_kort_slutt();
+
 	// 6) Ubesvarte spørsmål til assistenten (G7) - kun når modulen
 	// (og dermed ubesvart-køen) er lastet.
 	if ( function_exists( 'samlab_ubesvart_liste' ) ) {
-		echo '<h2 id="samlab-ubesvart">' . esc_html__( 'Ubesvarte spørsmål til assistenten', 'samlab' ) . '</h2>';
+		samlab_kp_kort( 'samlab-ubesvart', __( 'Ubesvarte spørsmål til assistenten', 'samlab' ) );
 		$ubesvarte = samlab_ubesvart_liste();
 		if ( array() === $ubesvarte ) {
 			echo '<p>' . esc_html__( 'Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder.', 'samlab' ) . '</p>';
@@ -610,6 +711,7 @@ function samlab_render_kontrollpanel() {
 			}
 			echo '</tbody></table>';
 		}
+		samlab_kp_kort_slutt();
 	}
 	echo '</div>';
 }
