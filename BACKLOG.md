@@ -903,7 +903,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   riggtester grønne to ganger på rad, WPCS grønn (én Yoda-retting),
   hooks-/sikkerhetsdocs ført, POT regenerert. Seed-utfall kommer i
   G8.
-- [ ] **G5. Rapportflate.** Undermeny «Rapport» under
+- [x] **G5. Rapportflate.** Undermeny «Rapport» under
   kontrollpanelet (samme capability, `edit_samlab_koblinger`):
   valgbar periode (30/90/365 dager) med aggregerte tall - nye
   behov, matchforslag, forespurte, godkjente, avviste,
@@ -919,6 +919,30 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* tallene stemmer mot seed-dataene i riggen for alle
   tre periodene, CSV-en åpner i regneark, og siden svarer 403 uten
   koblings-capability.
+  *Notat (2026-08-30):* admin/rapport.php: samlab_rapport_tall()
+  teller hendelser fra koblingenes statuslogger (matchforslag =
+  foreslått-hendelser med kilde matching; forespurte/godkjente/
+  avviste/introduserte; utfall per kategori), nye behov på
+  post_date_gmt, arrangementer avholdt på _samlab_start i
+  perioden, og aktive medlemmer som distinct user_id fra
+  egentabellene (innlegg, reaksjoner inkl. lesebekreftelser,
+  stemmer) pluss kommentarer - kun antallet, aldri hvem.
+  Lesebekreftelsesgraden er et nå-bilde (dokumentert på siden).
+  Undermeny bak edit_samlab_koblinger med egen vakt i rendringen;
+  CSV-eksport via admin-post med nonce + capability: alle tre
+  periodene i én fil, semikolon + BOM for norske regneark.
+  Gårdeier-fotnote på siden viser til avklaring 8. Verifisert:
+  riggtest test-g5.php (36 sjekker) med delta-målte hendelser i
+  hver tidslomme (nå / 60 / 200 dager tilbake) for alle tre
+  periodene, CSV-format parset med Pythons csv-modul; tallene
+  kontrollert mot fersk seed (5 behov, 1 forespurt, 2 godkjente,
+  1 avvist, 1 introdusert); HTTP-verifisert medlem 403, anonym til
+  innlogging, moderator 200, CSV 200 med riktige headere og 403
+  uten nonce. Alle 22 riggtester grønne to ganger på rad, WPCS
+  grønn (phpcbf på innrykk), sikkerhetstabellen ført, POT
+  regenerert. Med G5 er slide 7s rapportløfte levert - minus
+  gårdeier-metrikkene som er avklart bort (avklaring 8), og
+  møter/avtaler/henvisninger som telles via G4-utfallene.
 - [ ] **G6. Ubesvart-deteksjon i assistenten.**
   Systemprompten instruerer modellen til å starte svaret med
   markøren `[UBESVART]` når kunnskapsgrunnlaget ikke holder;
