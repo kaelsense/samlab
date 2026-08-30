@@ -670,15 +670,7 @@ function samlab_render_kobling_box( $post ) {
 	echo '<p class="description">' . esc_html__( 'Kun kategori og notat - aldri beløp eller salgsdetaljer. Krever at koblingen er introdusert eller fulgt opp.', 'samlab' ) . '</p>';
 	echo '</td></tr>';
 
-	$bedrifter = get_posts(
-		array(
-			'post_type'      => 'samlab_bedrift',
-			'post_status'    => 'publish',
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'posts_per_page' => 100,
-		)
-	);
+	$bedrifter = samlab_bedrifter_for_valg();
 
 	foreach ( array(
 		'a' => __( 'Part A', 'samlab' ),

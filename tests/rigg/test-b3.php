@@ -95,5 +95,48 @@ $_POST['samlab_bedrift_nonce'] = wp_create_nonce( 'samlab_bedrift_meta' );
 samlab_save_bedrift_meta( $post_id );
 sjekk( 'medlem uten edit_post avvist', '3. etasje - fast plass' === get_post_meta( $post_id, '_samlab_plass', true ) );
 
+// --- Repeateren tåler meta skrevet utenfra ---
+// Hull i nøklene og strengnøkler skal likevel gi unike, sammenhengende
+// indekser i skjemaet - ellers slår to rader seg sammen til én ved
+// lagring, og den ene radens data er borte uten spor.
+wp_set_current_user( 1 );
+update_post_meta(
+	$post_id,
+	'_samlab_tjenester',
+	array(
+		0     => array(
+			'tittel'  => 'Første',
+			'punkter' => array( 'A' ),
+		),
+		3     => array(
+			'tittel'  => 'Andre',
+			'punkter' => array( 'B' ),
+		),
+		'rad' => array(
+			'tittel'  => 'Tredje',
+			'punkter' => array( 'C' ),
+		),
+	)
+);
+ob_start();
+samlab_render_tjenester_box( get_post( $post_id ) );
+$html = ob_get_clean();
+preg_match_all( '/name="samlab_tjenester\[(\d+)\]\[tittel\]"/', $html, $treff );
+$indekser = $treff[1];
+sjekk( 'alle tre radene rendres', 3 === count( $indekser ) );
+sjekk( 'radindeksene er unike', count( array_unique( $indekser ) ) === count( $indekser ) );
+sjekk( 'radindeksene er sammenhengende fra 0', array( '0', '1', '2' ) === $indekser );
+sjekk( 'raden bærer indeksen til JS-telleren', false !== strpos( $html, 'data-samlab-indeks="2"' ) );
+sjekk( 'malraden beholder plassholderen', false !== strpos( $html, 'data-samlab-indeks="__i__"' ) );
+
+// --- Bedriftsnedtrekket kapper ikke ---
+$bedrifter = samlab_bedrifter_for_valg();
+$titler    = wp_list_pluck( $bedrifter, 'post_title' );
+$sortert   = $titler;
+sort( $sortert, SORT_NATURAL | SORT_FLAG_CASE );
+sjekk( 'bedriften er med i nedtrekksvalget', in_array( $post_id, wp_list_pluck( $bedrifter, 'ID' ), true ) );
+sjekk( 'nedtrekket er sortert på tittel', $sortert === $titler );
+sjekk( 'nedtrekket henter alle publiserte', count( $bedrifter ) === (int) wp_count_posts( 'samlab_bedrift' )->publish );
+
 wp_delete_post( $post_id, true );
 exit( $fail );

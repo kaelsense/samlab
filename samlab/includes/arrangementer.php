@@ -174,15 +174,7 @@ function samlab_render_arrangement_box( $post ) {
 	echo '<td><input type="text" class="regular-text" id="samlab_sted" name="samlab_sted" value="' . esc_attr( $sted ) . '" /></td></tr>';
 
 	$valgt     = (int) get_post_meta( $post->ID, '_samlab_bedrift', true );
-	$bedrifter = get_posts(
-		array(
-			'post_type'      => 'samlab_bedrift',
-			'posts_per_page' => 100,
-			'orderby'        => 'title',
-			'order'          => 'ASC',
-			'post_status'    => 'publish',
-		)
-	);
+	$bedrifter = samlab_bedrifter_for_valg();
 	echo '<tr><th scope="row"><label for="samlab_bedrift">' . esc_html__( 'Arrangør (bedrift, valgfri)', 'samlab' ) . '</label></th><td>';
 	echo '<select id="samlab_bedrift" name="samlab_bedrift">';
 	echo '<option value="0">' . esc_html__( '- Huset / ingen bedrift -', 'samlab' ) . '</option>';
