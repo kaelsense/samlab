@@ -218,13 +218,15 @@ function samlab_rapport_csv_tekst() {
  * @return void
  */
 function samlab_rapport_menu() {
-	add_submenu_page(
-		'samlab-kontrollpanel',
-		__( 'Samlab rapport', 'samlab' ),
-		__( 'Rapport', 'samlab' ),
-		'edit_samlab_koblinger',
-		'samlab-rapport',
-		'samlab_render_rapport'
+	samlab_admin_skjermer(
+		add_submenu_page(
+			'samlab-kontrollpanel',
+			__( 'Samlab rapport', 'samlab' ),
+			__( 'Rapport', 'samlab' ),
+			'edit_samlab_koblinger',
+			'samlab-rapport',
+			'samlab_render_rapport'
+		)
 	);
 }
 add_action( 'admin_menu', 'samlab_rapport_menu' );
@@ -248,10 +250,11 @@ function samlab_render_rapport() {
 	$tall     = samlab_rapport_tall( $dager );
 	$lesegrad = samlab_rapport_lesegrad();
 
-	echo '<div class="wrap"><h1>' . esc_html__( 'Samlab rapport', 'samlab' ) . '</h1>';
+	echo '<div class="wrap"><h1 class="wp-heading-inline">' . esc_html__( 'Samlab rapport', 'samlab' ) . '</h1>';
+	echo '<hr class="wp-header-end" />';
 	echo '<p>' . esc_html__( 'Hva fasiliteringen skaper - aggregert, aldri hvem som gjorde hva, og aldri beløp.', 'samlab' ) . '</p>';
 
-	echo '<p>';
+	echo '<p class="samlab-perioder">';
 	foreach ( samlab_rapport_perioder() as $samlab_periode ) {
 		$url = add_query_arg(
 			array(
@@ -263,14 +266,14 @@ function samlab_render_rapport() {
 		/* translators: %d: antall dager. */
 		$tekst = sprintf( __( 'Siste %d dager', 'samlab' ), $samlab_periode );
 		if ( $samlab_periode === $dager ) {
-			echo '<strong style="margin-right:12px">' . esc_html( $tekst ) . '</strong>';
+			echo '<strong>' . esc_html( $tekst ) . '</strong>';
 		} else {
-			echo '<a href="' . esc_url( $url ) . '" style="margin-right:12px">' . esc_html( $tekst ) . '</a>';
+			echo '<a href="' . esc_url( $url ) . '">' . esc_html( $tekst ) . '</a>';
 		}
 	}
 	echo '</p>';
 
-	echo '<table class="widefat striped" style="max-width:480px"><thead><tr><th>' . esc_html__( 'Måltall', 'samlab' ) . '</th><th>' . esc_html__( 'Antall', 'samlab' ) . '</th></tr></thead><tbody>';
+	echo '<table class="widefat striped samlab-tabell-smal"><thead><tr><th scope="col">' . esc_html__( 'Måltall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Antall', 'samlab' ) . '</th></tr></thead><tbody>';
 	foreach ( samlab_rapport_etiketter() as $nokkel => $etikett ) {
 		echo '<tr><td>' . esc_html( $etikett ) . '</td><td>' . esc_html( (string) $tall[ $nokkel ] ) . '</td></tr>';
 	}
@@ -279,13 +282,13 @@ function samlab_render_rapport() {
 	echo '</td></tr>';
 	echo '</tbody></table>';
 
-	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-top:12px">';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="samlab-toppmargin">';
 	echo '<input type="hidden" name="action" value="samlab_rapport_csv" />';
 	wp_nonce_field( 'samlab_rapport_csv', 'samlab_rapport_nonce' );
 	echo '<button type="submit" class="button">' . esc_html__( 'Last ned som CSV (alle periodene)', 'samlab' ) . '</button>';
 	echo '</form>';
 
-	echo '<p class="description" style="max-width:640px;margin-top:16px">';
+	echo '<p class="description samlab-lesebredde samlab-toppmargin">';
 	echo esc_html__( 'Koblingstallene teller hendelser i perioden (en kobling kan telle i flere rader). Lesebekreftelsesgraden er et nå-bilde av dagens festede oppslag med lest-krav. Fornyelsesgrad, frafall og bruk av lokaler bor i drifts- og leiesystemene og er utenfor portalens datagrunnlag - se avklaring 8 i AVKLARINGER.md.', 'samlab' );
 	echo '</p></div>';
 }
