@@ -1172,8 +1172,9 @@ streker. Det gjorde CSS-laget mindre, ikke større.
   **ingen** endring - fase H innførte verken ny rute, ny
   `do_action` eller ny `apply_filters`. Revisjonen er gjort som
   sammenligning, ikke antakelse: alle 14 `do_action` og begge
-  `samlab_*`-filtre i koden står dokumentert, alle 8 registrerte
-  REST-ruter likeså, og de fem øvrige `samlab_*`-navnene i
+  `samlab_*`-filtre i koden står dokumentert, og alle 10
+  registrerte REST-ruter likeså - inkludert de to regex-rutene
+  `koblinger/<id>/svar` og `koblinger/<id>/utfall`, og de fem øvrige `samlab_*`-navnene i
   dokumentet er cron-hendelser, options og capabilities - riktig
   merket, ikke kroker som ikke finnes. `docs/sikkerhet.md` fikk to
   presiseringer (stilark-/JS-laget, og at noncen ligger i den
