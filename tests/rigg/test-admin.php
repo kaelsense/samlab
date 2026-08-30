@@ -107,4 +107,80 @@ $html = ob_get_clean();
 sjekk( 'rapporten har wp-header-end', false !== strpos( $html, 'wp-header-end' ) );
 sjekk( 'ingen inline style igjen i rapporten', false === strpos( $html, 'style="' ) );
 
+// --- Fase 2: innstillingssiden som kortstabel ---
+set_current_screen( 'admin_page_samlab' );
+ob_start();
+samlab_render_settings_page();
+$html = ob_get_clean();
+
+$felter     = samlab_settings_fields();
+$overskrift = 0;
+$verdifelt  = 0;
+foreach ( $felter as $samlab_n => $samlab_f ) {
+	if ( 'overskrift' === $samlab_f['type'] ) {
+		++$overskrift;
+		continue;
+	}
+	if ( 'status' === $samlab_f['type'] ) {
+		continue;
+	}
+	++$verdifelt;
+	if ( false === strpos( $html, 'name="samlab_settings[' . $samlab_n . ']"' ) ) {
+		sjekk( "felt $samlab_n rendres fortsatt", false );
+	}
+}
+sjekk( 'alle verdifeltene rendres', $verdifelt > 20 && false !== strpos( $html, 'name="samlab_settings[assistent_kilder]"' ) );
+sjekk( 'siden er delt i seksjoner', $overskrift >= 5 );
+
+// Markupen må være balansert - kortene åpnes og lukkes på tvers av
+// PHP-blokker, og en glemt </div> ville dratt resten av siden inn i
+// det siste kortet.
+$dom = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $html . '</div>' );
+libxml_clear_errors();
+$xpath  = new DOMXPath( $dom );
+$kort   = $xpath->query( '//div[contains(@class, "postbox")]' );
+$innsdt = $xpath->query( '//div[contains(@class, "postbox")]/div[contains(@class, "inside")]/table[contains(@class, "form-table")]' );
+sjekk( 'hvert seksjonskort har sin egen form-table', $kort->length >= $overskrift && $innsdt->length === $overskrift );
+sjekk( 'lagre-knappen ligger utenfor kortene', 1 === $xpath->query( '//form/p[contains(@class, "submit")]' )->length );
+sjekk( 'skjemaet er ikke fanget inne i et kort', 0 === $xpath->query( '//div[contains(@class, "postbox")]//form[contains(@action, "options.php")]' )->length );
+
+// --- Verdiene må fortsatt overleve en lagring ---
+// Dette er grunnen til at siden IKKE fikk faner: saniteringen bygger
+// fra tom array, så felt som ikke er med i innsendingen forsvinner.
+$inn = array();
+foreach ( $felter as $samlab_n => $samlab_f ) {
+	if ( in_array( $samlab_f['type'], array( 'overskrift', 'status' ), true ) ) {
+		continue;
+	}
+	switch ( $samlab_f['type'] ) {
+		case 'avkryssing':
+			$inn[ $samlab_n ] = '1';
+			break;
+		case 'farge':
+			$inn[ $samlab_n ] = '#123456';
+			break;
+		case 'url':
+		case 'urlliste':
+			$inn[ $samlab_n ] = 'https://example.no/';
+			break;
+		case 'ukedag':
+			$inn[ $samlab_n ] = '3';
+			break;
+		case 'valg':
+			$inn[ $samlab_n ] = (string) array_key_first( $samlab_f['valg'] );
+			break;
+		case 'modell':
+			$inn[ $samlab_n ] = 'claude-opus-5';
+			break;
+		default:
+			$inn[ $samlab_n ] = 'testverdi';
+	}
+}
+$ut      = samlab_sanitize_settings( $inn );
+$mangler = array_diff( array_keys( $inn ), array_keys( $ut ) );
+sjekk( 'alle innsendte felt overlever saniteringen', array() === $mangler );
+sjekk( 'seksjonsradene tar ikke imot verdier', ! isset( $ut['portal_seksjon'] ) && ! isset( $ut['flater_seksjon'] ) );
+
 exit( $fail );
