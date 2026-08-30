@@ -12,7 +12,10 @@ for verten, in-app-varsler, regelbasert matching, ukesbrev på
 e-post og en infoskjerm med nøkkel-URL. Portalen bor bak innlogging
 på en egen sti (standard `/portal/`), kler seg i temaets
 designtokens, og alt av navn, stier og farger er innstillinger -
-ingen kundeverdier i kode. Digitelle AS eier produktet.
+ingen kundeverdier i kode. Admin-flatene i wp-admin bruker
+WordPress' egne komponenter og maler ingen egen merkefarge, så de
+følger fargeskjemaet den enkelte har valgt på profilen sin.
+Digitelle AS eier produktet.
 
 Se `handover/HANDOVER.md` og
 `handover/docs/forslag-wordpress-utvidelse.md` for plan og konsept.
