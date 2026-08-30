@@ -1,0 +1,98 @@
+/**
+ * Samlab i wp-admin.
+ *
+ * Et tynt lag oppå WordPress' egen admin-stil, ikke et parallelt
+ * designsystem. To regler holder laget ærlig:
+ *
+ * 1. Hver selektor starter med .samlab-admin. Aldri en bar core-klasse
+ *    - .postbox skal ikke bety noe annet andre steder i wp-admin.
+ * 2. Ingen interaktiv farge. Core sitt fargeskjema-stilark eier
+ *    knapper, lenker, aktive tilstander og fokusringer. Maler vi en
+ *    farge der, bryter vi skjematroskapen i stedet for å arve den -
+ *    og --wp-admin-theme-color hjelper ikke: den defineres kun i
+ *    Gutenberg-pakkenes stilark, som ikke lastes på klassiske
+ *    admin-sider. --wpds-* brukes derfor til geometri og nøytrale
+ *    streker, aldri til merkefarge.
+ *
+ * Av samme grunn skriver vi ingen fokusstiler. Core sin :focus gir
+ * allerede skygge pluss transparent outline (sistnevnte for Windows
+ * High Contrast Mode, ikke dekorasjon). En plugin som overstyrer det,
+ * reduserer som regel kontrasten. Ikke «fiks» dette senere.
+ *
+ * Tokens: --wpds-* finnes fra WP 7.1. Pluginen krever 6.4, så hver
+ * token har fallback - uten den kollapser variabelen til initial, som
+ * for padding betyr 0.
+ *
+ * Retningsnøytral: logiske egenskaper (margin-inline-*, padding-block)
+ * gjør en egen admin-rtl.css unødvendig, ikke bare utsatt.
+ */
+
+.samlab-admin {
+	--samlab-a-radius: var( --wpds-border-radius-lg, 8px );
+	--samlab-a-gap: var( --wpds-dimension-gap-lg, 16px );
+	--samlab-a-gap-sm: var( --wpds-dimension-gap-sm, 8px );
+	--samlab-a-gap-xs: var( --wpds-dimension-gap-xs, 4px );
+	--samlab-a-pad: var( --wpds-dimension-padding-md, 12px );
+	--samlab-a-pad-sm: var( --wpds-dimension-padding-sm, 8px );
+	--samlab-a-linje: var( --wpds-color-stroke-surface-neutral, #dcdcde );
+	--samlab-a-demp: var( --wpds-color-foreground-content-neutral-weak, #707070 );
+	--samlab-a-tall: var( --wpds-typography-font-size-2xl, 32px );
+	--samlab-a-lesebredde: 40rem;
+	--samlab-a-tabellbredde: 30rem;
+}
+
+/**
+ * Handlingsskjemaene i kontrollpanelets tabellceller. Flere skjemaer
+ * ligger side om side i samme celle, derfor inline-flex - da holder
+ * gap avstanden, og hvert felt slipper sin egen margin.
+ */
+.samlab-admin-side .samlab-handlinger {
+	display: inline-flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var( --samlab-a-gap-xs );
+	margin-inline-end: var( --samlab-a-gap-xs );
+}
+
+/* Periodevalget på rapporten. Blir .subsubsub i fase 4. */
+.samlab-admin-side .samlab-perioder {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --samlab-a-gap );
+}
+
+.samlab-admin-side .samlab-tabell-smal {
+	max-inline-size: var( --samlab-a-tabellbredde );
+}
+
+.samlab-admin-side .samlab-lesebredde {
+	max-inline-size: var( --samlab-a-lesebredde );
+}
+
+.samlab-admin-side .samlab-toppmargin {
+	margin-block-start: var( --samlab-a-gap );
+}
+
+/**
+ * Seksjonsraden i innstillingenes form-table. Erstattes av ekte
+ * seksjonsbrudd med .postbox i fase 2 - dette er kun avviklingen av
+ * de tre inline-stilene.
+ */
+.samlab-admin-side .samlab-seksjonsrad {
+	padding-block-end: 0;
+}
+
+.samlab-admin-side .samlab-seksjonsrad h2 {
+	margin-block-end: 0;
+}
+
+.samlab-admin-side .samlab-seksjonsrad .description {
+	font-weight: 400;
+}
+
+/* Tjeneste-raden i bedrifts-metaboksen. */
+.samlab-admin-metaboks .samlab-tjeneste {
+	border: 1px solid var( --samlab-a-linje );
+	padding: var( --samlab-a-pad-sm ) var( --samlab-a-pad );
+	margin-block-end: var( --samlab-a-gap-sm );
+}

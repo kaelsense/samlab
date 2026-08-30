@@ -24,14 +24,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return void
  */
 function samlab_kontrollpanel_menu() {
-	add_menu_page(
-		__( 'Samlab kontrollpanel', 'samlab' ),
-		__( 'Kontrollpanel', 'samlab' ),
-		'edit_samlab_koblinger',
-		'samlab-kontrollpanel',
-		'samlab_render_kontrollpanel',
-		'dashicons-groups',
-		26
+	samlab_admin_skjermer(
+		add_menu_page(
+			__( 'Samlab kontrollpanel', 'samlab' ),
+			__( 'Kontrollpanel', 'samlab' ),
+			'edit_samlab_koblinger',
+			'samlab-kontrollpanel',
+			'samlab_render_kontrollpanel',
+			'dashicons-groups',
+			26
+		)
 	);
 }
 add_action( 'admin_menu', 'samlab_kontrollpanel_menu' );
@@ -355,23 +357,23 @@ add_action( 'admin_post_samlab_kobling', 'samlab_kontrollpanel_post' );
  * @return void
  */
 function samlab_kp_handlingsskjema( $kobling_id, $handlinger, $med_utfall = false ) {
-	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline">';
+	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="samlab-handlinger">';
 	echo '<input type="hidden" name="action" value="samlab_kobling" />';
 	echo '<input type="hidden" name="samlab_kobling_id" value="' . esc_attr( (string) $kobling_id ) . '" />';
 	wp_nonce_field( 'samlab_kobling_handling', 'samlab_kp_nonce' );
 	if ( $med_utfall ) {
 		echo '<label class="screen-reader-text" for="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '">' . esc_html__( 'Utfall', 'samlab' ) . '</label>';
-		echo '<select id="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '" name="samlab_utfall" style="margin-right:4px">';
+		echo '<select id="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '" name="samlab_utfall">';
 		echo '<option value="">' . esc_html__( '- Utfall -', 'samlab' ) . '</option>';
 		foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) {
 			echo '<option value="' . esc_attr( $samlab_slug ) . '">' . esc_html( $samlab_navn ) . '</option>';
 		}
 		echo '</select>';
-		echo '<input type="text" name="samlab_utfall_notat" placeholder="' . esc_attr__( 'Notat (valgfritt)', 'samlab' ) . '" style="margin-right:4px" />';
+		echo '<input type="text" name="samlab_utfall_notat" placeholder="' . esc_attr__( 'Notat (valgfritt)', 'samlab' ) . '" />';
 	}
 	foreach ( $handlinger as $slug => $tekst ) {
 		$klasse = 'avvis' === $slug ? 'button button-link-delete' : 'button button-primary';
-		echo '<button type="submit" class="' . esc_attr( $klasse ) . '" name="samlab_handling" value="' . esc_attr( $slug ) . '" style="margin-right:4px">' . esc_html( $tekst ) . '</button>';
+		echo '<button type="submit" class="' . esc_attr( $klasse ) . '" name="samlab_handling" value="' . esc_attr( $slug ) . '">' . esc_html( $tekst ) . '</button>';
 	}
 	echo '</form>';
 }
@@ -391,21 +393,34 @@ function samlab_render_kontrollpanel() {
 	$ubesvart = isset( $_GET['samlab_ubesvart'] ) ? sanitize_key( wp_unslash( $_GET['samlab_ubesvart'] ) ) : '';
 	// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-	echo '<div class="wrap"><h1>' . esc_html__( 'Samlab kontrollpanel', 'samlab' ) . '</h1>';
+	echo '<div class="wrap"><h1 class="wp-heading-inline">' . esc_html__( 'Samlab kontrollpanel', 'samlab' ) . '</h1>';
+	echo '<hr class="wp-header-end" />';
 	if ( '' !== $utfort ) {
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Koblingen er oppdatert.', 'samlab' ) . '</p></div>';
+		wp_admin_notice(
+			esc_html__( 'Koblingen er oppdatert.', 'samlab' ),
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+			)
+		);
 	}
 	if ( 'handtert' === $ubesvart ) {
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Spørsmålet er fjernet fra køen.', 'samlab' ) . '</p></div>';
+		wp_admin_notice(
+			esc_html__( 'Spørsmålet er fjernet fra køen.', 'samlab' ),
+			array(
+				'type'        => 'success',
+				'dismissible' => true,
+			)
+		);
 	}
 
 	// 1) Koblingskøen.
-	echo '<h2>' . esc_html__( 'Foreslåtte koblinger', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-forslag">' . esc_html__( 'Foreslåtte koblinger', 'samlab' ) . '</h2>';
 	$foreslatte = samlab_kp_koblinger( array( 'foreslatt' ) );
 	if ( array() === $foreslatte ) {
 		echo '<p>' . esc_html__( 'Ingen forslag i køen.', 'samlab' ) . '</p>';
 	} else {
-		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Begrunnelse', 'samlab' ) . '</th><th>' . esc_html__( 'Kilde', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Begrunnelse', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Kilde', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $foreslatte as $kobling ) {
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
 			echo '<td>' . esc_html( wp_trim_words( $kobling->post_content, 20 ) ) . '</td>';
@@ -423,7 +438,7 @@ function samlab_render_kontrollpanel() {
 	}
 
 	// 2) Forespurte koblinger som venter på partenes samtykke (G1).
-	echo '<h2>' . esc_html__( 'Venter på partene', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-venter">' . esc_html__( 'Venter på partene', 'samlab' ) . '</h2>';
 	$forespurte = samlab_kp_koblinger( array( 'forespurt' ) );
 	if ( array() === $forespurte ) {
 		echo '<p>' . esc_html__( 'Ingen forespørsler venter på svar.', 'samlab' ) . '</p>';
@@ -433,7 +448,7 @@ function samlab_render_kontrollpanel() {
 			'ja'     => __( 'ja', 'samlab' ),
 			'nei'    => __( 'nei', 'samlab' ),
 		);
-		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Samtykke', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Samtykke', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $forespurte as $kobling ) {
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
 			echo '<td>' . esc_html(
@@ -454,13 +469,13 @@ function samlab_render_kontrollpanel() {
 	}
 
 	// 3) Aktive koblinger med statuskjeden.
-	echo '<h2>' . esc_html__( 'Aktive koblinger', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-aktive">' . esc_html__( 'Aktive koblinger', 'samlab' ) . '</h2>';
 	$aktive   = samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) );
 	$statuser = samlab_kobling_statuser();
 	if ( array() === $aktive ) {
 		echo '<p>' . esc_html__( 'Ingen aktive koblinger.', 'samlab' ) . '</p>';
 	} else {
-		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Status', 'samlab' ) . '</th><th>' . esc_html__( 'Neste steg', 'samlab' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Status', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Neste steg', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $aktive as $kobling ) {
 			$status = get_post_meta( $kobling->ID, '_samlab_status', true );
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
@@ -476,12 +491,12 @@ function samlab_render_kontrollpanel() {
 	}
 
 	// 3b) Utfall på fulgte opp koblinger (G4).
-	echo '<h2>' . esc_html__( 'Utfall', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-utfall">' . esc_html__( 'Utfall', 'samlab' ) . '</h2>';
 	$fulgte = samlab_kp_koblinger( array( 'fulgt_opp' ) );
 	if ( array() === $fulgte ) {
 		echo '<p>' . esc_html__( 'Ingen fulgte opp koblinger ennå.', 'samlab' ) . '</p>';
 	} else {
-		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Utfall', 'samlab' ) . '</th><th>' . esc_html__( 'Notat', 'samlab' ) . '</th></tr></thead><tbody>';
+		echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Parter', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Utfall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Notat', 'samlab' ) . '</th></tr></thead><tbody>';
 		foreach ( $fulgte as $kobling ) {
 			$utfall = samlab_kobling_utfall( $kobling->ID );
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
@@ -492,7 +507,7 @@ function samlab_render_kontrollpanel() {
 	}
 
 	// 4) Trenger oppmerksomhet.
-	echo '<h2>' . esc_html__( 'Trenger oppmerksomhet', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-oppmerksomhet">' . esc_html__( 'Trenger oppmerksomhet', 'samlab' ) . '</h2>';
 
 	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3><ul>';
 	$nye = samlab_kp_nye_uten_intro();
@@ -537,7 +552,7 @@ function samlab_render_kontrollpanel() {
 	echo '</ul>';
 
 	// 5) Lesebekreftelser.
-	echo '<h2>' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
+	echo '<h2 id="samlab-lest">' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
 	$lesekrav = samlab_kp_lesebekreftelser();
 	if ( array() === $lesekrav ) {
 		echo '<p>' . esc_html__( 'Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest».', 'samlab' ) . '</p>';
@@ -566,13 +581,13 @@ function samlab_render_kontrollpanel() {
 	// 6) Ubesvarte spørsmål til assistenten (G7) - kun når modulen
 	// (og dermed ubesvart-køen) er lastet.
 	if ( function_exists( 'samlab_ubesvart_liste' ) ) {
-		echo '<h2>' . esc_html__( 'Ubesvarte spørsmål til assistenten', 'samlab' ) . '</h2>';
+		echo '<h2 id="samlab-ubesvart">' . esc_html__( 'Ubesvarte spørsmål til assistenten', 'samlab' ) . '</h2>';
 		$ubesvarte = samlab_ubesvart_liste();
 		if ( array() === $ubesvarte ) {
 			echo '<p>' . esc_html__( 'Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder.', 'samlab' ) . '</p>';
 		} else {
 			echo '<p>' . esc_html__( 'Anonyme spørsmål assistenten ikke fant svar på. Publiser svaret som håndbok-side - neste kunnskapsbygg tar den med, og assistenten kan svare.', 'samlab' ) . '</p>';
-			echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Spørsmål', 'samlab' ) . '</th><th>' . esc_html__( 'Antall', 'samlab' ) . '</th><th>' . esc_html__( 'Sist spurt', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+			echo '<table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Spørsmål', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Antall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Sist spurt', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
 			foreach ( $ubesvarte as $rad ) {
 				echo '<tr><td>' . esc_html( $rad['sporsmal'] ) . '</td>';
 				echo '<td>' . esc_html( (string) (int) $rad['antall'] ) . '</td>';
@@ -584,7 +599,7 @@ function samlab_render_kontrollpanel() {
 					if ( ! $samlab_knapp[2] ) {
 						continue;
 					}
-					echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline;margin-right:4px">';
+					echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="samlab-handlinger">';
 					echo '<input type="hidden" name="action" value="' . esc_attr( $samlab_handling ) . '" />';
 					echo '<input type="hidden" name="samlab_sporsmal" value="' . esc_attr( $rad['sporsmal'] ) . '" />';
 					wp_nonce_field( 'samlab_ubesvart_handling', 'samlab_ubesvart_nonce' );

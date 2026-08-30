@@ -293,12 +293,14 @@ add_action( 'add_option_samlab_settings', 'samlab_settings_updated', 10, 2 );
  * @return void
  */
 function samlab_settings_menu() {
-	add_options_page(
-		__( 'Samlab', 'samlab' ),
-		__( 'Samlab', 'samlab' ),
-		'manage_options',
-		'samlab',
-		'samlab_render_settings_page'
+	samlab_admin_skjermer(
+		add_options_page(
+			__( 'Samlab', 'samlab' ),
+			__( 'Samlab', 'samlab' ),
+			'manage_options',
+			'samlab',
+			'samlab_render_settings_page'
+		)
 	);
 }
 add_action( 'admin_menu', 'samlab_settings_menu' );
@@ -315,17 +317,18 @@ function samlab_render_settings_page() {
 	$settings = get_option( 'samlab_settings', array() );
 	?>
 	<div class="wrap">
-		<h1><?php esc_html_e( 'Samlab-innstillinger', 'samlab' ); ?></h1>
+		<h1 class="wp-heading-inline"><?php esc_html_e( 'Samlab-innstillinger', 'samlab' ); ?></h1>
+		<hr class="wp-header-end" />
 		<form method="post" action="options.php">
 			<?php settings_fields( 'samlab_settings_group' ); ?>
 			<table class="form-table" role="presentation">
 				<?php foreach ( samlab_settings_fields() as $key => $felt ) : ?>
 					<?php if ( 'overskrift' === $felt['type'] ) : ?>
 						<tr>
-							<th scope="row" colspan="2" style="padding-bottom:0;">
-								<h2 style="margin-bottom:0;"><?php echo esc_html( $felt['label'] ); ?></h2>
+							<th scope="row" colspan="2" class="samlab-seksjonsrad">
+								<h2><?php echo esc_html( $felt['label'] ); ?></h2>
 								<?php if ( ! empty( $felt['help'] ) ) : ?>
-									<p class="description" style="font-weight:normal;"><?php echo esc_html( $felt['help'] ); ?></p>
+									<p class="description"><?php echo esc_html( $felt['help'] ); ?></p>
 								<?php endif; ?>
 							</th>
 						</tr>

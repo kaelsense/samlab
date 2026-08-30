@@ -390,7 +390,7 @@ function samlab_render_tjeneste_row( $i, $tjeneste ) {
 	$punkter = isset( $tjeneste['punkter'] ) && is_array( $tjeneste['punkter'] ) ? implode( "\n", $tjeneste['punkter'] ) : '';
 	$i       = (string) $i;
 
-	echo '<div class="samlab-tjeneste" data-samlab-indeks="' . esc_attr( $i ) . '" style="border:1px solid #ccd0d4;padding:8px 12px;margin-bottom:8px;">';
+	echo '<div class="samlab-tjeneste" data-samlab-indeks="' . esc_attr( $i ) . '">';
 	echo '<p><label>' . esc_html__( 'Tittel', 'samlab' ) . '<br /><input type="text" class="regular-text" name="samlab_tjenester[' . esc_attr( $i ) . '][tittel]" value="' . esc_attr( $tittel ) . '" /></label></p>';
 	echo '<p><label>' . esc_html__( 'Punkter (ett per linje)', 'samlab' ) . '<br /><textarea class="large-text" rows="3" name="samlab_tjenester[' . esc_attr( $i ) . '][punkter]">' . esc_textarea( $punkter ) . '</textarea></label></p>';
 	echo '<p><button type="button" class="button-link-delete samlab-fjern-tjeneste">' . esc_html__( 'Fjern tjeneste', 'samlab' ) . '</button></p>';
