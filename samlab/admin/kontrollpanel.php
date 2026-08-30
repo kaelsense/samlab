@@ -386,13 +386,17 @@ function samlab_render_kontrollpanel() {
 		return;
 	}
 
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Kun visning av bekreftelsesmelding.
-	$utfort = isset( $_GET['samlab_utfort'] ) ? sanitize_key( wp_unslash( $_GET['samlab_utfort'] ) ) : '';
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Kun visning av bekreftelsesmeldinger.
+	$utfort   = isset( $_GET['samlab_utfort'] ) ? sanitize_key( wp_unslash( $_GET['samlab_utfort'] ) ) : '';
+	$ubesvart = isset( $_GET['samlab_ubesvart'] ) ? sanitize_key( wp_unslash( $_GET['samlab_ubesvart'] ) ) : '';
 	// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 	echo '<div class="wrap"><h1>' . esc_html__( 'Samlab kontrollpanel', 'samlab' ) . '</h1>';
 	if ( '' !== $utfort ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Koblingen er oppdatert.', 'samlab' ) . '</p></div>';
+	}
+	if ( 'handtert' === $ubesvart ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Spørsmålet er fjernet fra køen.', 'samlab' ) . '</p></div>';
 	}
 
 	// 1) Koblingskøen.
@@ -557,6 +561,40 @@ function samlab_render_kontrollpanel() {
 			echo '<li>&#8211; ' . esc_html( $bruker->display_name ) . ' <span class="description">' . esc_html__( '(ikke bekreftet)', 'samlab' ) . '</span></li>';
 		}
 		echo '</ul>';
+	}
+
+	// 6) Ubesvarte spørsmål til assistenten (G7) - kun når modulen
+	// (og dermed ubesvart-køen) er lastet.
+	if ( function_exists( 'samlab_ubesvart_liste' ) ) {
+		echo '<h2>' . esc_html__( 'Ubesvarte spørsmål til assistenten', 'samlab' ) . '</h2>';
+		$ubesvarte = samlab_ubesvart_liste();
+		if ( array() === $ubesvarte ) {
+			echo '<p>' . esc_html__( 'Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder.', 'samlab' ) . '</p>';
+		} else {
+			echo '<p>' . esc_html__( 'Anonyme spørsmål assistenten ikke fant svar på. Publiser svaret som håndbok-side - neste kunnskapsbygg tar den med, og assistenten kan svare.', 'samlab' ) . '</p>';
+			echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Spørsmål', 'samlab' ) . '</th><th>' . esc_html__( 'Antall', 'samlab' ) . '</th><th>' . esc_html__( 'Sist spurt', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+			foreach ( $ubesvarte as $rad ) {
+				echo '<tr><td>' . esc_html( $rad['sporsmal'] ) . '</td>';
+				echo '<td>' . esc_html( (string) (int) $rad['antall'] ) . '</td>';
+				echo '<td>' . esc_html( $rad['dato'] ) . '</td><td>';
+				foreach ( array(
+					'samlab_ubesvart_handbok'  => array( __( 'Legg i håndboken', 'samlab' ), 'button button-primary', current_user_can( 'edit_pages' ) ),
+					'samlab_ubesvart_handtert' => array( __( 'Håndtert', 'samlab' ), 'button', true ),
+				) as $samlab_handling => $samlab_knapp ) {
+					if ( ! $samlab_knapp[2] ) {
+						continue;
+					}
+					echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline;margin-right:4px">';
+					echo '<input type="hidden" name="action" value="' . esc_attr( $samlab_handling ) . '" />';
+					echo '<input type="hidden" name="samlab_sporsmal" value="' . esc_attr( $rad['sporsmal'] ) . '" />';
+					wp_nonce_field( 'samlab_ubesvart_handling', 'samlab_ubesvart_nonce' );
+					echo '<button type="submit" class="' . esc_attr( $samlab_knapp[1] ) . '">' . esc_html( $samlab_knapp[0] ) . '</button>';
+					echo '</form>';
+				}
+				echo '</td></tr>';
+			}
+			echo '</tbody></table>';
+		}
 	}
 	echo '</div>';
 }

@@ -980,7 +980,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   manuelt (av/pa lagres, ugyldig droppes). Alle 23 riggtester
   grønne to ganger på rad, WPCS grønn, POT regenerert.
   CM-visningen av køen er G7.
-- [ ] **G7. Ubesvart-køen i kontrollpanelet.** Seksjon i
+- [x] **G7. Ubesvart-køen i kontrollpanelet.** Seksjon i
   kontrollpanelet (CM-ens flate) som lister køen med
   antall-per-spørsmål, «håndtert»-knapp (fjerner innslaget) og
   «legg til i håndboken»-lenke som oppretter et håndbok-utkast
@@ -990,6 +990,26 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* riggtest viser hele løkken - ubesvart spørsmål i
   kø → håndbok-side publisert → `wp samlab kunnskap` → grunnlaget
   inneholder svaret - og køen er tom etter håndtering.
+  *Notat (2026-08-30):* Seksjon nederst i kontrollpanelet (kun
+  når modulen er lastet, function_exists-vakt): spørsmål, teller,
+  sist spurt og handlingene «Legg i håndboken» (admin-post:
+  oppretter håndbok-merket draft med spørsmålet som tittel,
+  fjerner fra køen og sender rett til redigeringen) og «Håndtert»
+  (fjerner, med bekreftelsesmelding). Håndbok-knappen krever
+  edit_pages i tillegg til koblings-capability - moderator mangler
+  edit_pages og ser kun Håndtert (utkastet skal kunne redigeres av
+  den som lager det); handleren avviser tilsvarende
+  (HTTP-verifisert 403, også uten nonce). Logikken er faktorert
+  testbart (samlab_ubesvart_fjern på normalisert nøkkel,
+  samlab_ubesvart_til_handbok). Riggtest test-g7.php (13 sjekker)
+  dekker visning, cap-gating, utkast-egenskaper og
+  håndtert-idempotens; hele Ferdig når-løkken i tillegg kjørt med
+  EKTE `wp samlab kunnskap`: spørsmål i kø → til_handbok →
+  publisert svar → grunnlaget inneholder svaret, kø tom. Alle 24
+  riggtester grønne to ganger på rad, WPCS grønn,
+  sikkerhetstabellen fikk G7-rad, POT regenerert. Slide 10-løkken
+  er dermed komplett: G6 fyller køen, G7 tømmer den inn i
+  håndboken, F2 lukker sirkelen.
 - [ ] **G8. Seed, docs og samlet verifisering for fase G.** Seed
   gir forespurte koblinger og et utfall på en fulgt opp-kobling;
   docs/hooks.md, docs/sikkerhet.md og README dekker alle nye
