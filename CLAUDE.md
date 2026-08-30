@@ -47,6 +47,15 @@ Konsept og kravspesifikasjon ligger i
   em-dash (U+2014) i kode, dokumenter eller brukertekster.
 - Dokumentasjon på norsk bokmål. Kode og identifikatorer på engelsk,
   kommentarer gjerne på norsk.
+- **API-dokumentasjonen følger koden.** `docs/hooks.md` er fasit for
+  REST-endepunkter, actions og filtre, og oppdateres i samme endring
+  som koden - ikke etterpå. Relevante endringer er: ny, endret eller
+  fjernet rute; endret sti, parameter, svarform, feilkode eller
+  capability-krav; ny, endret eller fjernet `do_action`/
+  `apply_filters`, inkludert parametrene deres; og endret oppførsel
+  som dokumentet beskriver (grenser, avgrensninger, standardverdier).
+  Rører endringen auth, escaping, hemmeligheter eller restrisiko,
+  oppdateres `docs/sikkerhet.md` på samme måte.
 - Spør før: nye avhengigheter, force-push/rebase, endring av slug
   eller tekstdomene, og alt som rører lisens- eller prismodell.
 - Test mot minst ett standardtema (f.eks. Twenty Twenty-Four) i
