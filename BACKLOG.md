@@ -1010,7 +1010,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   sikkerhetstabellen fikk G7-rad, POT regenerert. Slide 10-løkken
   er dermed komplett: G6 fyller køen, G7 tømmer den inn i
   håndboken, F2 lukker sirkelen.
-- [ ] **G8. Seed, docs og samlet verifisering for fase G.** Seed
+- [x] **G8. Seed, docs og samlet verifisering for fase G.** Seed
   gir forespurte koblinger og et utfall på en fulgt opp-kobling;
   docs/hooks.md, docs/sikkerhet.md og README dekker alle nye
   endepunkter og flater; kjor-alle.sh kjører de nye riggtestene.
@@ -1020,3 +1020,33 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* fersk rigg + seed demonstrerer G1-G7, alle
   riggtester er grønne to ganger på rad, og dokumentasjonen dekker
   de nye flatene.
+  *Notat (2026-08-30):* Seed fikk en sjette kobling (Brygga Design
+  ↔ Ingrid Berg) som kjøres gjennom hele samtykkeflyten - begge
+  parter takker ja via samlab_kobling_svar (så samtykke-metaene er
+  reelle, ikke historikk-fallback), introduseres og får utfallet
+  «avtale» med notat - i tillegg til den åpne forespørselen fra
+  G3. README-intro og cron-avsnitt oppdatert (samtykkeflyt,
+  utfall, rapport, påminnelser); hooks-/sikkerhetsdocs var ført
+  løpende per G-oppgave og dekker alle nye endepunkter, actions,
+  varseltyper og admin-flater. Verifisert i HELT fersk rigg (rm +
+  bin/testrigg.sh + seed): alle 24 riggtester grønne to ganger på
+  rad (443 sjekker), G1-G7 demonstrert - forespurt kobling og
+  utfall i kontrollpanelet, rapporttallene stemmer med
+  seed-hendelsene, koblingsflaten med forespørsel og utfall i
+  historikken, og hele nettleserflyten (test-g3-flyt.js) grønn.
+  WPCS grønn, POT regenerert.
+  *Deck-justeringer som gjenstår (menneskelig oppgave, avklaring
+  8):* slide 6 steg 5 «Kort møte bookes direkte» → «avtales
+  direkte» (booking er utenfor scope); slide 7s gårdeier-boks
+  (fornyelsesgrad, frafall, lokalbruk) merkes som
+  integrasjonsveikart - utenfor pluginens datagrunnlag. I tillegg
+  bør slide 12 «Der vi står» oppdateres (fase 1-4 pluss hele fase
+  G er bygget, ikke bare konsept/prototype), og slide 5s
+  «pilotert hos Lius» må samsvare med faktisk pilotstatus.
+  Slide 10s løfte om ubesvarte spørsmål stemmer nå med koden.
+
+**Milepæl: Fase G - pitch-løftene levert.** Med G8 er gapet mellom
+pitch-decket og koden lukket i programvaren: to-parts samtykke
+(slide 6), utfall og aggregert rapport (slide 7), og
+ubesvart-løkken (slide 10). Det som gjenstår mot decket er
+redaksjonelt (se G8-notatet) og avgjort i avklaring 8.
