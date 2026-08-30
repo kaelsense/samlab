@@ -388,8 +388,10 @@ Siden: 0.2.0.
 
 Filtrerer ukesbrevets seksjoner før rendring og utsending. Hver
 seksjon er `{ tittel: string, linjer: [{ tekst: string, url?:
-string }] }`. E6 legger til kommende arrangementer her. Returner tom
-array for å hindre utsending.
+string }] }`. E6 legger til kommende arrangementer her, og G3 en
+aggregert seksjon for åpne koblingsforespørsler (kun antall - brevet
+er felles for alle mottakere, så partene navngis aldri). Returner
+tom array for å hindre utsending.
 
 ```php
 apply_filters( 'samlab_ukesbrev_seksjoner', $seksjoner, $siden );

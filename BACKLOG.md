@@ -834,7 +834,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   regenerert. Alle 19 riggtester grønne to ganger på rad, WPCS
   grønn. Varsel-lenken for forespørsler settes når G3-flaten
   finnes.
-- [ ] **G3. Portalflate for koblinger.** Ny flate «Koblinger» i
+- [x] **G3. Portalflate for koblinger.** Ny flate «Koblinger» i
   portalen (bak innloggingsporten, alltid i nav, med tom-tilstand):
   åpne forespørsler øverst med begrunnelse og Takk ja / Nei
   takk-knapper (JS mot G2-endepunktet), deretter aktive og
@@ -846,6 +846,26 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   (forespørsel synlig → ja fra begge parter → status godkjent
   synlig), utloggede møter innloggingsporten, og all output
   escapes.
+  *Notat (2026-08-30):* Flaten registrert som portal-visning
+  (slug_koblinger/navn_koblinger i innstillingene, med i nav,
+  hjem-kort og skallets allowlist). Template med tre bøtter:
+  forespørsler (Takk ja / Nei takk mot G2-endepunktet, confirm ved
+  nei, «venter på motparten» etter eget ja), aktive (statuskjede +
+  kontaktinfo først fra godkjent) og historikk; foreslåtte vises
+  aldri for partene. Statuskjede-rendring i
+  samlab_render_kobling_statuskjede (avvist viser hvor langt kjeden
+  kom, fra loggen); samlab_koblinger_for-helper delt med REST-
+  listen. Varsel-lenkene for parts-varslene peker nå til flaten.
+  Ukesbrev-seksjonen er aggregert antall uten navn - brevet er
+  felles for alle mottakere, så hvem som matches røpes aldri der.
+  Seed gir en forespurt kobling (Tallknuserne ↔ Jonas). Riggtest
+  test-g3.php (25 sjekker: bøtter, escaping med script-payload,
+  ukesbrev, varsel-lenker) og nettlesertest test-g3-flyt.js
+  (Playwright: utlogget → innloggingsport, jonas ja → venter,
+  ingrid ja → godkjent synlig med kontaktinfo hos begge) - hele
+  Ferdig når-flyten kjørt i ekte nettleser. Alle 20 riggtester
+  grønne to ganger på rad, WPCS grønn, hooks-/sikkerhetsdocs ført,
+  POT regenerert.
 - [ ] **G4. Utfallsregistrering («ble det noe?»).** Meta
   `_samlab_utfall` (mote|avtale|henvisning|ingenting) pluss
   valgfritt kort notat på koblinger. Settes av community-manageren

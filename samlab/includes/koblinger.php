@@ -390,6 +390,115 @@ function samlab_kobling_svar( $kobling_id, $part, $svar, $user_id = 0 ) {
 }
 
 /**
+ * Brukerens egne koblinger, nyeste først - som part direkte eller
+ * som kontaktperson for en bedrift som er part (G3-flaten og
+ * REST-listen).
+ *
+ * Lavvolum: filtrerer på partskap fremfor en tung meta-spørring
+ * over fire meta-par (samme tak og pragmatikk som kontrollpanelets
+ * lister).
+ *
+ * @param int $user_id Brukeren.
+ * @return WP_Post[]
+ */
+function samlab_koblinger_for( $user_id ) {
+	$koblinger = get_posts(
+		array(
+			'post_type'      => 'samlab_kobling',
+			'post_status'    => 'publish',
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			'posts_per_page' => 100,
+		)
+	);
+	return array_values(
+		array_filter(
+			$koblinger,
+			function ( $kobling ) use ( $user_id ) {
+				return samlab_er_kobling_part( $kobling->ID, $user_id );
+			}
+		)
+	);
+}
+
+/**
+ * Skriver ut statuskjeden for en kobling som i prototypen: stegene
+ * frem til dagens status markert som nådd. En avvist kobling viser
+ * kjeden frem til der den stoppet, med «Avvist» til slutt.
+ *
+ * @param int $kobling_id Koblingen.
+ * @return void
+ */
+function samlab_render_kobling_statuskjede( $kobling_id ) {
+	$status   = get_post_meta( $kobling_id, '_samlab_status', true );
+	$statuser = samlab_kobling_statuser();
+	$kjede    = array( 'foreslatt', 'forespurt', 'godkjent', 'introdusert', 'fulgt_opp' );
+
+	$naadd = array_search( $status, $kjede, true );
+	if ( 'avvist' === $status ) {
+		// Hvor langt koblingen kom før avvisningen, fra loggen.
+		$naadd = 0;
+		$logg  = get_post_meta( $kobling_id, '_samlab_statuslogg', true );
+		foreach ( is_array( $logg ) ? $logg : array() as $rad ) {
+			$steg  = array_search( isset( $rad['status'] ) ? $rad['status'] : '', $kjede, true );
+			$naadd = false === $steg ? $naadd : max( $naadd, $steg );
+		}
+	}
+
+	echo '<ol class="samlab-status-kjede">';
+	foreach ( $kjede as $indeks => $steg ) {
+		echo '<li class="' . ( false !== $naadd && $indeks <= $naadd ? 'er-naadd' : '' ) . '">' . esc_html( $statuser[ $steg ] ) . '</li>';
+	}
+	if ( 'avvist' === $status ) {
+		echo '<li class="er-naadd">' . esc_html( $statuser['avvist'] ) . '</li>';
+	}
+	echo '</ol>';
+}
+
+/**
+ * Ukesbrev-seksjon (G3): antall åpne koblingsforespørsler - kun
+ * tallet. Brevet er felles for alle mottakere, og hvem som matches
+ * er partenes sak inntil begge har samtykket - derfor aldri navn
+ * eller titler her.
+ *
+ * @param array $seksjoner Ukesbrevets seksjoner.
+ * @return array
+ */
+function samlab_ukesbrev_koblinger( $seksjoner ) {
+	$forespurte = get_posts(
+		array(
+			'post_type'      => 'samlab_kobling',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+			'fields'         => 'ids',
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Lavvolum ukesjobb.
+				array(
+					'key'   => '_samlab_status',
+					'value' => 'forespurt',
+				),
+			),
+		)
+	);
+	$antall     = count( $forespurte );
+	if ( 0 === $antall ) {
+		return $seksjoner;
+	}
+
+	$seksjoner[] = array(
+		'tittel' => __( 'Koblingsforespørsler', 'samlab' ),
+		'linjer' => array(
+			array(
+				/* translators: %d: antall åpne forespørsler. */
+				'tekst' => sprintf( _n( '%d forespørsel venter på svar - er den til deg?', '%d forespørsler venter på svar - er noen av dem til deg?', $antall, 'samlab' ), $antall ),
+				'url'   => samlab_portal_url( 'koblinger' ),
+			),
+		),
+	);
+	return $seksjoner;
+}
+add_filter( 'samlab_ukesbrev_seksjoner', 'samlab_ukesbrev_koblinger' );
+
+/**
  * Nullstiller samtykkene til venter når en kobling settes til
  * forespurt - en re-forespørsel starter alltid med blanke ark.
  *

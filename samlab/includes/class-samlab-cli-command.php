@@ -53,7 +53,7 @@ class Samlab_CLI_Command {
 		$this->seed_arrangementer( $bedrifter );
 		$this->seed_koblinger( $brukere, $bedrifter );
 
-		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 5 vegginnlegg (med avstemning), 2 håndbok-sider, 3 arrangementer og 4 koblinger i ulike statuser (med varsler til partene).' );
+		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 5 vegginnlegg (med avstemning), 2 håndbok-sider, 3 arrangementer og 5 koblinger i ulike statuser (med varsler til partene, inkl. en åpen forespørsel).' );
 	}
 
 	/**
@@ -569,6 +569,7 @@ class Samlab_CLI_Command {
 			array( 'Fjordnett Systemer ↔ Tallknuserne', 'Tallknuserne trenger driftshjelp.', 'fjordnett-systemer', 'ingrid.demo', array( 'godkjent' ) ),
 			array( 'Grønn Vekst ↔ Brygga Design', 'Bærekraftsrapporten trenger ny visuell drakt.', 'gronn-vekst-radgivning', 'kari.demo', array( 'godkjent', 'introdusert' ) ),
 			array( 'Fjordnett Systemer ↔ Jonas Dal', 'Ikke aktuelt akkurat nå.', 'fjordnett-systemer', 'jonas.demo', array( 'avvist' ) ),
+			array( 'Tallknuserne ↔ Jonas Dal', 'Jonas trenger hjelp med regnskapet i oppstarten.', 'tallknuserne', 'jonas.demo', array( 'forespurt' ) ),
 		);
 
 		foreach ( $definisjoner as $def ) {

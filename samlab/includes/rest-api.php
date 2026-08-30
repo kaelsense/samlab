@@ -384,23 +384,8 @@ function samlab_rest_kobling_svar( $request ) {
 function samlab_rest_hent_koblinger() {
 	$bruker = get_current_user_id();
 	$svar   = array();
-
-	// Lavvolum: filtrer på partskap fremfor en tung meta-spørring
-	// over fire meta-par (samme tak og pragmatikk som
-	// kontrollpanelets lister).
-	$koblinger = get_posts(
-		array(
-			'post_type'      => 'samlab_kobling',
-			'post_status'    => 'publish',
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'posts_per_page' => 100,
-		)
-	);
-	foreach ( $koblinger as $kobling ) {
-		if ( samlab_er_kobling_part( $kobling->ID, $bruker ) ) {
-			$svar[] = samlab_rest_kobling_data( $kobling->ID, $bruker );
-		}
+	foreach ( samlab_koblinger_for( $bruker ) as $kobling ) {
+		$svar[] = samlab_rest_kobling_data( $kobling->ID, $bruker );
 	}
 
 	return rest_ensure_response( array( 'koblinger' => $svar ) );

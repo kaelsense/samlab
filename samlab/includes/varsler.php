@@ -242,11 +242,13 @@ function samlab_varsel_visning( $varsel ) {
 			// kontakt deles først fra godkjent (G2).
 			/* translators: 1: koblingens tittel, 2: begrunnelsen. */
 			$tekst = sprintf( __( 'Du er foreslått en kobling: «%1$s». Begrunnelse: %2$s Svarer du ja?', 'samlab' ), get_the_title( (int) $varsel->object_id ), wp_trim_words( (string) get_post_field( 'post_content', (int) $varsel->object_id ), 25 ) );
+			$lenke = samlab_portal_url( 'koblinger' );
 			break;
 		case 'kobling_ikke_noe':
 			// Nøytralt, uten hvem som takket nei (avklaring 5).
 			/* translators: %s: koblingens tittel. */
 			$tekst = sprintf( __( 'Koblingen «%s» ble ikke noe av denne gangen', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = samlab_portal_url( 'koblinger' );
 			break;
 		case 'kobling_besvart':
 			/* translators: %s: koblingens tittel. */
@@ -260,6 +262,7 @@ function samlab_varsel_visning( $varsel ) {
 			$slug     = str_replace( 'kobling_', '', $varsel->type );
 			/* translators: 1: koblingens tittel, 2: ny status. */
 			$tekst = sprintf( __( 'Koblingen «%1$s» er %2$s', 'samlab' ), get_the_title( (int) $varsel->object_id ), strtolower( isset( $statuser[ $slug ] ) ? $statuser[ $slug ] : $slug ) );
+			$lenke = samlab_portal_url( 'koblinger' );
 			break;
 		default:
 			$tekst = __( 'Ny hendelse i portalen', 'samlab' );

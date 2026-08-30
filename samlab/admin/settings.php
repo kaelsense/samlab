@@ -52,6 +52,14 @@ function samlab_settings_fields() {
 			'label' => __( 'Slug for bedriftskatalogen', 'samlab' ),
 			'type'  => 'slug',
 		),
+		'navn_koblinger'     => array(
+			'label' => __( 'Navn på koblingsflaten', 'samlab' ),
+			'type'  => 'text',
+		),
+		'slug_koblinger'     => array(
+			'label' => __( 'Slug for koblingsflaten', 'samlab' ),
+			'type'  => 'slug',
+		),
 		'navn_arrangementer' => array(
 			'label' => __( 'Navn på arrangementsflaten', 'samlab' ),
 			'type'  => 'text',
@@ -255,7 +263,7 @@ function samlab_sanitize_settings( $input ) {
  * @return void
  */
 function samlab_settings_updated( $old_value, $value ) {
-	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_arrangementer', 'slug_handbok' );
+	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_koblinger', 'slug_arrangementer', 'slug_handbok' );
 	$gammel     = is_array( $old_value ) ? array_intersect_key( $old_value, array_flip( $sti_felter ) ) : array();
 	$ny         = is_array( $value ) ? array_intersect_key( $value, array_flip( $sti_felter ) ) : array();
 	if ( $gammel === $ny ) {
