@@ -107,6 +107,76 @@ $html = ob_get_clean();
 sjekk( 'rapporten har wp-header-end', false !== strpos( $html, 'wp-header-end' ) );
 sjekk( 'ingen inline style igjen i rapporten', false === strpos( $html, 'style="' ) );
 
+// --- Fase 3: kontrollpanelet som kort med sammendrag ---
+set_current_screen( 'toplevel_page_samlab-kontrollpanel' );
+ob_start();
+samlab_render_kontrollpanel();
+$html = ob_get_clean();
+
+$dom = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $html . '</div>' );
+libxml_clear_errors();
+$xpath = new DOMXPath( $dom );
+
+$kort = $xpath->query( '//div[contains(@class, "postbox")]/div[contains(@class, "inside")]/h2' );
+sjekk( 'hver seksjon er sitt eget kort', $kort->length >= 6 );
+sjekk( 'ingen h2 ligger utenfor et kort', $xpath->query( '//h2' )->length === $kort->length );
+
+$lenker = $xpath->query( '//ul[contains(@class, "samlab-sammendrag")]/li/a' );
+sjekk( 'sammendraget har fire tall', 4 === $lenker->length );
+$ankere = array();
+foreach ( $lenker as $samlab_a ) {
+	$ankere[] = ltrim( $samlab_a->getAttribute( 'href' ), '#' );
+}
+$mal = array();
+foreach ( $ankere as $samlab_anker ) {
+	$mal[] = $xpath->query( '//*[@id="' . $samlab_anker . '"]' )->length;
+}
+sjekk( 'hvert sammendragstall peker på en seksjon som finnes', array( 1, 1, 1, 1 ) === $mal );
+sjekk( 'sammendraget er lenker, ikke knapper', 0 === $xpath->query( '//ul[contains(@class, "samlab-sammendrag")]//button' )->length );
+
+sjekk( 'oppmerksomhet er delt i fire grupper', 4 === $xpath->query( '//div[contains(@class, "samlab-oppmerksomhet")]/div[contains(@class, "samlab-oppmerksomhet-gruppe")]' )->length );
+
+// Sammendraget skal gjenbruke listene seksjonene henter, ikke spørre på
+// nytt. Hver statusgruppe skal hentes nøyaktig én gang; legger noen
+// senere en count( samlab_kp_koblinger(...) ) i sammendraget, blir de
+// hentet to ganger, og denne testen sier fra.
+//
+// get_posts() setter suppress_filters, så the_posts fyrer aldri -
+// pre_get_posts er den som virker her.
+$kobling_kall  = array();
+$samlab_teller = function ( $q ) use ( &$kobling_kall ) {
+	if ( 'samlab_kobling' !== $q->get( 'post_type' ) ) {
+		return;
+	}
+	$mq             = $q->get( 'meta_query' );
+	$kobling_kall[] = isset( $mq[0]['value'] ) ? implode( '+', (array) $mq[0]['value'] ) : 'uten';
+};
+add_action( 'pre_get_posts', $samlab_teller );
+ob_start();
+samlab_render_kontrollpanel();
+ob_get_clean();
+remove_action( 'pre_get_posts', $samlab_teller );
+
+$tellinger = array_count_values( $kobling_kall );
+$ventet    = array(
+	'foreslatt'            => 1,
+	'forespurt'            => 1,
+	'godkjent+introdusert' => 1,
+	'fulgt_opp'            => 1,
+);
+$faktisk = array_intersect_key( $tellinger, $ventet );
+ksort( $faktisk );
+ksort( $ventet );
+sjekk( 'hver statusgruppe hentes nøyaktig én gang', $ventet === $faktisk );
+// Den femte er samlab_kp_brukere_med_kobling(), som henter alle
+// statuser for å finne nye uten introduksjon. Den er kjent og egen sak.
+sjekk( 'ingen uventede koblingsspørringer', 5 === count( $kobling_kall ) );
+
+// Tekstene testene i G4/G5/G7 henger på skal være urørt.
+sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
+
 // --- Fase 2: innstillingssiden som kortstabel ---
 set_current_screen( 'admin_page_samlab' );
 ob_start();
