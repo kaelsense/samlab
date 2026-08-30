@@ -612,6 +612,7 @@ add_action( 'samlab_kobling_status_endret', 'samlab_kobling_nullstill_samtykke',
  */
 function samlab_kobling_meta_boxes() {
 	add_meta_box( 'samlab_kobling_detaljer', __( 'Koblingsdetaljer', 'samlab' ), 'samlab_render_kobling_box', 'samlab_kobling', 'normal', 'high' );
+	add_meta_box( 'samlab_kobling_historikk', __( 'Historikk', 'samlab' ), 'samlab_render_kobling_historikk_box', 'samlab_kobling', 'side', 'default' );
 }
 add_action( 'add_meta_boxes_samlab_kobling', 'samlab_kobling_meta_boxes' );
 
@@ -626,7 +627,6 @@ function samlab_render_kobling_box( $post ) {
 
 	$status = get_post_meta( $post->ID, '_samlab_status', true );
 	$status = '' !== $status ? $status : 'foreslatt';
-	$kilde  = get_post_meta( $post->ID, '_samlab_kilde', true );
 
 	echo '<table class="form-table" role="presentation">';
 
@@ -636,27 +636,6 @@ function samlab_render_kobling_box( $post ) {
 		echo '<option value="' . esc_attr( $samlab_slug ) . '"' . selected( $status, $samlab_slug, false ) . '>' . esc_html( $samlab_navn ) . '</option>';
 	}
 	echo '</select></td></tr>';
-
-	echo '<tr><th scope="row">' . esc_html__( 'Kilde', 'samlab' ) . '</th><td>';
-	echo esc_html( 'matching' === $kilde ? __( 'Matchforslag', 'samlab' ) : __( 'Manuell', 'samlab' ) );
-	echo '</td></tr>';
-
-	$samtykker = array(
-		'venter' => __( 'venter på svar', 'samlab' ),
-		'ja'     => __( 'takket ja', 'samlab' ),
-		'nei'    => __( 'takket nei', 'samlab' ),
-	);
-	echo '<tr><th scope="row">' . esc_html__( 'Samtykke', 'samlab' ) . '</th><td>';
-	echo esc_html(
-		sprintf(
-			/* translators: 1: part A sitt samtykke, 2: part B sitt samtykke. */
-			__( 'Part A: %1$s - Part B: %2$s', 'samlab' ),
-			$samtykker[ samlab_kobling_samtykke( $post->ID, 'a' ) ],
-			$samtykker[ samlab_kobling_samtykke( $post->ID, 'b' ) ]
-		)
-	);
-	echo '<p class="description">' . esc_html__( 'Settes av partenes egne svar på en forespurt kobling. Settes status godkjent manuelt, føres samtykkene som ja - da har du innhentet dem utenfor portalen.', 'samlab' ) . '</p>';
-	echo '</td></tr>';
 
 	$utfall = get_post_meta( $post->ID, '_samlab_utfall', true );
 	echo '<tr><th scope="row"><label for="samlab_utfall">' . esc_html__( 'Utfall', 'samlab' ) . '</label></th><td>';
@@ -699,24 +678,63 @@ function samlab_render_kobling_box( $post ) {
 		);
 		echo '</label>';
 		echo '<p class="description">' . esc_html__( 'Velg bedrift eller bruker - bedrift vinner om begge er satt.', 'samlab' ) . '</p>';
+		samlab_bedrift_tomtilstand( $bedrifter );
 		echo '</td></tr>';
 	}
 
 	echo '</table>';
+}
+
+/**
+ * Metaboks: det skrivebeskyttede - kilde, samtykke og statuslogg.
+ *
+ * Skilt ut fra detaljboksen, som blandet visning og redigering i samme
+ * form-table. Boksen ligger i «side»-konteksten, men poster til samme
+ * skjema, så samlab_save_kobling_meta() trenger ingen endring.
+ *
+ * @param WP_Post $post Koblingen som redigeres.
+ * @return void
+ */
+function samlab_render_kobling_historikk_box( $post ) {
+	$kilde = get_post_meta( $post->ID, '_samlab_kilde', true );
+
+	echo '<p><strong>' . esc_html__( 'Kilde', 'samlab' ) . ':</strong> ';
+	echo esc_html( 'matching' === $kilde ? __( 'Matchforslag', 'samlab' ) : __( 'Manuell', 'samlab' ) );
+	echo '</p>';
+
+	$samtykker = array(
+		'venter' => __( 'venter på svar', 'samlab' ),
+		'ja'     => __( 'takket ja', 'samlab' ),
+		'nei'    => __( 'takket nei', 'samlab' ),
+	);
+	echo '<p><strong>' . esc_html__( 'Samtykke', 'samlab' ) . ':</strong><br />';
+	echo esc_html(
+		sprintf(
+			/* translators: 1: part A sitt samtykke, 2: part B sitt samtykke. */
+			__( 'Part A: %1$s - Part B: %2$s', 'samlab' ),
+			$samtykker[ samlab_kobling_samtykke( $post->ID, 'a' ) ],
+			$samtykker[ samlab_kobling_samtykke( $post->ID, 'b' ) ]
+		)
+	);
+	echo '</p>';
+	echo '<p class="description">' . esc_html__( 'Settes av partenes egne svar på en forespurt kobling. Settes status godkjent manuelt, føres samtykkene som ja - da har du innhentet dem utenfor portalen.', 'samlab' ) . '</p>';
 
 	$logg = get_post_meta( $post->ID, '_samlab_statuslogg', true );
-	if ( is_array( $logg ) && array() !== $logg ) {
-		echo '<h4>' . esc_html__( 'Statuslogg', 'samlab' ) . '</h4><ol>';
-		$statuser = samlab_kobling_logg_etiketter();
-		foreach ( $logg as $rad ) {
-			$hvem = ! empty( $rad['user_id'] ) ? get_userdata( (int) $rad['user_id'] ) : null;
-			echo '<li>' . esc_html( isset( $statuser[ $rad['status'] ] ) ? $statuser[ $rad['status'] ] : $rad['status'] );
-			echo ' - ' . esc_html( $rad['tid'] );
-			echo $hvem ? ' (' . esc_html( $hvem->display_name ) . ')' : ' (' . esc_html__( 'system', 'samlab' ) . ')';
-			echo '</li>';
-		}
-		echo '</ol>';
+	if ( ! is_array( $logg ) || array() === $logg ) {
+		echo '<p class="description">' . esc_html__( 'Ingen statusendringer ennå.', 'samlab' ) . '</p>';
+		return;
 	}
+
+	echo '<p><strong>' . esc_html__( 'Statuslogg', 'samlab' ) . '</strong></p><ol>';
+	$statuser = samlab_kobling_logg_etiketter();
+	foreach ( $logg as $rad ) {
+		$hvem = ! empty( $rad['user_id'] ) ? get_userdata( (int) $rad['user_id'] ) : null;
+		echo '<li>' . esc_html( isset( $statuser[ $rad['status'] ] ) ? $statuser[ $rad['status'] ] : $rad['status'] );
+		echo ' - ' . esc_html( $rad['tid'] );
+		echo $hvem ? ' (' . esc_html( $hvem->display_name ) . ')' : ' (' . esc_html__( 'system', 'samlab' ) . ')';
+		echo '</li>';
+	}
+	echo '</ol>';
 }
 
 /**

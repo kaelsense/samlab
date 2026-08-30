@@ -181,7 +181,9 @@ function samlab_render_arrangement_box( $post ) {
 	foreach ( $bedrifter as $bedrift ) {
 		echo '<option value="' . esc_attr( (string) $bedrift->ID ) . '"' . selected( $valgt, $bedrift->ID, false ) . '>' . esc_html( get_the_title( $bedrift ) ) . '</option>';
 	}
-	echo '</select></td></tr>';
+	echo '</select>';
+	samlab_bedrift_tomtilstand( $bedrifter );
+	echo '</td></tr>';
 	echo '</table>';
 }
 

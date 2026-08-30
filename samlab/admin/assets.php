@@ -93,6 +93,12 @@ function samlab_admin_assets() {
 	$deps = wp_style_is( 'wp-theme', 'registered' ) ? array( 'wp-theme' ) : array();
 
 	wp_enqueue_style( 'samlab-admin', SAMLAB_PLUGIN_URL . 'assets/css/admin.css', $deps, SAMLAB_VERSION );
+
+	// Tjeneste-repeateren hører kun hjemme på bedriftseditoren.
+	$skjerm = get_current_screen();
+	if ( $skjerm && 'post' === $skjerm->base && 'samlab_bedrift' === $skjerm->post_type ) {
+		wp_enqueue_script( 'samlab-admin-tjenester', SAMLAB_PLUGIN_URL . 'assets/js/admin-tjenester.js', array(), SAMLAB_VERSION, true );
+	}
 }
 add_action( 'admin_enqueue_scripts', 'samlab_admin_assets' );
 
