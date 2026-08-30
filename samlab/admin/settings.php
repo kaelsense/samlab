@@ -18,6 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function samlab_settings_fields() {
 	return array(
+		'portal_seksjon'     => array(
+			'label' => __( 'Portalen', 'samlab' ),
+			'type'  => 'overskrift',
+			'help'  => __( 'Navnet medlemmene ser, og stien portalen bor på.', 'samlab' ),
+		),
 		'portal_navn'        => array(
 			'label' => __( 'Portalnavn', 'samlab' ),
 			'type'  => 'text',
@@ -27,6 +32,11 @@ function samlab_settings_fields() {
 			'label' => __( 'Portal-sti', 'samlab' ),
 			'type'  => 'slug',
 			'help'  => __( 'URL-stien portalen bor under. Standard: «portal».', 'samlab' ),
+		),
+		'flater_seksjon'     => array(
+			'label' => __( 'Flater og stier', 'samlab' ),
+			'type'  => 'overskrift',
+			'help'  => __( 'Hva hver flate heter i menyen, og hvilken sti den får. Endres en sti, oppdateres permalenkene automatisk.', 'samlab' ),
 		),
 		'navn_vegg'          => array(
 			'label' => __( 'Navn på veggen', 'samlab' ),
@@ -81,6 +91,11 @@ function samlab_settings_fields() {
 			'type'  => 'slug',
 			'help'  => __( 'URL-delen før nøkkelen. Standard: «skjerm».', 'samlab' ),
 		),
+		'utseende_seksjon'   => array(
+			'label' => __( 'Utseende', 'samlab' ),
+			'type'  => 'overskrift',
+			'help'  => __( 'Aksentfarge og logo gjelder portalen, ikke wp-admin. Temaets egen design er utgangspunktet.', 'samlab' ),
+		),
 		'aksentfarge'        => array(
 			'label' => __( 'Aksentfarge', 'samlab' ),
 			'type'  => 'farge',
@@ -90,6 +105,11 @@ function samlab_settings_fields() {
 			'label' => __( 'Logo-URL', 'samlab' ),
 			'type'  => 'url',
 			'help'  => __( 'Valgfri. Last opp i mediebiblioteket og lim inn URL-en her.', 'samlab' ),
+		),
+		'ukesbrev_seksjon'   => array(
+			'label' => __( 'Ukesbrev', 'samlab' ),
+			'type'  => 'overskrift',
+			'help'  => __( 'Et felles ukesbrev til medlemmene. Sendes på den innstilte ukedagen, og droppes når det ikke er noe å melde.', 'samlab' ),
 		),
 		'ukesbrev_aktiv'     => array(
 			'label' => __( 'Ukesbrev', 'samlab' ),
@@ -178,6 +198,26 @@ function samlab_settings_ukedager() {
 		6 => __( 'Lørdag', 'samlab' ),
 		7 => __( 'Søndag', 'samlab' ),
 	);
+}
+
+/**
+ * Rendrer en seksjon som ligger utenfor innstillingsskjemaet som et kort.
+ *
+ * Seksjonene bor i sine egne moduler og kan rendre ingenting - f.eks.
+ * assistentens, som returnerer tidlig når modulen er av. Derfor bufres
+ * de: et tomt kort er verre enn ingen kort.
+ *
+ * @param callable $seksjon Funksjonen som rendrer seksjonen.
+ * @return void
+ */
+function samlab_settings_kort( $seksjon ) {
+	ob_start();
+	call_user_func( $seksjon );
+	$innhold = trim( (string) ob_get_clean() );
+	if ( '' === $innhold ) {
+		return;
+	}
+	echo '<div class="postbox"><div class="inside">' . $innhold . '</div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Seksjonene escaper sin egen output; her pakkes ferdig markup inn i et kort.
 }
 
 /**
@@ -321,18 +361,25 @@ function samlab_render_settings_page() {
 		<hr class="wp-header-end" />
 		<form method="post" action="options.php">
 			<?php settings_fields( 'samlab_settings_group' ); ?>
-			<table class="form-table" role="presentation">
+			<?php $apen = false; ?>
 				<?php foreach ( samlab_settings_fields() as $key => $felt ) : ?>
 					<?php if ( 'overskrift' === $felt['type'] ) : ?>
-						<tr>
-							<th scope="row" colspan="2" class="samlab-seksjonsrad">
-								<h2><?php echo esc_html( $felt['label'] ); ?></h2>
-								<?php if ( ! empty( $felt['help'] ) ) : ?>
-									<p class="description"><?php echo esc_html( $felt['help'] ); ?></p>
-								<?php endif; ?>
-							</th>
-						</tr>
+						<?php if ( $apen ) : ?>
+							</table></div></div>
+						<?php endif; ?>
+						<div class="postbox"><div class="inside">
+						<h2><?php echo esc_html( $felt['label'] ); ?></h2>
+						<?php if ( ! empty( $felt['help'] ) ) : ?>
+							<p class="description"><?php echo esc_html( $felt['help'] ); ?></p>
+						<?php endif; ?>
+						<table class="form-table" role="presentation">
+						<?php $apen = true; ?>
 						<?php continue; ?>
+					<?php endif; ?>
+					<?php if ( ! $apen ) : ?>
+						<div class="postbox"><div class="inside">
+						<table class="form-table" role="presentation">
+						<?php $apen = true; ?>
 					<?php endif; ?>
 					<?php if ( 'status' === $felt['type'] ) : ?>
 						<tr>
@@ -382,11 +429,13 @@ function samlab_render_settings_page() {
 						</td>
 					</tr>
 				<?php endforeach; ?>
-			</table>
+			<?php if ( $apen ) : ?>
+				</table></div></div>
+			<?php endif; ?>
 			<?php submit_button(); ?>
 		</form>
-		<?php samlab_skjerm_settings_seksjon(); ?>
-		<?php samlab_assistent_settings_seksjon(); ?>
+		<?php samlab_settings_kort( 'samlab_skjerm_settings_seksjon' ); ?>
+		<?php samlab_settings_kort( 'samlab_assistent_settings_seksjon' ); ?>
 	</div>
 	<?php
 }

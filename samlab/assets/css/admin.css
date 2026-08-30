@@ -74,20 +74,52 @@
 }
 
 /**
- * Seksjonsraden i innstillingenes form-table. Erstattes av ekte
- * seksjonsbrudd med .postbox i fase 2 - dette er kun avviklingen av
- * de tre inline-stilene.
+ * Seksjonskortene på innstillingssiden.
+ *
+ * .postbox er core sin egen kort-idiom, og stilene ligger i edit.css,
+ * som allerede er lastet på hver admin-side. Vi trenger derfor bare
+ * avstanden mellom kortene - null egne kortstiler.
  */
-.samlab-admin-side .samlab-seksjonsrad {
-	padding-block-end: 0;
+.samlab-admin-side .postbox {
+	margin-block-end: var( --samlab-a-gap );
 }
 
-.samlab-admin-side .samlab-seksjonsrad h2 {
-	margin-block-end: 0;
+.samlab-admin-side .postbox > .inside > h2:first-child {
+	margin-block-start: 0;
 }
 
-.samlab-admin-side .samlab-seksjonsrad .description {
-	font-weight: 400;
+.samlab-admin-side .postbox .form-table {
+	margin-block-start: 0;
+}
+
+/**
+ * Klebrig lagre-rad. submit_button() gir <p class="submit">, så dette
+ * krever ingen markupendring.
+ *
+ * Bakgrunnen speiler wp-admins egen kroppsfarge: #f0f0f1 fra
+ * common.css, #f0f0f0 fra fargeskjemaene - ett trinns forskjell, ikke
+ * synlig. Dette er chrome, ikke interaktiv farge, så det bryter ikke
+ * regel 2 øverst i fila.
+ */
+.samlab-admin-side .submit {
+	position: sticky;
+	inset-block-end: 0;
+	z-index: 10;
+	margin-block-start: 0;
+	padding-block: var( --samlab-a-gap-sm );
+	background: #f0f0f0;
+	border-block-start: 1px solid var( --samlab-a-linje );
+}
+
+/**
+ * WCAG 2.2 SC 2.4.11 Focus Not Obscured: den klebrige raden skal ikke
+ * dekke feltet som får fokus ved tabbing nedover skjemaet. Regelen
+ * gjentas på html fordi det er html som scroller, og kroppsklassen
+ * sitter på body.
+ */
+.samlab-admin-side,
+html:has( body.samlab-admin-side ) {
+	scroll-padding-block-end: 6rem;
 }
 
 /* Tjeneste-raden i bedrifts-metaboksen. */
