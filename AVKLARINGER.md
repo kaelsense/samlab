@@ -44,3 +44,49 @@ anbefaling med begrunnelse.
    assistentmodulen (fase F) bygges nå, med SSE utsatt til
    webhotell-test (hel-svar som standard); (c) samme autonome
    loop-regime som MVP-en. Backloggen fase E/F er kontrakten.
+
+5. **2026-08-30 - G1/G2: Hva får motparten vite ved «nei takk»?**
+   Når én part avslår en forespurt kobling settes den til avvist.
+   Spørsmål: skal motparten få vite hvem som takket nei?
+   Anbefaling: nei - nøytralt varsel («koblingen ble ikke noe av
+   denne gangen») uten navn, mens community-manageren ser
+   detaljene i kontrollpanelet. Et navngitt avslag mellom naboer i
+   samme hus koster mer sosialt enn det informerer.
+
+6. **2026-08-30 - G1: Automatisk eller CM-styrt «introdusert»?**
+   Når begge parter har takket ja (status godkjent): skal systemet
+   selv sette introdusert og dele kontaktinfo, eller skal
+   community-manageren utføre introduksjonen som i dag?
+   Anbefaling: CM beholder introdusert-steget. Decket selger
+   nettopp mennesket i løkken («community-manageren
+   kvalitetssikrer»), og uten møtebooking i scope er introduksjonen
+   uansett en menneskelig handling. G1 er skrevet etter
+   anbefalingen; sier Kay noe annet justeres kun
+   status-automatikken i `samlab_kobling_svar`.
+
+7. **2026-08-30 - G6: Ubesvart-køen mot «logges aldri»-løftet.**
+   Decket (slide 10) lover at ubesvarte spørsmål samles til
+   community-manageren; koden og README lover i dag at spørsmål og
+   svar aldri logges (F3, et bevisst personvernvalg). Begge kan
+   ikke stå. Spørsmål: (a) anonym ubesvart-kø som innstilling,
+   standard på, med omformulert personvernløfte («samtaler logges
+   aldri; ubesvarte spørsmål lagres anonymt når innstillingen er
+   på»), (b) samme men standard av, eller (c) dropp køen og stryk
+   løftet fra decket? Anbefaling: (a) - køen lagrer kun
+   spørsmålstekst uten bruker-ID og uten svar, løkken er en
+   bærende del av produktfortellingen, og innstillingen gir husene
+   som vil noe annet en av-bryter. G6 står [BLOKKERT] til dette er
+   avgjort.
+
+8. **2026-08-30 - Slide 6/7: Deck-løfter utenfor pluginens scope.**
+   To løfter i decket kan ikke lukkes av fase G: «Kort møte bookes
+   direkte» (slide 6, steg 5 - booking er eksplisitt utenfor scope
+   i CLAUDE.md; koblingsflaten kan lenke til husets eksisterende
+   bookingløsning, men mer blir det ikke) og gårdeier-metrikkene
+   (slide 7: fornyelsesgrad, frafall, bruk av lokaler - krever
+   leiekontrakt- og adgangsdata som bor i andre systemer).
+   Spørsmål: justere deck-formuleringene («møte avtales direkte»,
+   gårdeier-boksen merkes som integrasjonsveikart), eller planlegge
+   integrasjon/manuelle felter som egen fase senere? Anbefaling:
+   juster decket nå (ærlig mot designpartnere), og la
+   integrasjonssporet vente på erfaringene fra Lius-piloten.
