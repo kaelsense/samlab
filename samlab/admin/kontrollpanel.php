@@ -2,9 +2,11 @@
 /**
  * Kontrollpanelet: community-managerens wp-admin-side (planens 3.4).
  *
- * Koblingskø med godkjenn/avvis, aktive koblinger med statuskjede,
- * og «trenger oppmerksomhet»-listene: nye medlemmer uten
- * introduksjon, åpne behov eldre enn 14 dager, ufullstendige
+ * Koblingskø med godkjenn/avvis (godkjenn setter forespurt og
+ * overlater neste steg til partenes samtykke, G1), forespurte
+ * koblinger som venter på partene, aktive koblinger med
+ * statuskjede, og «trenger oppmerksomhet»-listene: nye medlemmer
+ * uten introduksjon, åpne behov eldre enn 14 dager, ufullstendige
  * bedriftsprofiler og stille medlemmer.
  *
  * Tilgang: koblings-capability (moderator, redaktør, administrator).
@@ -279,11 +281,15 @@ function samlab_kp_lesebekreftelser() {
  * @param int    $kobling_id Koblingen.
  * @param string $handling   godkjenn|avvis|introdusert|fulgt_opp.
  * @param int    $user_id    Utførende bruker.
+ * @param string $utfall     Valgfritt utfall ved fulgt_opp (G4).
+ * @param string $notat      Valgfritt utfallsnotat.
  * @return true|WP_Error
  */
-function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id ) {
+function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id, $utfall = '', $notat = '' ) {
 	$statusmap = array(
-		'godkjenn'    => 'godkjent',
+		// Godkjenn setter forespurt: veien til godkjent går gjennom
+		// partenes eget samtykke (samlab_kobling_svar, G1).
+		'godkjenn'    => 'forespurt',
 		'avvis'       => 'avvist',
 		'introdusert' => 'introdusert',
 		'fulgt_opp'   => 'fulgt_opp',
@@ -296,6 +302,18 @@ function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id ) {
 	}
 	if ( ! user_can( $user_id, 'edit_post', $kobling_id ) ) {
 		return new WP_Error( 'samlab_ingen_tilgang', __( 'Du har ikke tilgang til å endre koblinger.', 'samlab' ) );
+	}
+
+	// Fulgt opp med utfall (G4): utfallet føres først og løfter
+	// selv statusen fra introdusert.
+	if ( 'fulgt_opp' === $handling && '' !== $utfall ) {
+		$resultat = samlab_sett_kobling_utfall( $kobling_id, $utfall, $notat, $user_id );
+		if ( is_wp_error( $resultat ) ) {
+			return $resultat;
+		}
+		if ( 'fulgt_opp' === get_post_meta( $kobling_id, '_samlab_status', true ) ) {
+			return true;
+		}
 	}
 
 	samlab_sett_kobling_status( $kobling_id, $statusmap[ $handling ], $user_id );
@@ -315,8 +333,10 @@ function samlab_kontrollpanel_post() {
 
 	$kobling_id = isset( $_POST['samlab_kobling_id'] ) ? absint( $_POST['samlab_kobling_id'] ) : 0;
 	$handling   = isset( $_POST['samlab_handling'] ) ? sanitize_key( wp_unslash( $_POST['samlab_handling'] ) ) : '';
+	$utfall     = isset( $_POST['samlab_utfall'] ) ? sanitize_key( wp_unslash( $_POST['samlab_utfall'] ) ) : '';
+	$notat      = isset( $_POST['samlab_utfall_notat'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_utfall_notat'] ) ) : '';
 
-	$resultat = samlab_kontrollpanel_utfor( $kobling_id, $handling, get_current_user_id() );
+	$resultat = samlab_kontrollpanel_utfor( $kobling_id, $handling, get_current_user_id(), $utfall, $notat );
 	if ( is_wp_error( $resultat ) ) {
 		wp_die( esc_html( $resultat->get_error_message() ), '', 403 );
 	}
@@ -331,13 +351,24 @@ add_action( 'admin_post_samlab_kobling', 'samlab_kontrollpanel_post' );
  *
  * @param int      $kobling_id Koblingen.
  * @param string[] $handlinger Handling-slug => knappetekst.
+ * @param bool     $med_utfall Om utfallsvalg + notat skal med (G4).
  * @return void
  */
-function samlab_kp_handlingsskjema( $kobling_id, $handlinger ) {
+function samlab_kp_handlingsskjema( $kobling_id, $handlinger, $med_utfall = false ) {
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline">';
 	echo '<input type="hidden" name="action" value="samlab_kobling" />';
 	echo '<input type="hidden" name="samlab_kobling_id" value="' . esc_attr( (string) $kobling_id ) . '" />';
 	wp_nonce_field( 'samlab_kobling_handling', 'samlab_kp_nonce' );
+	if ( $med_utfall ) {
+		echo '<label class="screen-reader-text" for="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '">' . esc_html__( 'Utfall', 'samlab' ) . '</label>';
+		echo '<select id="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '" name="samlab_utfall" style="margin-right:4px">';
+		echo '<option value="">' . esc_html__( '- Utfall -', 'samlab' ) . '</option>';
+		foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) {
+			echo '<option value="' . esc_attr( $samlab_slug ) . '">' . esc_html( $samlab_navn ) . '</option>';
+		}
+		echo '</select>';
+		echo '<input type="text" name="samlab_utfall_notat" placeholder="' . esc_attr__( 'Notat (valgfritt)', 'samlab' ) . '" style="margin-right:4px" />';
+	}
 	foreach ( $handlinger as $slug => $tekst ) {
 		$klasse = 'avvis' === $slug ? 'button button-link-delete' : 'button button-primary';
 		echo '<button type="submit" class="' . esc_attr( $klasse ) . '" name="samlab_handling" value="' . esc_attr( $slug ) . '" style="margin-right:4px">' . esc_html( $tekst ) . '</button>';
@@ -355,13 +386,17 @@ function samlab_render_kontrollpanel() {
 		return;
 	}
 
-	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Kun visning av bekreftelsesmelding.
-	$utfort = isset( $_GET['samlab_utfort'] ) ? sanitize_key( wp_unslash( $_GET['samlab_utfort'] ) ) : '';
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Kun visning av bekreftelsesmeldinger.
+	$utfort   = isset( $_GET['samlab_utfort'] ) ? sanitize_key( wp_unslash( $_GET['samlab_utfort'] ) ) : '';
+	$ubesvart = isset( $_GET['samlab_ubesvart'] ) ? sanitize_key( wp_unslash( $_GET['samlab_ubesvart'] ) ) : '';
 	// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 	echo '<div class="wrap"><h1>' . esc_html__( 'Samlab kontrollpanel', 'samlab' ) . '</h1>';
 	if ( '' !== $utfort ) {
 		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Koblingen er oppdatert.', 'samlab' ) . '</p></div>';
+	}
+	if ( 'handtert' === $ubesvart ) {
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Spørsmålet er fjernet fra køen.', 'samlab' ) . '</p></div>';
 	}
 
 	// 1) Koblingskøen.
@@ -378,7 +413,7 @@ function samlab_render_kontrollpanel() {
 			samlab_kp_handlingsskjema(
 				$kobling->ID,
 				array(
-					'godkjenn' => __( 'Godkjenn', 'samlab' ),
+					'godkjenn' => __( 'Godkjenn og spør partene', 'samlab' ),
 					'avvis'    => __( 'Avvis', 'samlab' ),
 				)
 			);
@@ -387,7 +422,38 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
-	// 2) Aktive koblinger med statuskjeden.
+	// 2) Forespurte koblinger som venter på partenes samtykke (G1).
+	echo '<h2>' . esc_html__( 'Venter på partene', 'samlab' ) . '</h2>';
+	$forespurte = samlab_kp_koblinger( array( 'forespurt' ) );
+	if ( array() === $forespurte ) {
+		echo '<p>' . esc_html__( 'Ingen forespørsler venter på svar.', 'samlab' ) . '</p>';
+	} else {
+		$samtykker = array(
+			'venter' => __( 'venter', 'samlab' ),
+			'ja'     => __( 'ja', 'samlab' ),
+			'nei'    => __( 'nei', 'samlab' ),
+		);
+		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Samtykke', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+		foreach ( $forespurte as $kobling ) {
+			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
+			echo '<td>' . esc_html(
+				sprintf(
+					/* translators: 1: part A sitt samtykke, 2: part B sitt samtykke. */
+					__( 'A: %1$s - B: %2$s', 'samlab' ),
+					$samtykker[ samlab_kobling_samtykke( $kobling->ID, 'a' ) ],
+					$samtykker[ samlab_kobling_samtykke( $kobling->ID, 'b' ) ]
+				)
+			) . '</td><td>';
+			samlab_kp_handlingsskjema(
+				$kobling->ID,
+				array( 'avvis' => __( 'Trekk tilbake', 'samlab' ) )
+			);
+			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	// 3) Aktive koblinger med statuskjeden.
 	echo '<h2>' . esc_html__( 'Aktive koblinger', 'samlab' ) . '</h2>';
 	$aktive   = samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) );
 	$statuser = samlab_kobling_statuser();
@@ -399,18 +465,33 @@ function samlab_render_kontrollpanel() {
 			$status = get_post_meta( $kobling->ID, '_samlab_status', true );
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
 			echo '<td>' . esc_html( isset( $statuser[ $status ] ) ? $statuser[ $status ] : $status ) . '</td><td>';
-			samlab_kp_handlingsskjema(
-				$kobling->ID,
-				'godkjent' === $status
-					? array( 'introdusert' => __( 'Marker introdusert', 'samlab' ) )
-					: array( 'fulgt_opp' => __( 'Marker fulgt opp', 'samlab' ) )
-			);
+			if ( 'godkjent' === $status ) {
+				samlab_kp_handlingsskjema( $kobling->ID, array( 'introdusert' => __( 'Marker introdusert', 'samlab' ) ) );
+			} else {
+				samlab_kp_handlingsskjema( $kobling->ID, array( 'fulgt_opp' => __( 'Marker fulgt opp', 'samlab' ) ), true );
+			}
 			echo '</td></tr>';
 		}
 		echo '</tbody></table>';
 	}
 
-	// 3) Trenger oppmerksomhet.
+	// 3b) Utfall på fulgte opp koblinger (G4).
+	echo '<h2>' . esc_html__( 'Utfall', 'samlab' ) . '</h2>';
+	$fulgte = samlab_kp_koblinger( array( 'fulgt_opp' ) );
+	if ( array() === $fulgte ) {
+		echo '<p>' . esc_html__( 'Ingen fulgte opp koblinger ennå.', 'samlab' ) . '</p>';
+	} else {
+		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Utfall', 'samlab' ) . '</th><th>' . esc_html__( 'Notat', 'samlab' ) . '</th></tr></thead><tbody>';
+		foreach ( $fulgte as $kobling ) {
+			$utfall = samlab_kobling_utfall( $kobling->ID );
+			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
+			echo '<td>' . esc_html( $utfall ? $utfall['etikett'] : __( 'Ikke registrert', 'samlab' ) ) . '</td>';
+			echo '<td>' . esc_html( $utfall ? $utfall['notat'] : '' ) . '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	// 4) Trenger oppmerksomhet.
 	echo '<h2>' . esc_html__( 'Trenger oppmerksomhet', 'samlab' ) . '</h2>';
 
 	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3><ul>';
@@ -455,7 +536,7 @@ function samlab_render_kontrollpanel() {
 	}
 	echo '</ul>';
 
-	// 4) Lesebekreftelser.
+	// 5) Lesebekreftelser.
 	echo '<h2>' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
 	$lesekrav = samlab_kp_lesebekreftelser();
 	if ( array() === $lesekrav ) {
@@ -480,6 +561,40 @@ function samlab_render_kontrollpanel() {
 			echo '<li>&#8211; ' . esc_html( $bruker->display_name ) . ' <span class="description">' . esc_html__( '(ikke bekreftet)', 'samlab' ) . '</span></li>';
 		}
 		echo '</ul>';
+	}
+
+	// 6) Ubesvarte spørsmål til assistenten (G7) - kun når modulen
+	// (og dermed ubesvart-køen) er lastet.
+	if ( function_exists( 'samlab_ubesvart_liste' ) ) {
+		echo '<h2>' . esc_html__( 'Ubesvarte spørsmål til assistenten', 'samlab' ) . '</h2>';
+		$ubesvarte = samlab_ubesvart_liste();
+		if ( array() === $ubesvarte ) {
+			echo '<p>' . esc_html__( 'Ingen ubesvarte spørsmål - kunnskapsgrunnlaget holder.', 'samlab' ) . '</p>';
+		} else {
+			echo '<p>' . esc_html__( 'Anonyme spørsmål assistenten ikke fant svar på. Publiser svaret som håndbok-side - neste kunnskapsbygg tar den med, og assistenten kan svare.', 'samlab' ) . '</p>';
+			echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Spørsmål', 'samlab' ) . '</th><th>' . esc_html__( 'Antall', 'samlab' ) . '</th><th>' . esc_html__( 'Sist spurt', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+			foreach ( $ubesvarte as $rad ) {
+				echo '<tr><td>' . esc_html( $rad['sporsmal'] ) . '</td>';
+				echo '<td>' . esc_html( (string) (int) $rad['antall'] ) . '</td>';
+				echo '<td>' . esc_html( $rad['dato'] ) . '</td><td>';
+				foreach ( array(
+					'samlab_ubesvart_handbok'  => array( __( 'Legg i håndboken', 'samlab' ), 'button button-primary', current_user_can( 'edit_pages' ) ),
+					'samlab_ubesvart_handtert' => array( __( 'Håndtert', 'samlab' ), 'button', true ),
+				) as $samlab_handling => $samlab_knapp ) {
+					if ( ! $samlab_knapp[2] ) {
+						continue;
+					}
+					echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline;margin-right:4px">';
+					echo '<input type="hidden" name="action" value="' . esc_attr( $samlab_handling ) . '" />';
+					echo '<input type="hidden" name="samlab_sporsmal" value="' . esc_attr( $rad['sporsmal'] ) . '" />';
+					wp_nonce_field( 'samlab_ubesvart_handling', 'samlab_ubesvart_nonce' );
+					echo '<button type="submit" class="' . esc_attr( $samlab_knapp[1] ) . '">' . esc_html( $samlab_knapp[0] ) . '</button>';
+					echo '</form>';
+				}
+				echo '</td></tr>';
+			}
+			echo '</tbody></table>';
+		}
 	}
 	echo '</div>';
 }

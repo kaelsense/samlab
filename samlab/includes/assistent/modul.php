@@ -13,6 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/kunnskap.php';
+require_once __DIR__ . '/ubesvart.php';
 require_once __DIR__ . '/api.php';
 require_once __DIR__ . '/widget.php';
 

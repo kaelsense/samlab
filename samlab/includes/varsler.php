@@ -3,9 +3,14 @@
  * In-app-varsler: utløsere, tekstrendring og REST-ruter.
  *
  * Utløsere: mention i vegginnlegg, kommentar og reaksjon på eget
- * innlegg, og koblingsstatus for partene (fra godkjent og utover -
- * foreslått/avvist er moderatorens arbeidsflate). Varsel ved svar på
- * behov aktiveres når en svar-funksjon finnes (ikke i MVP).
+ * innlegg, og koblingsflyten (G2): forespørsel til partene ved
+ * forespurt (med begrunnelsen, aldri motpartens kontaktinfo),
+ * statusvarsler fra godkjent og utover, nøytralt «ble ikke noe
+ * av»-varsel til motparten ved nei (avklaring 5: aldri hvem som
+ * takket nei), og varsel til moderatorene når begge parter har
+ * svart. Foreslått er fortsatt kun moderatorens arbeidsflate.
+ * Varsel ved svar på behov aktiveres når en svar-funksjon finnes
+ * (ikke i MVP).
  *
  * @package Samlab
  */
@@ -126,7 +131,12 @@ function samlab_kobling_part_brukere( $kobling_id ) {
 }
 
 /**
- * Varsler partene når en kobling når godkjent/introdusert/fulgt opp.
+ * Varsler partene når en kobling når forespurt (G2) eller
+ * godkjent/introdusert/fulgt opp.
+ *
+ * Forespørselen sendes med aktør 0 (system) så begge parter alltid
+ * får den - også en kontaktperson som selv er moderator og trykket
+ * «Godkjenn og spør partene».
  *
  * @param int    $kobling_id Koblingen.
  * @param string $status     Ny status.
@@ -135,7 +145,7 @@ function samlab_kobling_part_brukere( $kobling_id ) {
  * @return void
  */
 function samlab_varsle_kobling( $kobling_id, $status, $gammel, $user_id ) {
-	if ( ! in_array( $status, array( 'godkjent', 'introdusert', 'fulgt_opp' ), true ) ) {
+	if ( ! in_array( $status, array( 'forespurt', 'godkjent', 'introdusert', 'fulgt_opp' ), true ) ) {
 		return;
 	}
 	foreach ( samlab_kobling_part_brukere( $kobling_id ) as $mottaker ) {
@@ -145,12 +155,139 @@ function samlab_varsle_kobling( $kobling_id, $status, $gammel, $user_id ) {
 				'type'        => 'kobling_' . $status,
 				'object_type' => 'kobling',
 				'object_id'   => $kobling_id,
-				'actor_id'    => $user_id,
+				'actor_id'    => 'forespurt' === $status ? 0 : $user_id,
 			)
 		);
 	}
 }
 add_action( 'samlab_kobling_status_endret', 'samlab_varsle_kobling', 10, 4 );
+
+/**
+ * Varsler når en part har svart på en forespurt kobling (G2):
+ * nøytralt varsel til motparten ved nei (aldri hvem som takket nei
+ * - avklaring 5), og varsel til moderatorene når begge har svart.
+ *
+ * Kjøres før statusløftet i samlab_kobling_svar(), så «begge har
+ * svart» leses fra samtykke-metaene: et nei avslutter alltid, et ja
+ * avslutter når motparten alt har sagt ja.
+ *
+ * @param int    $kobling_id Koblingen.
+ * @param string $part       Parten som svarte («a» eller «b»).
+ * @param string $svar       «ja» eller «nei».
+ * @return void
+ */
+function samlab_varsle_kobling_besvart( $kobling_id, $part, $svar ) {
+	$motpart = 'a' === $part ? 'b' : 'a';
+
+	if ( 'nei' === $svar ) {
+		$mottaker = samlab_kobling_part_bruker( $kobling_id, $motpart );
+		if ( $mottaker ) {
+			Samlab_Varsel::create(
+				array(
+					'user_id'     => $mottaker->ID,
+					'type'        => 'kobling_ikke_noe',
+					'object_type' => 'kobling',
+					'object_id'   => $kobling_id,
+					'actor_id'    => 0,
+				)
+			);
+		}
+	}
+
+	$komplett = 'nei' === $svar || 'ja' === samlab_kobling_samtykke( $kobling_id, $motpart );
+	if ( ! $komplett ) {
+		return;
+	}
+	$moderatorer = get_users( array( 'capability' => 'edit_samlab_koblinger' ) );
+	foreach ( $moderatorer as $moderator ) {
+		Samlab_Varsel::create(
+			array(
+				'user_id'     => $moderator->ID,
+				'type'        => 'kobling_besvart',
+				'object_type' => 'kobling',
+				'object_id'   => $kobling_id,
+				'actor_id'    => 0,
+			)
+		);
+	}
+}
+add_action( 'samlab_kobling_besvart', 'samlab_varsle_kobling_besvart', 10, 3 );
+
+/**
+ * «Ble det noe?»-påminnelser (G4): partene minnes på å registrere
+ * utfall 14 dager etter introduksjonen. Hektet på den daglige
+ * matching-cronen; sendes nøyaktig én gang per kobling
+ * (meta-vakten _samlab_utfall_paminnet).
+ *
+ * @param int $dager Dager etter introdusert før påminnelsen går.
+ * @return int Antall koblinger som fikk påminnelse.
+ */
+function samlab_kobling_utfall_paminnelser( $dager = 14 ) {
+	$dager   = max( 1, (int) $dager );
+	$grense  = time() - $dager * DAY_IN_SECONDS;
+	$sendt   = 0;
+	$aktuell = get_posts(
+		array(
+			'post_type'      => 'samlab_kobling',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Lavvolum dagsjobb.
+				array(
+					'key'   => '_samlab_status',
+					'value' => 'introdusert',
+				),
+				array(
+					'key'     => '_samlab_utfall_paminnet',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => '_samlab_utfall',
+					'compare' => 'NOT EXISTS',
+				),
+			),
+		)
+	);
+
+	foreach ( $aktuell as $kobling ) {
+		// Introduksjonstidspunktet fra statusloggen - nyeste
+		// introdusert-innslag gjelder.
+		$introdusert = 0;
+		$logg        = get_post_meta( $kobling->ID, '_samlab_statuslogg', true );
+		foreach ( is_array( $logg ) ? $logg : array() as $rad ) {
+			if ( isset( $rad['status'], $rad['tid'] ) && 'introdusert' === $rad['status'] ) {
+				$introdusert = max( $introdusert, (int) strtotime( $rad['tid'] . ' UTC' ) );
+			}
+		}
+		if ( ! $introdusert || $introdusert > $grense ) {
+			continue;
+		}
+
+		foreach ( samlab_kobling_part_brukere( $kobling->ID ) as $mottaker ) {
+			Samlab_Varsel::create(
+				array(
+					'user_id'     => $mottaker,
+					'type'        => 'kobling_utfall_paminnelse',
+					'object_type' => 'kobling',
+					'object_id'   => $kobling->ID,
+					'actor_id'    => 0,
+				)
+			);
+		}
+		update_post_meta( $kobling->ID, '_samlab_utfall_paminnet', '1' );
+		++$sendt;
+	}
+	return $sendt;
+}
+
+/**
+ * Kjører påminnelsene i den daglige matching-runden.
+ *
+ * @return void
+ */
+function samlab_kobling_utfall_paminnelser_tick() {
+	samlab_kobling_utfall_paminnelser();
+}
+add_action( 'samlab_matching_kjort', 'samlab_kobling_utfall_paminnelser_tick' );
 
 /**
  * Menneskelig tekst og lenke for et varsel.
@@ -176,6 +313,29 @@ function samlab_varsel_visning( $varsel ) {
 			/* translators: %s: navnet på den som reagerte. */
 			$tekst = sprintf( __( '%s likte innlegget ditt', 'samlab' ), $navn );
 			break;
+		case 'kobling_forespurt':
+			// Med begrunnelsen, aldri motpartens kontaktinfo -
+			// kontakt deles først fra godkjent (G2).
+			/* translators: 1: koblingens tittel, 2: begrunnelsen. */
+			$tekst = sprintf( __( 'Du er foreslått en kobling: «%1$s». Begrunnelse: %2$s Svarer du ja?', 'samlab' ), get_the_title( (int) $varsel->object_id ), wp_trim_words( (string) get_post_field( 'post_content', (int) $varsel->object_id ), 25 ) );
+			$lenke = samlab_portal_url( 'koblinger' );
+			break;
+		case 'kobling_ikke_noe':
+			// Nøytralt, uten hvem som takket nei (avklaring 5).
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Koblingen «%s» ble ikke noe av denne gangen', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = samlab_portal_url( 'koblinger' );
+			break;
+		case 'kobling_utfall_paminnelse':
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Ble det noe av koblingen «%s»? Registrer utfallet', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = samlab_portal_url( 'koblinger' );
+			break;
+		case 'kobling_besvart':
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Begge parter har svart på koblingen «%s» - se kontrollpanelet', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = admin_url( 'admin.php?page=samlab-kontrollpanel' );
+			break;
 		case 'kobling_godkjent':
 		case 'kobling_introdusert':
 		case 'kobling_fulgt_opp':
@@ -183,6 +343,7 @@ function samlab_varsel_visning( $varsel ) {
 			$slug     = str_replace( 'kobling_', '', $varsel->type );
 			/* translators: 1: koblingens tittel, 2: ny status. */
 			$tekst = sprintf( __( 'Koblingen «%1$s» er %2$s', 'samlab' ), get_the_title( (int) $varsel->object_id ), strtolower( isset( $statuser[ $slug ] ) ? $statuser[ $slug ] : $slug ) );
+			$lenke = samlab_portal_url( 'koblinger' );
 			break;
 		default:
 			$tekst = __( 'Ny hendelse i portalen', 'samlab' );

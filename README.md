@@ -4,12 +4,15 @@ WordPress-plugin: en intern community-portal for coworking-hus og
 kontorfellesskap - bedriftskatalog med profiler, behov og tilbud,
 vegg med reaksjoner, kommentarer, avstemninger og lesebekreftelser,
 arrangementer, håndbok og globalt søk. Fasiliteringslaget gir
-koblinger/introduksjoner med kontrollpanel for verten, in-app-
-varsler, regelbasert matching, ukesbrev på e-post og en infoskjerm
-med nøkkel-URL. Portalen bor bak innlogging på en egen sti
-(standard `/portal/`), kler seg i temaets designtokens, og alt av
-navn, stier og farger er innstillinger - ingen kundeverdier i kode.
-Digitelle AS eier produktet.
+koblinger/introduksjoner med to-parts samtykke (ingen kobles uten
+at begge har takket ja - partene svarer selv fra portalens
+koblingsflate), utfallsregistrering («ble det noe?» - møte, avtale,
+henvisning), kontrollpanel og aggregert rapport med CSV-eksport
+for verten, in-app-varsler, regelbasert matching, ukesbrev på
+e-post og en infoskjerm med nøkkel-URL. Portalen bor bak innlogging
+på en egen sti (standard `/portal/`), kler seg i temaets
+designtokens, og alt av navn, stier og farger er innstillinger -
+ingen kundeverdier i kode. Digitelle AS eier produktet.
 
 Se `handover/HANDOVER.md` og
 `handover/docs/forslag-wordpress-utvidelse.md` for plan og konsept.
@@ -23,7 +26,8 @@ Arbeidslisten ligger i [BACKLOG.md](BACKLOG.md); åpne spørsmål i
   GD anbefales for seed-kommandoens demobilder)
 - WP-Cron i normal drift. Pluginen planlegger to daglige jobber ved
   aktivering (og rydder dem ved deaktivering): `samlab_matching`
-  (regelbasert matching av behov mot bedrifter) og
+  (regelbasert matching av behov mot bedrifter, pluss «ble det
+  noe?»-påminnelser til partene 14 dager etter en introduksjon) og
   `samlab_ukesbrev` (som selv sjekker innstilt ukedag før
   utsending). Standardoppsettet med WP-Cron holder så lenge
   nettstedet har jevnlig trafikk; på stille nettsteder anbefales
@@ -83,6 +87,14 @@ den på:
    utenfor portalen.
 4. Chat-knappen dukker opp nede til høyre i portalen for innloggede
    medlemmer.
+
+**Personvern og ubesvart-køen:** samtaler logges aldri. Spørsmål
+assistenten ikke finner svar på i kunnskapsgrunnlaget, lagres
+derimot anonymt i ubesvart-køen - kun spørsmålsteksten, datoen og
+en teller, aldri hvem som spurte og aldri svaret - så verten kan
+fylle håndboken og FAQ-en med det som mangler. Køen er på som
+standard og slås av under Innstillinger → Samlab → «Ubesvart-kø»;
+av betyr at ingenting lagres.
 
 **Kostnad:** hvert spørsmål går mot Claude API og betales per bruk
 hos Anthropic (modell velges i innstillingene, standard

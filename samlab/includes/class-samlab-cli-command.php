@@ -53,7 +53,7 @@ class Samlab_CLI_Command {
 		$this->seed_arrangementer( $bedrifter );
 		$this->seed_koblinger( $brukere, $bedrifter );
 
-		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 5 vegginnlegg (med avstemning), 2 håndbok-sider, 3 arrangementer og 4 koblinger i ulike statuser (med varsler til partene).' );
+		WP_CLI::success( 'Demodata på plass: 4 bedrifter, 5 behov, 5 vegginnlegg (med avstemning), 2 håndbok-sider, 3 arrangementer og 6 koblinger i ulike statuser (med varsler til partene, en åpen forespørsel og en fulgt opp kobling med utfall).' );
 	}
 
 	/**
@@ -569,6 +569,8 @@ class Samlab_CLI_Command {
 			array( 'Fjordnett Systemer ↔ Tallknuserne', 'Tallknuserne trenger driftshjelp.', 'fjordnett-systemer', 'ingrid.demo', array( 'godkjent' ) ),
 			array( 'Grønn Vekst ↔ Brygga Design', 'Bærekraftsrapporten trenger ny visuell drakt.', 'gronn-vekst-radgivning', 'kari.demo', array( 'godkjent', 'introdusert' ) ),
 			array( 'Fjordnett Systemer ↔ Jonas Dal', 'Ikke aktuelt akkurat nå.', 'fjordnett-systemer', 'jonas.demo', array( 'avvist' ) ),
+			array( 'Tallknuserne ↔ Jonas Dal', 'Jonas trenger hjelp med regnskapet i oppstarten.', 'tallknuserne', 'jonas.demo', array( 'forespurt' ) ),
+			array( 'Brygga Design ↔ Ingrid Berg', 'Regnskapsbyrået trengte ny nettside - og fikk den.', 'brygga-design', 'ingrid.demo', array( 'forespurt' ) ),
 		);
 
 		foreach ( $definisjoner as $def ) {
@@ -592,6 +594,16 @@ class Samlab_CLI_Command {
 			update_post_meta( $kobling, '_samlab_seed', '1' );
 			foreach ( $def[4] as $status ) {
 				samlab_sett_kobling_status( $kobling, $status );
+			}
+
+			// Den siste koblingen kjøres hele samtykkeflyten (G1-G4):
+			// begge parter takker ja, introduseres, og utfallet
+			// «avtale» føres - løftet til fulgt opp følger med.
+			if ( 'Brygga Design ↔ Ingrid Berg' === $def[0] ) {
+				samlab_kobling_svar( $kobling, 'a', 'ja', (int) get_post_meta( $bedrifter[ $def[2] ], '_samlab_kontaktperson', true ) );
+				samlab_kobling_svar( $kobling, 'b', 'ja', $brukere[ $def[3] ] );
+				samlab_sett_kobling_status( $kobling, 'introdusert' );
+				samlab_sett_kobling_utfall( $kobling, 'avtale', 'Ny nettside levert - fastprisavtale.' );
 			}
 		}
 	}

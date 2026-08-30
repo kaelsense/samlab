@@ -108,7 +108,7 @@ $samlab_tittel = '404' === $samlab_view ? __( 'Fant ikke siden', 'samlab' ) : ( 
 	<main id="samlab-hoved" class="samlab-hoved">
 		<?php
 		$samlab_flatefil = SAMLAB_PLUGIN_DIR . 'templates/flater/' . $samlab_view . '.php';
-		if ( in_array( $samlab_view, array( 'hjem', 'vegg', 'behov', 'bedrifter', 'arrangementer', 'handbok', '404' ), true ) && file_exists( $samlab_flatefil ) ) {
+		if ( in_array( $samlab_view, array( 'hjem', 'vegg', 'behov', 'bedrifter', 'koblinger', 'arrangementer', 'handbok', '404' ), true ) && file_exists( $samlab_flatefil ) ) {
 			require $samlab_flatefil;
 		}
 		?>

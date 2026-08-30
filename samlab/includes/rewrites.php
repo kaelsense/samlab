@@ -67,6 +67,10 @@ function samlab_portal_views() {
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_bedrifter', 'bedrifter' ) ),
 			'label' => samlab_get_setting( 'navn_bedrifter', __( 'Bedrifter', 'samlab' ) ),
 		),
+		'koblinger'     => array(
+			'slug'  => sanitize_title( samlab_get_setting( 'slug_koblinger', 'koblinger' ) ),
+			'label' => samlab_get_setting( 'navn_koblinger', __( 'Koblinger', 'samlab' ) ),
+		),
 		'arrangementer' => array(
 			'slug'  => sanitize_title( samlab_get_setting( 'slug_arrangementer', 'arrangementer' ) ),
 			'label' => samlab_get_setting( 'navn_arrangementer', __( 'Arrangementer', 'samlab' ) ),

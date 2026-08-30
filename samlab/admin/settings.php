@@ -52,6 +52,14 @@ function samlab_settings_fields() {
 			'label' => __( 'Slug for bedriftskatalogen', 'samlab' ),
 			'type'  => 'slug',
 		),
+		'navn_koblinger'     => array(
+			'label' => __( 'Navn på koblingsflaten', 'samlab' ),
+			'type'  => 'text',
+		),
+		'slug_koblinger'     => array(
+			'label' => __( 'Slug for koblingsflaten', 'samlab' ),
+			'type'  => 'slug',
+		),
 		'navn_arrangementer' => array(
 			'label' => __( 'Navn på arrangementsflaten', 'samlab' ),
 			'type'  => 'text',
@@ -143,6 +151,15 @@ function samlab_settings_fields() {
 			'type'  => 'urlliste',
 			'help'  => __( 'Én URL per linje - hentes inn i kunnskapsgrunnlaget av den daglige jobben. Aldri sider med passord eller sensitivt innhold.', 'samlab' ),
 		),
+		'assistent_ubesvart' => array(
+			'label' => __( 'Ubesvart-kø', 'samlab' ),
+			'type'  => 'valg',
+			'valg'  => array(
+				'pa' => __( 'På (standard) - ubesvarte spørsmål lagres anonymt', 'samlab' ),
+				'av' => __( 'Av - lagre aldri noe', 'samlab' ),
+			),
+			'help'  => __( 'Når assistenten ikke finner svar i kunnskapsgrunnlaget, lagres KUN spørsmålsteksten og datoen - aldri hvem som spurte, og aldri svaret. Køen vises for verten og brukes til å fylle håndboken. Samtaler logges uansett aldri.', 'samlab' ),
+		),
 	);
 }
 
@@ -215,6 +232,9 @@ function samlab_sanitize_settings( $input ) {
 			case 'avkryssing':
 				$verdi = '1' === $input[ $key ] ? '1' : '';
 				break;
+			case 'valg':
+				$verdi = array_key_exists( $input[ $key ], $felt['valg'] ) ? $input[ $key ] : '';
+				break;
 			case 'ukedag':
 				$dag   = (int) $input[ $key ];
 				$verdi = ( $dag >= 1 && $dag <= 7 ) ? (string) $dag : '';
@@ -255,7 +275,7 @@ function samlab_sanitize_settings( $input ) {
  * @return void
  */
 function samlab_settings_updated( $old_value, $value ) {
-	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_arrangementer', 'slug_handbok' );
+	$sti_felter = array( 'portal_sti', 'slug_vegg', 'slug_behov', 'slug_bedrifter', 'slug_koblinger', 'slug_arrangementer', 'slug_handbok' );
 	$gammel     = is_array( $old_value ) ? array_intersect_key( $old_value, array_flip( $sti_felter ) ) : array();
 	$ny         = is_array( $value ) ? array_intersect_key( $value, array_flip( $sti_felter ) ) : array();
 	if ( $gammel === $ny ) {
@@ -333,6 +353,13 @@ function samlab_render_settings_page() {
 									id="samlab-<?php echo esc_attr( $key ); ?>"
 									name="samlab_settings[<?php echo esc_attr( $key ); ?>]"
 									<?php checked( '1', $verdi ); ?> />
+							<?php elseif ( 'valg' === $felt['type'] ) : ?>
+								<select id="samlab-<?php echo esc_attr( $key ); ?>"
+									name="samlab_settings[<?php echo esc_attr( $key ); ?>]">
+									<?php foreach ( $felt['valg'] as $valg_nokkel => $valg_navn ) : ?>
+										<option value="<?php echo esc_attr( $valg_nokkel ); ?>" <?php selected( $valg_nokkel, '' === $verdi ? array_key_first( $felt['valg'] ) : $verdi ); ?>><?php echo esc_html( $valg_navn ); ?></option>
+									<?php endforeach; ?>
+								</select>
 							<?php elseif ( 'ukedag' === $felt['type'] ) : ?>
 								<select id="samlab-<?php echo esc_attr( $key ); ?>"
 									name="samlab_settings[<?php echo esc_attr( $key ); ?>]">

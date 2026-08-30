@@ -27,6 +27,17 @@ function samlab_assistent_aktiv() {
 }
 
 /**
+ * Om ubesvart-køen er på (standard på - avklaring 7). Køen lagrer
+ * kun spørsmålstekst og dato anonymt, aldri hvem som spurte og
+ * aldri svaret; av-bryteren stopper all lagring.
+ *
+ * @return bool
+ */
+function samlab_assistent_ubesvart_aktiv() {
+	return 'av' !== samlab_get_setting( 'assistent_ubesvart' );
+}
+
+/**
  * Assistentens visningsnavn, standard «Assistenten».
  *
  * @return string

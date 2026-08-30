@@ -142,12 +142,21 @@ sjekk( 'medlem avvises fra handling', is_wp_error( $resultat ) && 'samlab_ingen_
 sjekk( 'ukjent handling avvises', is_wp_error( samlab_kontrollpanel_utfor( $kobling, 'sabotasje', $moderator->ID ) ) );
 sjekk( 'ikke-kobling avvises', is_wp_error( samlab_kontrollpanel_utfor( $brygga->ID, 'godkjenn', $moderator->ID ) ) );
 
-// Moderator godkjenner - «Ferdig når»: varsel til partene.
+// Moderator godkjenner - G1: koblingen settes til forespurt og
+// venter på partenes samtykke.
 $resultat = samlab_kontrollpanel_utfor( $kobling, 'godkjenn', $moderator->ID );
 sjekk( 'moderator godkjenner', true === $resultat );
-sjekk( 'status er godkjent', 'godkjent' === get_post_meta( $kobling, '_samlab_status', true ) );
-sjekk( 'godkjenning varslet begge parter', 1 === Samlab_Varsel::unread_count( $jonas->ID ) && 1 === Samlab_Varsel::unread_count( $kari->ID ) );
+sjekk( 'status er forespurt', 'forespurt' === get_post_meta( $kobling, '_samlab_status', true ) );
 sjekk( 'kobling er ute av køen', ! in_array( $kobling, wp_list_pluck( samlab_kp_koblinger( array( 'foreslatt' ) ), 'ID' ), true ) );
+sjekk( 'kobling venter på partene', in_array( $kobling, wp_list_pluck( samlab_kp_koblinger( array( 'forespurt' ) ), 'ID' ), true ) );
+
+// Begge parter takker ja - først da er koblingen godkjent, og
+// «Ferdig når»-varselet til partene går ut.
+sjekk( 'part A (kontaktperson) takker ja', true === samlab_kobling_svar( $kobling, 'a', 'ja', $kari->ID ) );
+sjekk( 'ett ja er ikke nok', 'forespurt' === get_post_meta( $kobling, '_samlab_status', true ) );
+sjekk( 'part B takker ja', true === samlab_kobling_svar( $kobling, 'b', 'ja', $jonas->ID ) );
+sjekk( 'status er godkjent', 'godkjent' === get_post_meta( $kobling, '_samlab_status', true ) );
+sjekk( 'godkjenning varslet begge parter', 2 === Samlab_Varsel::unread_count( $jonas->ID ) && 2 === Samlab_Varsel::unread_count( $kari->ID ) ); // Forespørsel (G2) + godkjent.
 sjekk( 'kobling er i aktive-listen', in_array( $kobling, wp_list_pluck( samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) ), 'ID' ), true ) );
 
 // Videre i kjeden.

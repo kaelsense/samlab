@@ -752,3 +752,301 @@ trengs i test.*
 0-4 levert. Neste beslutningspunkt (interaktivt): LLM-assistert
 matching-scoring, SSE-streaming etter webhotell-test, og
 erfaringene fra Lius-piloten.
+
+## Fase G: Pitch-løftene (samtykke, utfall/rapport, ubesvart-kø)
+
+*Gjennomgangen 2026-08-30 av `samlabpitch.pptx` mot koden fant tre
+løfter decket gir som fase A-F ikke dekker: parts-samtykke i
+introduksjonsflyten (slide 6, steg 4: «ingen kontaktes uten å ha
+sagt ja»), utfallsregistrering og rapport (slide 6 steg 6 og hele
+slide 7), og assistentens ubesvart-løkke (slide 10). Fase G lukker
+dem. Rekkefølgen er bevisst: G1-G3 er samtykkeflyten, G4-G5 bygger
+på den, G6-G7 er uavhengige av resten. Veivalgene bak fasen er
+avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
+
+- [x] **G1. Samtykke-datamodell og statuskjede.** Ny status
+  `forespurt` mellom foreslått og godkjent, slik at
+  `samlab_kobling_statuser()` blir foreslått → forespurt → godkjent
+  → introdusert → fulgt opp (avvist fortsatt terminal sidegren).
+  «Godkjent» endrer betydning til «begge parter har takket ja»;
+  kontrollpanelets godkjenn-handling settes om til å sette
+  forespurt (knappetekst «Godkjenn og spør partene»). Samtykke per
+  part i meta `_samlab_samtykke_a`/`_samlab_samtykke_b`
+  (venter|ja|nei), nullstilt til venter når forespurt settes. Ny
+  funksjon `samlab_kobling_svar( $kobling_id, $part, $svar,
+  $user_id )` som fører samtykket, logger i statusloggen og løfter
+  status selv: begge ja → godkjent, ett nei → avvist. Ny action
+  `samlab_kobling_besvart`. Eksisterende koblinger i godkjent/
+  introdusert/fulgt_opp beholdes uendret og regnes som samtykket
+  (historikk fra før kravet). Metaboksen og kontrollpanelet viser
+  samtykkestatus per part.
+  *Ferdig når:* ingen kobling kan nå godkjent uten to ja (håndhevet
+  i `samlab_kobling_svar`, ikke bare i UI), riggtest dekker begge
+  ja / ett nei / svar i feil status, og WPCS er grønn.
+  *Notat (2026-08-30):* Statuskjeden utvidet med forespurt;
+  samtykke-meta med lat historikk-tolkning (godkjent+ uten meta =
+  to ja), samlab_kobling_svar() med vakter for part/svar/status og
+  statusløft ført som system (0) - ellers hadde varselsystemets
+  aktør-hopp latt den som svarte sist stå uten godkjent-varsel.
+  Logg-uttrekk i samlab_kobling_logg() med samtykke_ja/nei-innslag
+  og egne etiketter; forespurt nullstiller samtykkene (også ved
+  re-forespørsel). Kontrollpanelet fikk «Venter på partene»-seksjon
+  med samtykkekolonne og trekk tilbake-knapp; metaboksen viser
+  samtykke per part, og manuell overstyring til godkjent+ fører
+  samtykkene som ja. Manglende forespurt-varsel til partene er
+  G2s jobb. Ny riggtest test-g1.php (22 sjekker) dekker kontrakten;
+  test-e3 omskrevet til to-parts-flyten. docs/hooks.md dokumenterer
+  samlab_kobling_besvart og den nye kjeden. Alle 18 riggtester
+  grønne to ganger på rad (329 sjekker), admin-flatene røyk-rendret
+  uten warnings, WPCS grønn. POT-fila var utdatert (38 av 254
+  strenger) og ble regenerert med wp i18n make-pot.
+- [x] **G2. Forespørsel-varsler og svar-endepunkt.** Varseltype
+  `kobling_forespurt` til begge parter når status settes til
+  forespurt - med begrunnelsen (koblingens brødtekst), uten
+  motpartens kontaktdetaljer; kontaktinfo deles først fra godkjent.
+  Varsel til moderatorene når begge har svart (begge ja eller ett
+  nei), og nøytralt varsel til motparten ved nei i tråd med
+  avklaring 5. REST: `POST samlab/v1/koblinger/<id>/svar` med
+  `{ svar: ja|nei }`, permission = `samlab_er_kobling_part` +
+  nonce; 403 for ikke-parter, 409 når koblingen ikke står i
+  forespurt. `GET samlab/v1/koblinger` (kun egne koblinger) som
+  datagrunnlag for G3. docs/hooks.md og sikkerhetstabellen føres i
+  samme endring.
+  *Ferdig når:* riggtest viser hele flyten over REST (forespurt →
+  varsler → to ja → godkjent → varsel), 401/403/409-vaktene
+  holder, og forespurt-varselet aldri inneholder kontaktinfo.
+  *Notat (2026-08-30):* Varsleren utvidet: kobling_forespurt til
+  begge parter (aktør 0 så en kontaktperson som selv er moderator
+  også får den; tekst = tittel + begrunnelse, aldri kontaktinfo),
+  kobling_ikke_noe nøytralt til motparten ved nei (aktør 0, sier
+  aldri hvem - avklaring 5), kobling_besvart til alle med
+  edit_samlab_koblinger når begge har svart (lenke til
+  kontrollpanelet). REST: GET /koblinger (egne koblinger via
+  partskap-filter, motpart_kontakt null frem til godkjent) og
+  POST /koblinger/<id>/svar (partskap i permission-callbacken,
+  404/403, samlab_feil_status mappet til 409). Nye helpere
+  samlab_kobling_bruker_part/part_navn/part_bruker i koblinger.php
+  (samlab_er_kobling_part gjenbruker den første). Riggtest
+  test-g2.php (23 sjekker) kjører hele flyten over REST inkl.
+  nei-grenen og varsel-tekstenes kontaktinfo-/anonymitetskrav;
+  test-e3 justert (uleste = forespørsel + godkjent). hooks.md
+  (endepunkter + varseltyper) og sikkerhetstabellen ført; POT
+  regenerert. Alle 19 riggtester grønne to ganger på rad, WPCS
+  grønn. Varsel-lenken for forespørsler settes når G3-flaten
+  finnes.
+- [x] **G3. Portalflate for koblinger.** Ny flate «Koblinger» i
+  portalen (bak innloggingsporten, alltid i nav, med tom-tilstand):
+  åpne forespørsler øverst med begrunnelse og Takk ja / Nei
+  takk-knapper (JS mot G2-endepunktet), deretter aktive og
+  historiske koblinger med statuskjede-visning som i prototypen.
+  Ukesbrevet får en seksjon for ubesvarte forespørsler (filteret
+  `samlab_ukesbrev_seksjoner`). Seed utvides med en forespurt
+  kobling så flaten kan demonstreres.
+  *Ferdig når:* flyten kan gjennomføres i nettleser i riggen
+  (forespørsel synlig → ja fra begge parter → status godkjent
+  synlig), utloggede møter innloggingsporten, og all output
+  escapes.
+  *Notat (2026-08-30):* Flaten registrert som portal-visning
+  (slug_koblinger/navn_koblinger i innstillingene, med i nav,
+  hjem-kort og skallets allowlist). Template med tre bøtter:
+  forespørsler (Takk ja / Nei takk mot G2-endepunktet, confirm ved
+  nei, «venter på motparten» etter eget ja), aktive (statuskjede +
+  kontaktinfo først fra godkjent) og historikk; foreslåtte vises
+  aldri for partene. Statuskjede-rendring i
+  samlab_render_kobling_statuskjede (avvist viser hvor langt kjeden
+  kom, fra loggen); samlab_koblinger_for-helper delt med REST-
+  listen. Varsel-lenkene for parts-varslene peker nå til flaten.
+  Ukesbrev-seksjonen er aggregert antall uten navn - brevet er
+  felles for alle mottakere, så hvem som matches røpes aldri der.
+  Seed gir en forespurt kobling (Tallknuserne ↔ Jonas). Riggtest
+  test-g3.php (25 sjekker: bøtter, escaping med script-payload,
+  ukesbrev, varsel-lenker) og nettlesertest test-g3-flyt.js
+  (Playwright: utlogget → innloggingsport, jonas ja → venter,
+  ingrid ja → godkjent synlig med kontaktinfo hos begge) - hele
+  Ferdig når-flyten kjørt i ekte nettleser. Alle 20 riggtester
+  grønne to ganger på rad, WPCS grønn, hooks-/sikkerhetsdocs ført,
+  POT regenerert.
+- [x] **G4. Utfallsregistrering («ble det noe?»).** Meta
+  `_samlab_utfall` (mote|avtale|henvisning|ingenting) pluss
+  valgfritt kort notat på koblinger. Settes av community-manageren
+  i kontrollpanelet (fulgt opp-handlingen utvides med utfallsvalg)
+  og av partene fra G3-flaten (`POST
+  samlab/v1/koblinger/<id>/utfall`, samme partsvakt som G2).
+  Påminnelsesvarsel til partene 14 dager etter introdusert, hektet
+  på den daglige matching-cronen - sendes én gang per kobling.
+  Prinsipp fra decket: aggregert, aldri salgsdetaljer - kun
+  kategori og notat, aldri beløp.
+  *Ferdig når:* utfall kan settes fra begge flater med riktige
+  tilganger, påminnelsen sendes nøyaktig én gang per kobling i
+  riggen, og utfallet vises i kontrollpanelet.
+  *Notat (2026-08-30):* samlab_sett_kobling_utfall() i
+  koblinger.php eier vaktene (gyldig type, kun introdusert/fulgt
+  opp, notat sanitert og kappet til 500 tegn) og fører utfallet i
+  statusloggen (utfall_<slug> med egne etiketter) før den løfter
+  introdusert → fulgt opp som system - action
+  samlab_kobling_utfall_satt. Tre veier inn: kontrollpanelets
+  fulgt opp-handling med utfallsvalg + notat (utvidet
+  handlingsskjema og samlab_kontrollpanel_utfor), metaboksen
+  (endringsvakt så loggen ikke fylles per lagring) og partenes
+  POST /koblinger/<id>/utfall med G2s partsvakt (409 før
+  introdusert). Kontrollpanelet fikk en Utfall-seksjon over fulgte
+  opp koblinger; G3-flaten fikk «Registrer utfall»-skjema på
+  introduserte kort og utfall-visning i historikken; GET
+  /koblinger bærer utfall-objektet. Påminnelsen
+  kobling_utfall_paminnelse går til begge parter 14 dager etter
+  introdusert (tid fra statusloggen), hektet på
+  samlab_matching_kjort, med meta-vakt for nøyaktig én gang -
+  verifisert i riggtest med to runder pluss cron-action. Aldri
+  beløp: ikke noe felt for det, prinsippet står i docs og
+  UI-tekstene. Riggtest test-g4.php (27 sjekker) dekker alle tre
+  veiene, vaktene, kappingen, påminnelsen og visningene. Alle 21
+  riggtester grønne to ganger på rad, WPCS grønn (én Yoda-retting),
+  hooks-/sikkerhetsdocs ført, POT regenerert. Seed-utfall kommer i
+  G8.
+- [x] **G5. Rapportflate.** Undermeny «Rapport» under
+  kontrollpanelet (samme capability, `edit_samlab_koblinger`):
+  valgbar periode (30/90/365 dager) med aggregerte tall - nye
+  behov, matchforslag, forespurte, godkjente, avviste,
+  introduserte, utfall per kategori, lesebekreftelsesgrad på
+  festede oppslag, arrangementer avholdt og aktive medlemmer
+  (minst én registrert hendelse: innlegg, kommentar, reaksjon,
+  stemme eller lesebekreftelse). Tidsgrunnlaget finnes allerede i
+  statusloggene og egentabellene - ingen nye tabeller.
+  CSV-eksport av tallene (admin-post + nonce). Kun aggregater -
+  rapporten lister aldri hvem som gjorde hva. Gårdeier-metrikkene
+  fra slide 7 (fornyelsesgrad, frafall, lokalbruk) er utenfor
+  datagrunnlaget - se avklaring 8.
+  *Ferdig når:* tallene stemmer mot seed-dataene i riggen for alle
+  tre periodene, CSV-en åpner i regneark, og siden svarer 403 uten
+  koblings-capability.
+  *Notat (2026-08-30):* admin/rapport.php: samlab_rapport_tall()
+  teller hendelser fra koblingenes statuslogger (matchforslag =
+  foreslått-hendelser med kilde matching; forespurte/godkjente/
+  avviste/introduserte; utfall per kategori), nye behov på
+  post_date_gmt, arrangementer avholdt på _samlab_start i
+  perioden, og aktive medlemmer som distinct user_id fra
+  egentabellene (innlegg, reaksjoner inkl. lesebekreftelser,
+  stemmer) pluss kommentarer - kun antallet, aldri hvem.
+  Lesebekreftelsesgraden er et nå-bilde (dokumentert på siden).
+  Undermeny bak edit_samlab_koblinger med egen vakt i rendringen;
+  CSV-eksport via admin-post med nonce + capability: alle tre
+  periodene i én fil, semikolon + BOM for norske regneark.
+  Gårdeier-fotnote på siden viser til avklaring 8. Verifisert:
+  riggtest test-g5.php (36 sjekker) med delta-målte hendelser i
+  hver tidslomme (nå / 60 / 200 dager tilbake) for alle tre
+  periodene, CSV-format parset med Pythons csv-modul; tallene
+  kontrollert mot fersk seed (5 behov, 1 forespurt, 2 godkjente,
+  1 avvist, 1 introdusert); HTTP-verifisert medlem 403, anonym til
+  innlogging, moderator 200, CSV 200 med riktige headere og 403
+  uten nonce. Alle 22 riggtester grønne to ganger på rad, WPCS
+  grønn (phpcbf på innrykk), sikkerhetstabellen ført, POT
+  regenerert. Med G5 er slide 7s rapportløfte levert - minus
+  gårdeier-metrikkene som er avklart bort (avklaring 8), og
+  møter/avtaler/henvisninger som telles via G4-utfallene.
+- [x] **G6. Ubesvart-deteksjon i assistenten.**
+  Systemprompten instruerer modellen til å starte svaret med
+  markøren `[UBESVART]` når kunnskapsgrunnlaget ikke holder;
+  api.php stripper markøren før svaret går til medlemmet og legger
+  spørsmålet i køen: option `samlab_ubesvart` (autoload av) med
+  tak på 200 innslag (FIFO), kun spørsmålstekst, dato og teller -
+  aldri bruker-ID og aldri svaret. Dedupe på normalisert tekst
+  (telleren økes). Egen innstilling av/på i assistent-seksjonen
+  med klartekst om nøyaktig hva som lagres; README og
+  docs/sikkerhet.md omformulerer «spørsmål og svar logges aldri»
+  til å beskrive den anonyme køen.
+  *Ferdig når:* mocket API-svar med markør havner anonymt i køen
+  (og medlemmet ser svaret uten markør), svar uten markør lagres
+  aldri, tak og dedupe holder i riggtest, og innstillingen av
+  stopper all lagring.
+  *Notat (2026-08-30):* includes/assistent/ubesvart.php (lastes kun
+  via modulen): kø i option samlab_ubesvart med autoload av
+  (verifisert mot wp_load_alloptions), kun spørsmålstekst (sanitert,
+  kappet 500 tegn), dato og teller - aldri bruker-ID/svar; dedupe
+  på normalisert tekst (lowercase, sammenslått blank, uten
+  slutt-tegnsetting), FIFO-tak 200. Systemprompten instruerer om
+  [UBESVART]-markøren; api.php stripper den ALLTID (også når køen
+  er av) før svaret går til medlemmet, og registrerer kun når
+  innstillingen er på. Innstillingen assistent_ubesvart via ny
+  gjenbrukbar felttype «valg» (select med whitelist-sanitering) -
+  avkryssing kunne ikke ha standard på, siden ulagret avkryssing
+  er fravær; standard på per avklaring 7, med klartekst om
+  nøyaktig hva som lagres. Personvernløftet omformulert alle
+  steder («samtaler logges aldri; ubesvarte spørsmål lagres
+  anonymt når innstillingen er på»): README, docs/hooks.md,
+  docs/sikkerhet.md (F3-raden + egen G6-rad + trusselnotatet) og
+  api.php-headeren. Riggtest test-g6.php (15 sjekker, i modulen
+  på-gruppen) dekker hele Ferdig når pluss autoload,
+  markør-stripping med køen av, og sanitize-veien er verifisert
+  manuelt (av/pa lagres, ugyldig droppes). Alle 23 riggtester
+  grønne to ganger på rad, WPCS grønn, POT regenerert.
+  CM-visningen av køen er G7.
+- [x] **G7. Ubesvart-køen i kontrollpanelet.** Seksjon i
+  kontrollpanelet (CM-ens flate) som lister køen med
+  antall-per-spørsmål, «håndtert»-knapp (fjerner innslaget) og
+  «legg til i håndboken»-lenke som oppretter et håndbok-utkast
+  forhåndsutfylt med spørsmålet som tittel. Løkken fra slide 10
+  lukkes av F2: neste kunnskapsbygg tar med den nye siden, og
+  assistenten kan svare.
+  *Ferdig når:* riggtest viser hele løkken - ubesvart spørsmål i
+  kø → håndbok-side publisert → `wp samlab kunnskap` → grunnlaget
+  inneholder svaret - og køen er tom etter håndtering.
+  *Notat (2026-08-30):* Seksjon nederst i kontrollpanelet (kun
+  når modulen er lastet, function_exists-vakt): spørsmål, teller,
+  sist spurt og handlingene «Legg i håndboken» (admin-post:
+  oppretter håndbok-merket draft med spørsmålet som tittel,
+  fjerner fra køen og sender rett til redigeringen) og «Håndtert»
+  (fjerner, med bekreftelsesmelding). Håndbok-knappen krever
+  edit_pages i tillegg til koblings-capability - moderator mangler
+  edit_pages og ser kun Håndtert (utkastet skal kunne redigeres av
+  den som lager det); handleren avviser tilsvarende
+  (HTTP-verifisert 403, også uten nonce). Logikken er faktorert
+  testbart (samlab_ubesvart_fjern på normalisert nøkkel,
+  samlab_ubesvart_til_handbok). Riggtest test-g7.php (13 sjekker)
+  dekker visning, cap-gating, utkast-egenskaper og
+  håndtert-idempotens; hele Ferdig når-løkken i tillegg kjørt med
+  EKTE `wp samlab kunnskap`: spørsmål i kø → til_handbok →
+  publisert svar → grunnlaget inneholder svaret, kø tom. Alle 24
+  riggtester grønne to ganger på rad, WPCS grønn,
+  sikkerhetstabellen fikk G7-rad, POT regenerert. Slide 10-løkken
+  er dermed komplett: G6 fyller køen, G7 tømmer den inn i
+  håndboken, F2 lukker sirkelen.
+- [x] **G8. Seed, docs og samlet verifisering for fase G.** Seed
+  gir forespurte koblinger og et utfall på en fulgt opp-kobling;
+  docs/hooks.md, docs/sikkerhet.md og README dekker alle nye
+  endepunkter og flater; kjor-alle.sh kjører de nye riggtestene.
+  Til slutt noteres her hvilke deck-formuleringer som fortsatt må
+  justeres av et menneske (minst «møte bookes direkte» og
+  gårdeier-metrikkene - se avklaring 8).
+  *Ferdig når:* fersk rigg + seed demonstrerer G1-G7, alle
+  riggtester er grønne to ganger på rad, og dokumentasjonen dekker
+  de nye flatene.
+  *Notat (2026-08-30):* Seed fikk en sjette kobling (Brygga Design
+  ↔ Ingrid Berg) som kjøres gjennom hele samtykkeflyten - begge
+  parter takker ja via samlab_kobling_svar (så samtykke-metaene er
+  reelle, ikke historikk-fallback), introduseres og får utfallet
+  «avtale» med notat - i tillegg til den åpne forespørselen fra
+  G3. README-intro og cron-avsnitt oppdatert (samtykkeflyt,
+  utfall, rapport, påminnelser); hooks-/sikkerhetsdocs var ført
+  løpende per G-oppgave og dekker alle nye endepunkter, actions,
+  varseltyper og admin-flater. Verifisert i HELT fersk rigg (rm +
+  bin/testrigg.sh + seed): alle 24 riggtester grønne to ganger på
+  rad (443 sjekker), G1-G7 demonstrert - forespurt kobling og
+  utfall i kontrollpanelet, rapporttallene stemmer med
+  seed-hendelsene, koblingsflaten med forespørsel og utfall i
+  historikken, og hele nettleserflyten (test-g3-flyt.js) grønn.
+  WPCS grønn, POT regenerert.
+  *Deck-justeringer som gjenstår (menneskelig oppgave, avklaring
+  8):* slide 6 steg 5 «Kort møte bookes direkte» → «avtales
+  direkte» (booking er utenfor scope); slide 7s gårdeier-boks
+  (fornyelsesgrad, frafall, lokalbruk) merkes som
+  integrasjonsveikart - utenfor pluginens datagrunnlag. I tillegg
+  bør slide 12 «Der vi står» oppdateres (fase 1-4 pluss hele fase
+  G er bygget, ikke bare konsept/prototype), og slide 5s
+  «pilotert hos Lius» må samsvare med faktisk pilotstatus.
+  Slide 10s løfte om ubesvarte spørsmål stemmer nå med koden.
+
+**Milepæl: Fase G - pitch-løftene levert.** Med G8 er gapet mellom
+pitch-decket og koden lukket i programvaren: to-parts samtykke
+(slide 6), utfall og aggregert rapport (slide 7), og
+ubesvart-løkken (slide 10). Det som gjenstår mot decket er
+redaksjonelt (se G8-notatet) og avgjort i avklaring 8.
