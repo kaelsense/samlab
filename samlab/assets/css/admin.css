@@ -4,8 +4,12 @@
  * Et tynt lag oppå WordPress' egen admin-stil, ikke et parallelt
  * designsystem. To regler holder laget ærlig:
  *
- * 1. Hver selektor starter med .samlab-admin. Aldri en bar core-klasse
- *    - .postbox skal ikke bety noe annet andre steder i wp-admin.
+ * 1. Hver selektor er bundet til .samlab-admin. Aldri en bar
+ *    core-klasse - .postbox skal ikke bety noe annet andre steder i
+ *    wp-admin. Normalt betyr det at selektoren STARTER med
+ *    .samlab-admin; det ene unntaket er html:has( body.samlab-admin-side )
+ *    nederst, som må treffe html for å virke, men som fortsatt bare
+ *    gjelder når kroppsklassen er der.
  * 2. Ingen interaktiv farge. Core sitt fargeskjema-stilark eier
  *    knapper, lenker, aktive tilstander og fokusringer. Maler vi en
  *    farge der, bryter vi skjematroskapen i stedet for å arve den -
@@ -235,8 +239,17 @@
  * dekke feltet som får fokus ved tabbing nedover skjemaet. Regelen
  * gjentas på html fordi det er html som scroller, og kroppsklassen
  * sitter på body.
+ *
+ * De to står bevisst som SEPARATE regler, ikke som én selektorliste.
+ * Et ugyldig ledd i en liste kasserer hele regelen - verifisert i
+ * nettleser - så i en nettleser uten :has()-støtte ville begge falt
+ * bort, og nettopp det tiltaket dette er, forsvunnet. Hver for seg
+ * overlever den ene at den andre ikke forstås. Ikke slå dem sammen.
  */
-.samlab-admin-side,
+.samlab-admin-side {
+	scroll-padding-block-end: 6rem;
+}
+
 html:has( body.samlab-admin-side ) {
 	scroll-padding-block-end: 6rem;
 }

@@ -289,6 +289,58 @@ wp_scripts()->queue = array();
 samlab_test_admin_skjerm( 'samlab_kobling', 'samlab_kobling' );
 sjekk( 'repeater-skriptet lastes ikke på andre editorer', ! wp_script_is( 'samlab-admin-tjenester', 'enqueued' ) );
 
+// Sammendragsflisene skal aldri love mer presisjon enn de har.
+ob_start();
+samlab_admin_sammendrag(
+	array(
+		array( 'tall' => 100, 'etikett' => 'Truffet tak', 'tak' => 100 ),
+		array( 'tall' => 108, 'etikett' => 'Gulv', 'minst' => true ),
+		array( 'tall' => 42, 'etikett' => 'Eksakt' ),
+	)
+);
+$samlab_flis = ob_get_clean();
+sjekk( 'tall som treffer taket vises som «100+»', false !== strpos( $samlab_flis, '>100+<' ) );
+sjekk( 'sum av avkortede lister vises som gulv «108+»', false !== strpos( $samlab_flis, '>108+<' ) );
+sjekk( 'eksakt tall får ingen plusstegn', false !== strpos( $samlab_flis, '>42<' ) );
+
+// Ufullstendige bedrifter må finnes uansett hvor de står i alfabetet.
+// Sorteringen (tittel) peker ikke samme vei som filteret
+// (ufullstendig), så et tak på spørringen gjør ikke bare listen
+// kortere - det gjør selve søket vilkårlig.
+//
+// Testen MÅ fylle forbi taket for å bety noe: med en håndfull
+// bedrifter i riggen biter et tak på 100 aldri, og en test som ikke
+// fyller opp ville vært grønn også med feilen på plass. Derfor
+// opprettes SAMLAB_KP_TAK bedrifter som sorterer foran målet.
+$samlab_fyll = array();
+for ( $samlab_i = 0; $samlab_i < SAMLAB_KP_TAK; $samlab_i++ ) {
+	$samlab_fyll[] = wp_insert_post(
+		array(
+			'post_type'   => 'samlab_bedrift',
+			'post_title'  => sprintf( 'AAA fyll %03d', $samlab_i ),
+			'post_status' => 'publish',
+		)
+	);
+}
+$samlab_sist = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_bedrift',
+		'post_title'  => 'ÖÖÖ sist i alfabetet',
+		'post_status' => 'publish',
+	)
+);
+$samlab_treff = false;
+foreach ( samlab_kp_ufullstendige_bedrifter() as $samlab_rad ) {
+	if ( (int) $samlab_rad['bedrift']->ID === (int) $samlab_sist ) {
+		$samlab_treff = true;
+	}
+}
+sjekk( 'ufullstendig bedrift bakerst i alfabetet blir funnet forbi taket', $samlab_treff );
+
+foreach ( array_merge( $samlab_fyll, array( $samlab_sist ) ) as $samlab_id ) {
+	wp_delete_post( $samlab_id, true );
+}
+
 // --- Fase 6: listetabellene ---
 // Kolonnene registreres gjennom core sine egne kroker, så filtrene
 // kjøres direkte - det er dem core kaller.
@@ -336,6 +388,60 @@ sjekk( 'statustellingen gir tall per status', is_array( $antall ) );
 $visninger = apply_filters( 'views_edit-samlab_kobling', array( 'all' => 'Alle' ) );
 sjekk( 'visningene beholder core sine egne', isset( $visninger['all'] ) );
 
+// Tallet i visningen må dekke nøyaktig det lenken viser. Talte
+// tellingen bare publiserte, ville et utkast med samme status gi
+// «Foreslått (1)» over en liste med to rader.
+$samlab_publisert = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Telletest publisert',
+		'post_status' => 'publish',
+	)
+);
+update_post_meta( $samlab_publisert, '_samlab_status', 'foreslatt' );
+$samlab_utkast = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Telletest utkast',
+		'post_status' => 'draft',
+	)
+);
+update_post_meta( $samlab_utkast, '_samlab_status', 'foreslatt' );
+
+$samlab_for = samlab_kobling_statusantall();
+
+// Fasit: samme spørring listetabellen selv kjører uten statusvalg.
+$samlab_liste = new WP_Query(
+	array(
+		'post_type'      => 'samlab_kobling',
+		'post_status'    => samlab_liste_synlige_statuser(),
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_query'     => array(
+			array(
+				'key'   => '_samlab_status',
+				'value' => 'foreslatt',
+			),
+		),
+	)
+);
+sjekk(
+	'tellingen stemmer med radene lenken viser (utkast talt med)',
+	isset( $samlab_for['foreslatt'] ) && (int) $samlab_for['foreslatt'] === (int) $samlab_liste->post_count
+);
+sjekk( 'og utkastet er faktisk med i begge', (int) $samlab_liste->post_count >= 2 );
+
+// Papirkurven skal derimot IKKE telles - den vises ikke i «alle».
+wp_trash_post( $samlab_utkast );
+$samlab_etter = samlab_kobling_statusantall();
+sjekk(
+	'papirkurv telles ikke',
+	(int) $samlab_for['foreslatt'] - 1 === (int) $samlab_etter['foreslatt']
+);
+
+wp_delete_post( $samlab_publisert, true );
+wp_delete_post( $samlab_utkast, true );
+
 // --- Fase 5: volumlappene ---
 // samlab_kp_liste() direkte: 40 elementer skal gi 10 åpne og resten
 // sammenbrettet, uansett hva som ligger i basen.
@@ -356,6 +462,28 @@ $xl = new DOMXPath( $dom_l );
 sjekk( 'lista viser ti rader åpent', SAMLAB_KP_VIS === $xl->query( '//div[@id="rot"]/ul/li' )->length );
 sjekk( 'resten ligger i details', 30 === $xl->query( '//details/ul/li' )->length );
 sjekk( 'summary sier hvor mange som er brettet sammen', false !== strpos( $liste_html, 'Vis 30 til' ) );
+
+// $maks binder DOM-en selv om datalaget sender inn en ubundet liste.
+ob_start();
+samlab_kp_liste(
+	range( 1, 250 ),
+	function ( $n ) {
+		echo '<li>' . esc_html( (string) $n ) . '</li>';
+	},
+	'tom',
+	SAMLAB_KP_VIS,
+	SAMLAB_KP_TAK
+);
+$maks_html = ob_get_clean();
+$dom_m     = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom_m->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $maks_html . '</div>' );
+libxml_clear_errors();
+$xm         = new DOMXPath( $dom_m );
+$maks_rader = $xm->query( '//div[@id="rot"]//li[not(@class)]' )->length;
+sjekk( '250 elementer med tak på 100 rendrer 100 rader', SAMLAB_KP_TAK === $maks_rader );
+sjekk( 'de utelatte oppsummeres framfor å forsvinne stille', false !== strpos( $maks_html, 'og 150 til' ) );
+sjekk( 'summary teller både sammenbrettede og utelatte', false !== strpos( $maks_html, 'Vis 240 til' ) );
 
 ob_start();
 samlab_kp_liste( array(), 'esc_html', 'Ingen her.' );
@@ -387,6 +515,70 @@ foreach ( $xpath->query( '//ul' ) as $samlab_ul ) {
 	$lengste = max( $lengste, $n );
 }
 sjekk( 'ingen liste er lengre enn navnegrensen', $lengste <= SAMLAB_KP_NAVN + 1 );
+
+// Rapporten skal ikke koste én spørring per kobling.
+//
+// Testen måler egenskapen, ikke et magisk tall: doble datamengden og
+// se at spørringstallet står omtrent stille. Uten meta-priming vokser
+// det én-til-én med antall koblinger (målt: 206 koblinger -> 206
+// ekstra spørringer), og da ryker denne.
+global $wpdb;
+
+/**
+ * Lager n koblinger med statuslogg, som rapporten leser.
+ *
+ * @param int $n Antall.
+ * @return int[] ID-ene.
+ */
+function samlab_test_lag_koblinger( $n ) {
+	$ids = array();
+	for ( $i = 0; $i < $n; $i++ ) {
+		$id = wp_insert_post(
+			array(
+				'post_type'   => 'samlab_kobling',
+				'post_status' => 'publish',
+				'post_title'  => 'Spørringstest ' . $i . '-' . wp_rand(),
+			)
+		);
+		update_post_meta( $id, '_samlab_status', 'introdusert' );
+		update_post_meta( $id, '_samlab_kilde', 'matching' );
+		update_post_meta(
+			$id,
+			'_samlab_statuslogg',
+			array( array( 'status' => 'introdusert', 'tid' => gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ) ) )
+		);
+		$ids[] = $id;
+	}
+	return $ids;
+}
+
+/**
+ * Spørringer brukt av samlab_rapport_tall(), med kald cache.
+ *
+ * @return int
+ */
+function samlab_test_rapport_sporringer() {
+	global $wpdb;
+	wp_cache_flush();
+	$for = $wpdb->num_queries;
+	samlab_rapport_tall( 90 );
+	return $wpdb->num_queries - $for;
+}
+
+$samlab_parti_a = samlab_test_lag_koblinger( 20 );
+$samlab_q1      = samlab_test_rapport_sporringer();
+$samlab_parti_b = samlab_test_lag_koblinger( 20 );
+$samlab_q2      = samlab_test_rapport_sporringer();
+$samlab_vekst   = $samlab_q2 - $samlab_q1;
+
+sjekk(
+	'rapporten vokser ikke én spørring per kobling (vekst ' . $samlab_vekst . ' på 20 nye)',
+	$samlab_vekst < 10
+);
+
+foreach ( array_merge( $samlab_parti_a, $samlab_parti_b ) as $samlab_id ) {
+	wp_delete_post( $samlab_id, true );
+}
 
 // --- Fase 4: rapporten ---
 set_current_screen( 'kontrollpanel_page_samlab-rapport' );

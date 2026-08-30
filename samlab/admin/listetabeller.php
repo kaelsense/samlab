@@ -234,30 +234,57 @@ function samlab_kobling_kolonne_innhold( $kolonne, $post_id ) {
 add_action( 'manage_samlab_kobling_posts_custom_column', 'samlab_kobling_kolonne_innhold', 10, 2 );
 
 /**
+ * Post-statusene listetabellen viser når ingen status er valgt.
+ *
+ * Dette er kjernens eget «alle»-utvalg: publisert, planlagt, utkast,
+ * til gjennomsyn og privat - alt unntatt papirkurv og auto-utkast.
+ *
+ * @return string[]
+ */
+function samlab_liste_synlige_statuser() {
+	$statuser = get_post_stati( array( 'show_in_admin_all_list' => true ) );
+	return array() !== $statuser ? array_values( $statuser ) : array( 'publish' );
+}
+
+/**
  * Antall koblinger per status, i én gruppert spørring.
  *
  * Seks WP_Query-kall for å telle seks statuser ville vært sløsing på en
  * side som allerede kjører mange spørringer.
+ *
+ * Tellingen må dekke nøyaktig de post-statusene lenken bak tallet
+ * faktisk viser. Talte vi bare publiserte, ville et utkast med samme
+ * status gi «Foreslått (1)» over en liste med to rader - tallet og
+ * listen ville sagt hver sin ting om samme sett.
  *
  * @return array<string, int> Status-slug => antall.
  */
 function samlab_kobling_statusantall() {
 	global $wpdb;
 
-	// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Én gruppert telling til listetabellens visningslenker; ingen brukerinput.
+	$statuser = samlab_liste_synlige_statuser();
+
+	// Antallet statuser er ikke kjent på skrivetidspunktet, så IN-listen
+	// får én %s per status. Det er kun plassholderne som settes sammen
+	// her - hver eneste verdi går som argument til prepare(), aldri inn
+	// i SQL-strengen. Sniffene under kan ikke se det: den ene teller
+	// argumenter (og ser én array framfor N verdier), den andre reagerer
+	// på at variabelen $plassholdere står i strengen.
+	$plassholdere = implode( ', ', array_fill( 0, count( $statuser ), '%s' ) );
+	$argumenter   = array_merge( array( '_samlab_status', 'samlab_kobling' ), $statuser );
+
+	// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 	$rader = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT pm.meta_value AS status, COUNT(*) AS antall
 			FROM {$wpdb->postmeta} pm
 			INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-			WHERE pm.meta_key = %s AND p.post_type = %s AND p.post_status = %s
+			WHERE pm.meta_key = %s AND p.post_type = %s AND p.post_status IN ( {$plassholdere} )
 			GROUP BY pm.meta_value",
-			'_samlab_status',
-			'samlab_kobling',
-			'publish'
+			$argumenter
 		)
 	);
-	// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+	// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 	$antall = array();
 	foreach ( (array) $rader as $rad ) {
