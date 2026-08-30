@@ -3,9 +3,14 @@
  * In-app-varsler: utløsere, tekstrendring og REST-ruter.
  *
  * Utløsere: mention i vegginnlegg, kommentar og reaksjon på eget
- * innlegg, og koblingsstatus for partene (fra godkjent og utover -
- * foreslått/avvist er moderatorens arbeidsflate). Varsel ved svar på
- * behov aktiveres når en svar-funksjon finnes (ikke i MVP).
+ * innlegg, og koblingsflyten (G2): forespørsel til partene ved
+ * forespurt (med begrunnelsen, aldri motpartens kontaktinfo),
+ * statusvarsler fra godkjent og utover, nøytralt «ble ikke noe
+ * av»-varsel til motparten ved nei (avklaring 5: aldri hvem som
+ * takket nei), og varsel til moderatorene når begge parter har
+ * svart. Foreslått er fortsatt kun moderatorens arbeidsflate.
+ * Varsel ved svar på behov aktiveres når en svar-funksjon finnes
+ * (ikke i MVP).
  *
  * @package Samlab
  */
@@ -126,7 +131,12 @@ function samlab_kobling_part_brukere( $kobling_id ) {
 }
 
 /**
- * Varsler partene når en kobling når godkjent/introdusert/fulgt opp.
+ * Varsler partene når en kobling når forespurt (G2) eller
+ * godkjent/introdusert/fulgt opp.
+ *
+ * Forespørselen sendes med aktør 0 (system) så begge parter alltid
+ * får den - også en kontaktperson som selv er moderator og trykket
+ * «Godkjenn og spør partene».
  *
  * @param int    $kobling_id Koblingen.
  * @param string $status     Ny status.
@@ -135,7 +145,7 @@ function samlab_kobling_part_brukere( $kobling_id ) {
  * @return void
  */
 function samlab_varsle_kobling( $kobling_id, $status, $gammel, $user_id ) {
-	if ( ! in_array( $status, array( 'godkjent', 'introdusert', 'fulgt_opp' ), true ) ) {
+	if ( ! in_array( $status, array( 'forespurt', 'godkjent', 'introdusert', 'fulgt_opp' ), true ) ) {
 		return;
 	}
 	foreach ( samlab_kobling_part_brukere( $kobling_id ) as $mottaker ) {
@@ -145,12 +155,63 @@ function samlab_varsle_kobling( $kobling_id, $status, $gammel, $user_id ) {
 				'type'        => 'kobling_' . $status,
 				'object_type' => 'kobling',
 				'object_id'   => $kobling_id,
-				'actor_id'    => $user_id,
+				'actor_id'    => 'forespurt' === $status ? 0 : $user_id,
 			)
 		);
 	}
 }
 add_action( 'samlab_kobling_status_endret', 'samlab_varsle_kobling', 10, 4 );
+
+/**
+ * Varsler når en part har svart på en forespurt kobling (G2):
+ * nøytralt varsel til motparten ved nei (aldri hvem som takket nei
+ * - avklaring 5), og varsel til moderatorene når begge har svart.
+ *
+ * Kjøres før statusløftet i samlab_kobling_svar(), så «begge har
+ * svart» leses fra samtykke-metaene: et nei avslutter alltid, et ja
+ * avslutter når motparten alt har sagt ja.
+ *
+ * @param int    $kobling_id Koblingen.
+ * @param string $part       Parten som svarte («a» eller «b»).
+ * @param string $svar       «ja» eller «nei».
+ * @return void
+ */
+function samlab_varsle_kobling_besvart( $kobling_id, $part, $svar ) {
+	$motpart = 'a' === $part ? 'b' : 'a';
+
+	if ( 'nei' === $svar ) {
+		$mottaker = samlab_kobling_part_bruker( $kobling_id, $motpart );
+		if ( $mottaker ) {
+			Samlab_Varsel::create(
+				array(
+					'user_id'     => $mottaker->ID,
+					'type'        => 'kobling_ikke_noe',
+					'object_type' => 'kobling',
+					'object_id'   => $kobling_id,
+					'actor_id'    => 0,
+				)
+			);
+		}
+	}
+
+	$komplett = 'nei' === $svar || 'ja' === samlab_kobling_samtykke( $kobling_id, $motpart );
+	if ( ! $komplett ) {
+		return;
+	}
+	$moderatorer = get_users( array( 'capability' => 'edit_samlab_koblinger' ) );
+	foreach ( $moderatorer as $moderator ) {
+		Samlab_Varsel::create(
+			array(
+				'user_id'     => $moderator->ID,
+				'type'        => 'kobling_besvart',
+				'object_type' => 'kobling',
+				'object_id'   => $kobling_id,
+				'actor_id'    => 0,
+			)
+		);
+	}
+}
+add_action( 'samlab_kobling_besvart', 'samlab_varsle_kobling_besvart', 10, 3 );
 
 /**
  * Menneskelig tekst og lenke for et varsel.
@@ -175,6 +236,22 @@ function samlab_varsel_visning( $varsel ) {
 		case 'reaksjon':
 			/* translators: %s: navnet på den som reagerte. */
 			$tekst = sprintf( __( '%s likte innlegget ditt', 'samlab' ), $navn );
+			break;
+		case 'kobling_forespurt':
+			// Med begrunnelsen, aldri motpartens kontaktinfo -
+			// kontakt deles først fra godkjent (G2).
+			/* translators: 1: koblingens tittel, 2: begrunnelsen. */
+			$tekst = sprintf( __( 'Du er foreslått en kobling: «%1$s». Begrunnelse: %2$s Svarer du ja?', 'samlab' ), get_the_title( (int) $varsel->object_id ), wp_trim_words( (string) get_post_field( 'post_content', (int) $varsel->object_id ), 25 ) );
+			break;
+		case 'kobling_ikke_noe':
+			// Nøytralt, uten hvem som takket nei (avklaring 5).
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Koblingen «%s» ble ikke noe av denne gangen', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			break;
+		case 'kobling_besvart':
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Begge parter har svart på koblingen «%s» - se kontrollpanelet', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = admin_url( 'admin.php?page=samlab-kontrollpanel' );
 			break;
 		case 'kobling_godkjent':
 		case 'kobling_introdusert':

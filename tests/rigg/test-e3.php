@@ -156,7 +156,7 @@ sjekk( 'part A (kontaktperson) takker ja', true === samlab_kobling_svar( $koblin
 sjekk( 'ett ja er ikke nok', 'forespurt' === get_post_meta( $kobling, '_samlab_status', true ) );
 sjekk( 'part B takker ja', true === samlab_kobling_svar( $kobling, 'b', 'ja', $jonas->ID ) );
 sjekk( 'status er godkjent', 'godkjent' === get_post_meta( $kobling, '_samlab_status', true ) );
-sjekk( 'godkjenning varslet begge parter', 1 === Samlab_Varsel::unread_count( $jonas->ID ) && 1 === Samlab_Varsel::unread_count( $kari->ID ) );
+sjekk( 'godkjenning varslet begge parter', 2 === Samlab_Varsel::unread_count( $jonas->ID ) && 2 === Samlab_Varsel::unread_count( $kari->ID ) ); // Forespørsel (G2) + godkjent.
 sjekk( 'kobling er i aktive-listen', in_array( $kobling, wp_list_pluck( samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) ), 'ID' ), true ) );
 
 // Videre i kjeden.

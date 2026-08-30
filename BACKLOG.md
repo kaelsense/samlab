@@ -800,7 +800,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   grønne to ganger på rad (329 sjekker), admin-flatene røyk-rendret
   uten warnings, WPCS grønn. POT-fila var utdatert (38 av 254
   strenger) og ble regenerert med wp i18n make-pot.
-- [ ] **G2. Forespørsel-varsler og svar-endepunkt.** Varseltype
+- [x] **G2. Forespørsel-varsler og svar-endepunkt.** Varseltype
   `kobling_forespurt` til begge parter når status settes til
   forespurt - med begrunnelsen (koblingens brødtekst), uten
   motpartens kontaktdetaljer; kontaktinfo deles først fra godkjent.
@@ -815,6 +815,25 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* riggtest viser hele flyten over REST (forespurt →
   varsler → to ja → godkjent → varsel), 401/403/409-vaktene
   holder, og forespurt-varselet aldri inneholder kontaktinfo.
+  *Notat (2026-08-30):* Varsleren utvidet: kobling_forespurt til
+  begge parter (aktør 0 så en kontaktperson som selv er moderator
+  også får den; tekst = tittel + begrunnelse, aldri kontaktinfo),
+  kobling_ikke_noe nøytralt til motparten ved nei (aktør 0, sier
+  aldri hvem - avklaring 5), kobling_besvart til alle med
+  edit_samlab_koblinger når begge har svart (lenke til
+  kontrollpanelet). REST: GET /koblinger (egne koblinger via
+  partskap-filter, motpart_kontakt null frem til godkjent) og
+  POST /koblinger/<id>/svar (partskap i permission-callbacken,
+  404/403, samlab_feil_status mappet til 409). Nye helpere
+  samlab_kobling_bruker_part/part_navn/part_bruker i koblinger.php
+  (samlab_er_kobling_part gjenbruker den første). Riggtest
+  test-g2.php (23 sjekker) kjører hele flyten over REST inkl.
+  nei-grenen og varsel-tekstenes kontaktinfo-/anonymitetskrav;
+  test-e3 justert (uleste = forespørsel + godkjent). hooks.md
+  (endepunkter + varseltyper) og sikkerhetstabellen ført; POT
+  regenerert. Alle 19 riggtester grønne to ganger på rad, WPCS
+  grønn. Varsel-lenken for forespørsler settes når G3-flaten
+  finnes.
 - [ ] **G3. Portalflate for koblinger.** Ny flate «Koblinger» i
   portalen (bak innloggingsporten, alltid i nav, med tom-tilstand):
   åpne forespørsler øverst med begrunnelse og Takk ja / Nei

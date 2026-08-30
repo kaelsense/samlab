@@ -87,17 +87,17 @@ function samlab_register_kobling() {
 add_action( 'init', 'samlab_register_kobling' );
 
 /**
- * Om brukeren er part i koblingen - direkte, eller som kontaktperson
- * for en bedrift som er part.
+ * Hvilken part brukeren er i koblingen - direkte, eller som
+ * kontaktperson for en bedrift som er part.
  *
  * @param int $kobling_id Koblingens post-ID.
  * @param int $user_id    Brukeren.
- * @return bool
+ * @return string «a», «b» eller tom streng (ikke part).
  */
-function samlab_er_kobling_part( $kobling_id, $user_id ) {
+function samlab_kobling_bruker_part( $kobling_id, $user_id ) {
 	$user_id = (int) $user_id;
 	if ( ! $user_id ) {
-		return false;
+		return '';
 	}
 
 	foreach ( array( 'a', 'b' ) as $part ) {
@@ -107,13 +107,67 @@ function samlab_er_kobling_part( $kobling_id, $user_id ) {
 			continue;
 		}
 		if ( 'bruker' === $type && $id === $user_id ) {
-			return true;
+			return $part;
 		}
 		if ( 'bedrift' === $type && (int) get_post_meta( $id, '_samlab_kontaktperson', true ) === $user_id ) {
-			return true;
+			return $part;
 		}
 	}
-	return false;
+	return '';
+}
+
+/**
+ * Om brukeren er part i koblingen.
+ *
+ * @param int $kobling_id Koblingens post-ID.
+ * @param int $user_id    Brukeren.
+ * @return bool
+ */
+function samlab_er_kobling_part( $kobling_id, $user_id ) {
+	return '' !== samlab_kobling_bruker_part( $kobling_id, $user_id );
+}
+
+/**
+ * Lesbart navn for en part: bedriftens tittel eller brukerens
+ * visningsnavn.
+ *
+ * @param int    $kobling_id Koblingen.
+ * @param string $part       «a» eller «b».
+ * @return string Tom streng når parten ikke er satt.
+ */
+function samlab_kobling_part_navn( $kobling_id, $part ) {
+	$part = 'b' === $part ? 'b' : 'a';
+	$type = get_post_meta( $kobling_id, '_samlab_part_' . $part . '_type', true );
+	$id   = (int) get_post_meta( $kobling_id, '_samlab_part_' . $part . '_id', true );
+	if ( 'bedrift' === $type && $id ) {
+		return get_the_title( $id );
+	}
+	if ( 'bruker' === $type && $id ) {
+		$bruker = get_userdata( $id );
+		return $bruker ? $bruker->display_name : __( 'Slettet bruker', 'samlab' );
+	}
+	return '';
+}
+
+/**
+ * Brukeren bak en part: brukeren selv, eller bedriftens
+ * kontaktperson.
+ *
+ * @param int    $kobling_id Koblingen.
+ * @param string $part       «a» eller «b».
+ * @return WP_User|null
+ */
+function samlab_kobling_part_bruker( $kobling_id, $part ) {
+	$part = 'b' === $part ? 'b' : 'a';
+	$type = get_post_meta( $kobling_id, '_samlab_part_' . $part . '_type', true );
+	$id   = (int) get_post_meta( $kobling_id, '_samlab_part_' . $part . '_id', true );
+	if ( 'bedrift' === $type && $id ) {
+		$id = (int) get_post_meta( $id, '_samlab_kontaktperson', true );
+	} elseif ( 'bruker' !== $type ) {
+		$id = 0;
+	}
+	$bruker = $id ? get_userdata( $id ) : false;
+	return $bruker ? $bruker : null;
 }
 
 /**

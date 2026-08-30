@@ -134,8 +134,37 @@ Markerer alle innlogget brukers varsler som lest. Samme auth.
 Svar: `{ uleste: 0 }`.
 
 Varseltyper: `mention`, `kommentar`, `reaksjon` (vegginnlegg) og
+koblingsflyten: `kobling_forespurt` (forespørsel til partene med
+begrunnelsen - aldri motpartens kontaktinfo),
 `kobling_godkjent`/`kobling_introdusert`/`kobling_fulgt_opp`
-(partene varsles; foreslått/avvist er moderatorens arbeidsflate).
+(partene), `kobling_ikke_noe` (nøytralt til motparten når en part
+takker nei - sier aldri hvem) og `kobling_besvart` (til
+moderatorene når begge parter har svart). Foreslått er fortsatt
+kun moderatorens arbeidsflate.
+
+### `GET /wp-json/samlab/v1/koblinger`
+
+Innlogget brukers egne koblinger (som part - direkte eller som
+kontaktperson for en bedrift), nyeste først, maks 100. Krever
+`samlab_read_portal`. Svar: `{ koblinger: [{ id, tittel,
+begrunnelse, status, status_etikett, min_part, mitt_samtykke,
+motpart, motpart_kontakt, opprettet }] }`. `motpart_kontakt`
+(`{ navn, epost }`) er `null` frem til koblingen er godkjent -
+kontaktinfo deles først når begge parter har takket ja.
+
+### `POST /wp-json/samlab/v1/koblinger/<id>/svar`
+
+Fører innlogget parts svar på en forespurt kobling. Samme auth,
+pluss at brukeren må være part i koblingen (403 ellers; 404 for
+ukjent kobling).
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `svar` | string | `ja` eller `nei` (påkrevd) |
+
+Begge ja løfter koblingen til godkjent, ett nei setter avvist -
+svar på en kobling som ikke står i forespurt gir 409. Svar:
+koblingsobjektet som i `GET /koblinger`.
 
 ## Actions
 

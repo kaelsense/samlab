@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-08-30T05:06:19+00:00\n"
+"POT-Creation-Date: 2026-08-30T05:15:08+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: samlab\n"
@@ -51,6 +51,7 @@ msgid "Kontrollpanel"
 msgstr ""
 
 #: admin/kontrollpanel.php:79
+#: includes/koblinger.php:147
 msgid "Slettet bruker"
 msgstr ""
 
@@ -75,7 +76,8 @@ msgid "Ukjent handling."
 msgstr ""
 
 #: admin/kontrollpanel.php:299
-#: includes/koblinger.php:299
+#: includes/koblinger.php:353
+#: includes/rest-api.php:348
 msgid "Fant ikke koblingen."
 msgstr ""
 
@@ -115,7 +117,7 @@ msgid "Begrunnelse"
 msgstr ""
 
 #: admin/kontrollpanel.php:377
-#: includes/koblinger.php:387
+#: includes/koblinger.php:441
 msgid "Kilde"
 msgstr ""
 
@@ -125,12 +127,12 @@ msgid "Handling"
 msgstr ""
 
 #: admin/kontrollpanel.php:381
-#: includes/koblinger.php:388
+#: includes/koblinger.php:442
 msgid "Matchforslag"
 msgstr ""
 
 #: admin/kontrollpanel.php:381
-#: includes/koblinger.php:388
+#: includes/koblinger.php:442
 msgid "Manuell"
 msgstr ""
 
@@ -163,7 +165,7 @@ msgid "nei"
 msgstr ""
 
 #: admin/kontrollpanel.php:405
-#: includes/koblinger.php:396
+#: includes/koblinger.php:450
 msgid "Samtykke"
 msgstr ""
 
@@ -186,7 +188,7 @@ msgid "Ingen aktive koblinger."
 msgstr ""
 
 #: admin/kontrollpanel.php:432
-#: includes/koblinger.php:380
+#: includes/koblinger.php:434
 msgid "Status"
 msgstr ""
 
@@ -462,7 +464,7 @@ msgid "Samlab-innstillinger"
 msgstr ""
 
 #: includes/access.php:137
-#: includes/rest-api.php:144
+#: includes/rest-api.php:174
 msgid "Du må være innlogget."
 msgstr ""
 
@@ -750,7 +752,7 @@ msgid "Du har ikke tilgang til å poste på veggen."
 msgstr ""
 
 #: includes/forms.php:283
-#: includes/rest-api.php:147
+#: includes/rest-api.php:177
 msgid "Du har ikke tilgang til portalen."
 msgstr ""
 
@@ -807,7 +809,7 @@ msgid "Koblinger"
 msgstr ""
 
 #: includes/koblinger.php:67
-#: includes/koblinger.php:162
+#: includes/koblinger.php:216
 msgid "Kobling"
 msgstr ""
 
@@ -827,74 +829,74 @@ msgstr ""
 msgid "Ingen koblinger funnet"
 msgstr ""
 
-#: includes/koblinger.php:302
+#: includes/koblinger.php:356
 msgid "Ugyldig part."
 msgstr ""
 
-#: includes/koblinger.php:305
+#: includes/koblinger.php:359
 msgid "Svaret må være ja eller nei."
 msgstr ""
 
-#: includes/koblinger.php:308
+#: includes/koblinger.php:362
 msgid "Koblingen venter ikke på svar."
 msgstr ""
 
-#: includes/koblinger.php:361
+#: includes/koblinger.php:415
 msgid "Koblingsdetaljer"
 msgstr ""
 
-#: includes/koblinger.php:392
+#: includes/koblinger.php:446
 msgid "venter på svar"
 msgstr ""
 
-#: includes/koblinger.php:393
+#: includes/koblinger.php:447
 msgid "takket ja"
 msgstr ""
 
-#: includes/koblinger.php:394
+#: includes/koblinger.php:448
 msgid "takket nei"
 msgstr ""
 
 #. translators: 1: part A sitt samtykke, 2: part B sitt samtykke.
-#: includes/koblinger.php:400
+#: includes/koblinger.php:454
 #, php-format
 msgid "Part A: %1$s - Part B: %2$s"
 msgstr ""
 
-#: includes/koblinger.php:405
+#: includes/koblinger.php:459
 msgid "Settes av partenes egne svar på en forespurt kobling. Settes status godkjent manuelt, føres samtykkene som ja - da har du innhentet dem utenfor portalen."
 msgstr ""
 
-#: includes/koblinger.php:419
+#: includes/koblinger.php:473
 msgid "Part A"
 msgstr ""
 
-#: includes/koblinger.php:420
+#: includes/koblinger.php:474
 msgid "Part B"
 msgstr ""
 
-#: includes/koblinger.php:426
+#: includes/koblinger.php:480
 msgid "Bedrift:"
 msgstr ""
 
-#: includes/koblinger.php:428
-#: includes/koblinger.php:439
+#: includes/koblinger.php:482
+#: includes/koblinger.php:493
 msgid "- Ingen -"
 msgstr ""
 
-#: includes/koblinger.php:434
+#: includes/koblinger.php:488
 msgid "eller bruker:"
 msgstr ""
 
-#: includes/koblinger.php:444
+#: includes/koblinger.php:498
 msgid "Velg bedrift eller bruker - bedrift vinner om begge er satt."
 msgstr ""
 
-#: includes/koblinger.php:452
+#: includes/koblinger.php:506
 msgid "Statuslogg"
 msgstr ""
 
-#: includes/koblinger.php:458
+#: includes/koblinger.php:512
 msgid "system"
 msgstr ""
 
@@ -1083,29 +1085,33 @@ msgstr ""
 msgid "- Velg bedrift -"
 msgstr ""
 
-#: includes/rest-api.php:166
+#: includes/rest-api.php:196
 msgid "Fant ikke oppslaget, eller det krever ikke lesebekreftelse."
 msgstr ""
 
-#: includes/rest-api.php:210
-#: includes/rest-api.php:265
+#: includes/rest-api.php:240
+#: includes/rest-api.php:295
 msgid "Fant ikke innlegget."
 msgstr ""
 
-#: includes/rest-api.php:214
+#: includes/rest-api.php:244
 msgid "Innlegget har ingen avstemning."
 msgstr ""
 
-#: includes/rest-api.php:217
+#: includes/rest-api.php:247
 msgid "Ugyldig alternativ."
 msgstr ""
 
-#: includes/rest-api.php:259
+#: includes/rest-api.php:289
 msgid "Ugyldig reaksjonsnøkkel."
 msgstr ""
 
-#: includes/rest-api.php:268
+#: includes/rest-api.php:298
 msgid "Fant ikke kommentaren."
+msgstr ""
+
+#: includes/rest-api.php:351
+msgid "Du er ikke part i denne koblingen."
 msgstr ""
 
 #: includes/rewrites.php:47
@@ -1189,35 +1195,53 @@ msgstr ""
 msgid "Ikke send meg det ukentlige ukesbrevet på e-post"
 msgstr ""
 
-#: includes/varsler.php:163
+#: includes/varsler.php:224
 msgid "Noen"
 msgstr ""
 
 #. translators: %s: navnet på den som nevnte deg.
-#: includes/varsler.php:169
+#: includes/varsler.php:230
 #, php-format
 msgid "%s nevnte deg på veggen"
 msgstr ""
 
 #. translators: %s: navnet på den som kommenterte.
-#: includes/varsler.php:173
+#: includes/varsler.php:234
 #, php-format
 msgid "%s kommenterte innlegget ditt"
 msgstr ""
 
 #. translators: %s: navnet på den som reagerte.
-#: includes/varsler.php:177
+#: includes/varsler.php:238
 #, php-format
 msgid "%s likte innlegget ditt"
 msgstr ""
 
+#. translators: 1: koblingens tittel, 2: begrunnelsen.
+#: includes/varsler.php:244
+#, php-format
+msgid "Du er foreslått en kobling: «%1$s». Begrunnelse: %2$s Svarer du ja?"
+msgstr ""
+
+#. translators: %s: koblingens tittel.
+#: includes/varsler.php:249
+#, php-format
+msgid "Koblingen «%s» ble ikke noe av denne gangen"
+msgstr ""
+
+#. translators: %s: koblingens tittel.
+#: includes/varsler.php:253
+#, php-format
+msgid "Begge parter har svart på koblingen «%s» - se kontrollpanelet"
+msgstr ""
+
 #. translators: 1: koblingens tittel, 2: ny status.
-#: includes/varsler.php:185
+#: includes/varsler.php:262
 #, php-format
 msgid "Koblingen «%1$s» er %2$s"
 msgstr ""
 
-#: includes/varsler.php:188
+#: includes/varsler.php:265
 msgid "Ny hendelse i portalen"
 msgstr ""
 
