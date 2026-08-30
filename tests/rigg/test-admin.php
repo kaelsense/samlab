@@ -215,6 +215,80 @@ sjekk( 'scroll-regionene er navngitt og tastaturnåbare', $rammer->length > 0 &&
 // Tekstene testene i G4/G5/G7 henger på skal være urørt.
 sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
 
+// --- Fase 7: metaboksene ---
+// Tomtilstanden under bedriftsnedtrekkene.
+ob_start();
+samlab_bedrift_tomtilstand( array() );
+$tom_ned = ob_get_clean();
+sjekk( 'tomt bedriftsnedtrekk forklarer seg', false !== strpos( $tom_ned, 'post_type=samlab_bedrift' ) );
+ob_start();
+samlab_bedrift_tomtilstand( array( 'noe' ) );
+sjekk( 'nedtrekk med innhold sier ingenting', '' === ob_get_clean() );
+
+// Koblingsboksen er delt: redigerbart i den ene, skrivebeskyttet i
+// den andre. Begge poster til samme skjema, så lagringen er urørt.
+$samlab_k = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_kobling',
+		'post_title'  => 'Testkobling for metabokser',
+		'post_status' => 'publish',
+		'meta_input'  => array( '_samlab_status' => 'forespurt' ),
+	)
+);
+ob_start();
+samlab_render_kobling_box( get_post( $samlab_k ) );
+$detalj = ob_get_clean();
+ob_start();
+samlab_render_kobling_historikk_box( get_post( $samlab_k ) );
+$historikk = ob_get_clean();
+
+sjekk( 'detaljboksen har de redigerbare feltene', false !== strpos( $detalj, 'name="samlab_status"' ) && false !== strpos( $detalj, 'name="samlab_utfall"' ) );
+sjekk( 'detaljboksen har nonce - den er skjemaets', false !== strpos( $detalj, 'samlab_kobling_nonce' ) );
+sjekk( 'det skrivebeskyttede er flyttet ut av detaljboksen', false === strpos( $detalj, 'Samtykke' ) && false === strpos( $detalj, 'Kilde' ) );
+sjekk( 'historikkboksen har kilde, samtykke og logg', false !== strpos( $historikk, 'Kilde' ) && false !== strpos( $historikk, 'Samtykke' ) );
+sjekk( 'historikkboksen har ingen skjemafelt', false === strpos( $historikk, '<input' ) && false === strpos( $historikk, '<select' ) );
+
+// Lagringen skal fortsatt virke - delingen rørte ikke skjemaet.
+$_POST = array(
+	'samlab_kobling_nonce' => wp_create_nonce( 'samlab_kobling_meta' ),
+	'samlab_status'        => 'godkjent',
+);
+samlab_save_kobling_meta( $samlab_k );
+sjekk( 'statusen lagres fortsatt etter delingen', 'godkjent' === get_post_meta( $samlab_k, '_samlab_status', true ) );
+$_POST = array();
+wp_delete_post( $samlab_k, true );
+
+// Repeateren: atferden er ute av markupen.
+$samlab_b2 = wp_insert_post(
+	array(
+		'post_type'   => 'samlab_bedrift',
+		'post_title'  => 'Testbedrift for repeater',
+		'post_status' => 'publish',
+		'meta_input'  => array(
+			'_samlab_tjenester' => array(
+				array(
+					'tittel'  => 'Rådgivning',
+					'punkter' => array( 'A' ),
+				),
+			),
+		),
+	)
+);
+ob_start();
+samlab_render_tjenester_box( get_post( $samlab_b2 ) );
+$rep = ob_get_clean();
+sjekk( 'ingen inline atferd igjen i repeateren', false === strpos( $rep, 'addEventListener' ) );
+sjekk( 'malraden ligger fortsatt i markupen - det er data', false !== strpos( $rep, 'type="text/template"' ) );
+sjekk( 'fjern-knappen er navngitt per rad', false !== strpos( $rep, 'aria-label="Fjern tjenesten Rådgivning"' ) );
+wp_delete_post( $samlab_b2, true );
+
+// Skriptet lastes kun på bedriftseditoren.
+$b_skjerm = samlab_test_admin_skjerm( 'samlab_bedrift', 'samlab_bedrift' );
+sjekk( 'repeater-skriptet lastes på bedriftseditoren', wp_script_is( 'samlab-admin-tjenester', 'enqueued' ) );
+wp_scripts()->queue = array();
+samlab_test_admin_skjerm( 'samlab_kobling', 'samlab_kobling' );
+sjekk( 'repeater-skriptet lastes ikke på andre editorer', ! wp_script_is( 'samlab-admin-tjenester', 'enqueued' ) );
+
 // --- Fase 6: listetabellene ---
 // Kolonnene registreres gjennom core sine egne kroker, så filtrene
 // kjøres direkte - det er dem core kaller.

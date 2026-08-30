@@ -323,34 +323,6 @@ function samlab_render_tjenester_box( $post ) {
 	samlab_render_tjeneste_row( '__i__', array() );
 	$mal = ob_get_clean();
 	echo '<script type="text/template" id="samlab-tjeneste-mal">' . $mal . '</script>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Malen bygges av samme escapede render-funksjon som radene over.
-	?>
-	<script>
-	( function () {
-		var beholder = document.getElementById( 'samlab-tjenester' );
-		var knapp    = document.getElementById( 'samlab-legg-til-tjeneste' );
-		var mal      = document.getElementById( 'samlab-tjeneste-mal' );
-		// Neste indeks fra den høyeste som allerede finnes - ikke fra
-		// antall rader, som ville kollidert om indeksene har hull.
-		var teller = 0;
-		Array.prototype.forEach.call( beholder.children, function ( rad ) {
-			var i = parseInt( rad.getAttribute( 'data-samlab-indeks' ), 10 );
-			if ( ! isNaN( i ) && i >= teller ) {
-				teller = i + 1;
-			}
-		} );
-		knapp.addEventListener( 'click', function () {
-			var div = document.createElement( 'div' );
-			div.innerHTML = mal.innerHTML.replace( /__i__/g, String( teller++ ) );
-			beholder.appendChild( div.firstElementChild );
-		} );
-		beholder.addEventListener( 'click', function ( e ) {
-			if ( e.target.classList.contains( 'samlab-fjern-tjeneste' ) ) {
-				e.target.closest( '.samlab-tjeneste' ).remove();
-			}
-		} );
-	}() );
-	</script>
-	<?php
 }
 
 /**
@@ -384,6 +356,26 @@ function samlab_bedrift_mangler( $bedrift ) {
 		$mangler[] = __( 'logo', 'samlab' );
 	}
 	return $mangler;
+}
+
+/**
+ * Hjelpetekst under et bedriftsnedtrekk som ikke har noe å velge i.
+ *
+ * Et tomt nedtrekk uten forklaring ser ut som en feil. Lenken sier hva
+ * som mangler og hvor man fikser det.
+ *
+ * @param WP_Post[] $bedrifter Bedriftene nedtrekket fikk.
+ * @return void
+ */
+function samlab_bedrift_tomtilstand( $bedrifter ) {
+	if ( array() !== $bedrifter ) {
+		return;
+	}
+	echo '<p class="description">';
+	echo esc_html__( 'Ingen bedrifter er lagt inn ennå.', 'samlab' ) . ' ';
+	echo '<a href="' . esc_url( admin_url( 'post-new.php?post_type=samlab_bedrift' ) ) . '">';
+	echo esc_html__( 'Legg til den første', 'samlab' ) . '</a>.';
+	echo '</p>';
 }
 
 /**
@@ -426,7 +418,7 @@ function samlab_render_tjeneste_row( $i, $tjeneste ) {
 	echo '<div class="samlab-tjeneste" data-samlab-indeks="' . esc_attr( $i ) . '">';
 	echo '<p><label>' . esc_html__( 'Tittel', 'samlab' ) . '<br /><input type="text" class="regular-text" name="samlab_tjenester[' . esc_attr( $i ) . '][tittel]" value="' . esc_attr( $tittel ) . '" /></label></p>';
 	echo '<p><label>' . esc_html__( 'Punkter (ett per linje)', 'samlab' ) . '<br /><textarea class="large-text" rows="3" name="samlab_tjenester[' . esc_attr( $i ) . '][punkter]">' . esc_textarea( $punkter ) . '</textarea></label></p>';
-	echo '<p><button type="button" class="button-link-delete samlab-fjern-tjeneste">' . esc_html__( 'Fjern tjeneste', 'samlab' ) . '</button></p>';
+	echo '<p><button type="button" class="button-link-delete samlab-fjern-tjeneste" aria-label="' . esc_attr( sprintf( /* translators: %s: tjenestens tittel, eller «uten tittel». */ __( 'Fjern tjenesten %s', 'samlab' ), '' !== $tittel ? $tittel : __( 'uten tittel', 'samlab' ) ) ) . '">' . esc_html__( 'Fjern tjeneste', 'samlab' ) . '</button></p>';
 	echo '</div>';
 }
 
@@ -635,16 +627,26 @@ function samlab_render_behov_box( $post ) {
 	wp_nonce_field( 'samlab_behov_meta', 'samlab_behov_nonce' );
 
 	$felter = array(
-		'samlab_frist'       => __( 'Frist', 'samlab' ),
-		'samlab_budsjett'    => __( 'Budsjett', 'samlab' ),
-		'samlab_kontaktform' => __( 'Ønsket kontaktform', 'samlab' ),
+		'samlab_frist'       => array(
+			__( 'Frist', 'samlab' ),
+			__( 'Fritekst - f.eks. «før sommeren» eller «15. mars». Feltet sorteres ikke, så skriv det som er tydeligst for medlemmene.', 'samlab' ),
+		),
+		'samlab_budsjett'    => array(
+			__( 'Budsjett', 'samlab' ),
+			__( 'Valgfritt. En ramme hjelper tilbydere å vurdere om det passer.', 'samlab' ),
+		),
+		'samlab_kontaktform' => array(
+			__( 'Ønsket kontaktform', 'samlab' ),
+			__( 'Hvordan innsenderen vil bli kontaktet - f.eks. «e-post» eller «stikk innom».', 'samlab' ),
+		),
 	);
 
 	echo '<table class="form-table" role="presentation">';
-	foreach ( $felter as $id => $label ) {
+	foreach ( $felter as $id => $felt ) {
 		$value = get_post_meta( $post->ID, '_' . $id, true );
-		echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label></th>';
-		echo '<td><input type="text" class="regular-text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $id ) . '" value="' . esc_attr( $value ) . '" /></td></tr>';
+		echo '<tr><th scope="row"><label for="' . esc_attr( $id ) . '">' . esc_html( $felt[0] ) . '</label></th>';
+		echo '<td><input type="text" class="regular-text" id="' . esc_attr( $id ) . '" name="' . esc_attr( $id ) . '" value="' . esc_attr( $value ) . '" />';
+		echo '<p class="description">' . esc_html( $felt[1] ) . '</p></td></tr>';
 	}
 
 	$kompetanse = get_post_meta( $post->ID, '_samlab_kompetanse', true );
@@ -660,7 +662,9 @@ function samlab_render_behov_box( $post ) {
 	foreach ( $bedrifter as $bedrift ) {
 		echo '<option value="' . esc_attr( (string) $bedrift->ID ) . '"' . selected( $valgt, $bedrift->ID, false ) . '>' . esc_html( get_the_title( $bedrift ) ) . '</option>';
 	}
-	echo '</select></td></tr>';
+	echo '</select>';
+	samlab_bedrift_tomtilstand( $bedrifter );
+	echo '</td></tr>';
 	echo '</table>';
 }
 
