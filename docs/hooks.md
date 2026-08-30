@@ -138,9 +138,11 @@ koblingsflyten: `kobling_forespurt` (forespørsel til partene med
 begrunnelsen - aldri motpartens kontaktinfo),
 `kobling_godkjent`/`kobling_introdusert`/`kobling_fulgt_opp`
 (partene), `kobling_ikke_noe` (nøytralt til motparten når en part
-takker nei - sier aldri hvem) og `kobling_besvart` (til
-moderatorene når begge parter har svart). Foreslått er fortsatt
-kun moderatorens arbeidsflate.
+takker nei - sier aldri hvem), `kobling_utfall_paminnelse`
+(«ble det noe?» til partene 14 dager etter introduksjonen, via den
+daglige matching-cronen, én gang per kobling) og `kobling_besvart`
+(til moderatorene når begge parter har svart). Foreslått er
+fortsatt kun moderatorens arbeidsflate.
 
 ### `GET /wp-json/samlab/v1/koblinger`
 
@@ -148,7 +150,7 @@ Innlogget brukers egne koblinger (som part - direkte eller som
 kontaktperson for en bedrift), nyeste først, maks 100. Krever
 `samlab_read_portal`. Svar: `{ koblinger: [{ id, tittel,
 begrunnelse, status, status_etikett, min_part, mitt_samtykke,
-motpart, motpart_kontakt, opprettet }] }`. `motpart_kontakt`
+motpart, motpart_kontakt, utfall, opprettet }] }`. `motpart_kontakt`
 (`{ navn, epost }`) er `null` frem til koblingen er godkjent -
 kontaktinfo deles først når begge parter har takket ja.
 
@@ -165,6 +167,22 @@ ukjent kobling).
 Begge ja løfter koblingen til godkjent, ett nei setter avvist -
 svar på en kobling som ikke står i forespurt gir 409. Svar:
 koblingsobjektet som i `GET /koblinger`.
+
+### `POST /wp-json/samlab/v1/koblinger/<id>/utfall`
+
+Fører innlogget parts utfall på en kobling («ble det noe?», G4).
+Samme auth og partsvakt som svar-ruten (403/404). Prinsipp fra
+decket: kun kategori og notat - aldri beløp eller salgsdetaljer.
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `utfall` | string | `mote`, `avtale`, `henvisning` eller `ingenting` (påkrevd) |
+| `notat` | string | Valgfritt notat, maks 500 tegn |
+
+Krever at koblingen er introdusert eller fulgt opp - ellers 409. En
+introdusert kobling løftes til fulgt opp når utfallet føres. Svar:
+koblingsobjektet som i `GET /koblinger`, der `utfall` er
+`{ slug, etikett, notat }` (eller `null` uten registrert utfall).
 
 ## Actions
 
@@ -346,6 +364,25 @@ do_action( 'samlab_kobling_besvart', $kobling_id, $part, $svar, $user_id );
 | `$part` | string | Parten som svarte (`a` eller `b`) |
 | `$svar` | string | `ja` eller `nei` |
 | `$user_id` | int | Hvem som svarte (0 = system) |
+
+Siden: 0.2.0.
+
+### `samlab_kobling_utfall_satt`
+
+Kjøres når et utfall er registrert på en kobling (G4) - fra
+kontrollpanelet, metaboksen eller partenes REST-kall. En
+introdusert kobling løftes til fulgt opp rett etterpå, så
+`samlab_kobling_status_endret` kan fyre like etter.
+
+```php
+do_action( 'samlab_kobling_utfall_satt', $kobling_id, $utfall, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$kobling_id` | int | Koblingens post-ID |
+| `$utfall` | string | Utfall-slug: `mote`, `avtale`, `henvisning` eller `ingenting` |
+| `$user_id` | int | Hvem som registrerte (0 = system) |
 
 Siden: 0.2.0.
 

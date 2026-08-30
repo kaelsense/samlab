@@ -281,9 +281,11 @@ function samlab_kp_lesebekreftelser() {
  * @param int    $kobling_id Koblingen.
  * @param string $handling   godkjenn|avvis|introdusert|fulgt_opp.
  * @param int    $user_id    Utførende bruker.
+ * @param string $utfall     Valgfritt utfall ved fulgt_opp (G4).
+ * @param string $notat      Valgfritt utfallsnotat.
  * @return true|WP_Error
  */
-function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id ) {
+function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id, $utfall = '', $notat = '' ) {
 	$statusmap = array(
 		// Godkjenn setter forespurt: veien til godkjent går gjennom
 		// partenes eget samtykke (samlab_kobling_svar, G1).
@@ -300,6 +302,18 @@ function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id ) {
 	}
 	if ( ! user_can( $user_id, 'edit_post', $kobling_id ) ) {
 		return new WP_Error( 'samlab_ingen_tilgang', __( 'Du har ikke tilgang til å endre koblinger.', 'samlab' ) );
+	}
+
+	// Fulgt opp med utfall (G4): utfallet føres først og løfter
+	// selv statusen fra introdusert.
+	if ( 'fulgt_opp' === $handling && '' !== $utfall ) {
+		$resultat = samlab_sett_kobling_utfall( $kobling_id, $utfall, $notat, $user_id );
+		if ( is_wp_error( $resultat ) ) {
+			return $resultat;
+		}
+		if ( 'fulgt_opp' === get_post_meta( $kobling_id, '_samlab_status', true ) ) {
+			return true;
+		}
 	}
 
 	samlab_sett_kobling_status( $kobling_id, $statusmap[ $handling ], $user_id );
@@ -319,8 +333,10 @@ function samlab_kontrollpanel_post() {
 
 	$kobling_id = isset( $_POST['samlab_kobling_id'] ) ? absint( $_POST['samlab_kobling_id'] ) : 0;
 	$handling   = isset( $_POST['samlab_handling'] ) ? sanitize_key( wp_unslash( $_POST['samlab_handling'] ) ) : '';
+	$utfall     = isset( $_POST['samlab_utfall'] ) ? sanitize_key( wp_unslash( $_POST['samlab_utfall'] ) ) : '';
+	$notat      = isset( $_POST['samlab_utfall_notat'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_utfall_notat'] ) ) : '';
 
-	$resultat = samlab_kontrollpanel_utfor( $kobling_id, $handling, get_current_user_id() );
+	$resultat = samlab_kontrollpanel_utfor( $kobling_id, $handling, get_current_user_id(), $utfall, $notat );
 	if ( is_wp_error( $resultat ) ) {
 		wp_die( esc_html( $resultat->get_error_message() ), '', 403 );
 	}
@@ -335,13 +351,24 @@ add_action( 'admin_post_samlab_kobling', 'samlab_kontrollpanel_post' );
  *
  * @param int      $kobling_id Koblingen.
  * @param string[] $handlinger Handling-slug => knappetekst.
+ * @param bool     $med_utfall Om utfallsvalg + notat skal med (G4).
  * @return void
  */
-function samlab_kp_handlingsskjema( $kobling_id, $handlinger ) {
+function samlab_kp_handlingsskjema( $kobling_id, $handlinger, $med_utfall = false ) {
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline">';
 	echo '<input type="hidden" name="action" value="samlab_kobling" />';
 	echo '<input type="hidden" name="samlab_kobling_id" value="' . esc_attr( (string) $kobling_id ) . '" />';
 	wp_nonce_field( 'samlab_kobling_handling', 'samlab_kp_nonce' );
+	if ( $med_utfall ) {
+		echo '<label class="screen-reader-text" for="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '">' . esc_html__( 'Utfall', 'samlab' ) . '</label>';
+		echo '<select id="samlab-utfall-' . esc_attr( (string) $kobling_id ) . '" name="samlab_utfall" style="margin-right:4px">';
+		echo '<option value="">' . esc_html__( '- Utfall -', 'samlab' ) . '</option>';
+		foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) {
+			echo '<option value="' . esc_attr( $samlab_slug ) . '">' . esc_html( $samlab_navn ) . '</option>';
+		}
+		echo '</select>';
+		echo '<input type="text" name="samlab_utfall_notat" placeholder="' . esc_attr__( 'Notat (valgfritt)', 'samlab' ) . '" style="margin-right:4px" />';
+	}
 	foreach ( $handlinger as $slug => $tekst ) {
 		$klasse = 'avvis' === $slug ? 'button button-link-delete' : 'button button-primary';
 		echo '<button type="submit" class="' . esc_attr( $klasse ) . '" name="samlab_handling" value="' . esc_attr( $slug ) . '" style="margin-right:4px">' . esc_html( $tekst ) . '</button>';
@@ -434,13 +461,28 @@ function samlab_render_kontrollpanel() {
 			$status = get_post_meta( $kobling->ID, '_samlab_status', true );
 			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
 			echo '<td>' . esc_html( isset( $statuser[ $status ] ) ? $statuser[ $status ] : $status ) . '</td><td>';
-			samlab_kp_handlingsskjema(
-				$kobling->ID,
-				'godkjent' === $status
-					? array( 'introdusert' => __( 'Marker introdusert', 'samlab' ) )
-					: array( 'fulgt_opp' => __( 'Marker fulgt opp', 'samlab' ) )
-			);
+			if ( 'godkjent' === $status ) {
+				samlab_kp_handlingsskjema( $kobling->ID, array( 'introdusert' => __( 'Marker introdusert', 'samlab' ) ) );
+			} else {
+				samlab_kp_handlingsskjema( $kobling->ID, array( 'fulgt_opp' => __( 'Marker fulgt opp', 'samlab' ) ), true );
+			}
 			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	// 3b) Utfall på fulgte opp koblinger (G4).
+	echo '<h2>' . esc_html__( 'Utfall', 'samlab' ) . '</h2>';
+	$fulgte = samlab_kp_koblinger( array( 'fulgt_opp' ) );
+	if ( array() === $fulgte ) {
+		echo '<p>' . esc_html__( 'Ingen fulgte opp koblinger ennå.', 'samlab' ) . '</p>';
+	} else {
+		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Utfall', 'samlab' ) . '</th><th>' . esc_html__( 'Notat', 'samlab' ) . '</th></tr></thead><tbody>';
+		foreach ( $fulgte as $kobling ) {
+			$utfall = samlab_kobling_utfall( $kobling->ID );
+			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
+			echo '<td>' . esc_html( $utfall ? $utfall['etikett'] : __( 'Ikke registrert', 'samlab' ) ) . '</td>';
+			echo '<td>' . esc_html( $utfall ? $utfall['notat'] : '' ) . '</td></tr>';
 		}
 		echo '</tbody></table>';
 	}

@@ -866,7 +866,7 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   Ferdig når-flyten kjørt i ekte nettleser. Alle 20 riggtester
   grønne to ganger på rad, WPCS grønn, hooks-/sikkerhetsdocs ført,
   POT regenerert.
-- [ ] **G4. Utfallsregistrering («ble det noe?»).** Meta
+- [x] **G4. Utfallsregistrering («ble det noe?»).** Meta
   `_samlab_utfall` (mote|avtale|henvisning|ingenting) pluss
   valgfritt kort notat på koblinger. Settes av community-manageren
   i kontrollpanelet (fulgt opp-handlingen utvides med utfallsvalg)
@@ -879,6 +879,30 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* utfall kan settes fra begge flater med riktige
   tilganger, påminnelsen sendes nøyaktig én gang per kobling i
   riggen, og utfallet vises i kontrollpanelet.
+  *Notat (2026-08-30):* samlab_sett_kobling_utfall() i
+  koblinger.php eier vaktene (gyldig type, kun introdusert/fulgt
+  opp, notat sanitert og kappet til 500 tegn) og fører utfallet i
+  statusloggen (utfall_<slug> med egne etiketter) før den løfter
+  introdusert → fulgt opp som system - action
+  samlab_kobling_utfall_satt. Tre veier inn: kontrollpanelets
+  fulgt opp-handling med utfallsvalg + notat (utvidet
+  handlingsskjema og samlab_kontrollpanel_utfor), metaboksen
+  (endringsvakt så loggen ikke fylles per lagring) og partenes
+  POST /koblinger/<id>/utfall med G2s partsvakt (409 før
+  introdusert). Kontrollpanelet fikk en Utfall-seksjon over fulgte
+  opp koblinger; G3-flaten fikk «Registrer utfall»-skjema på
+  introduserte kort og utfall-visning i historikken; GET
+  /koblinger bærer utfall-objektet. Påminnelsen
+  kobling_utfall_paminnelse går til begge parter 14 dager etter
+  introdusert (tid fra statusloggen), hektet på
+  samlab_matching_kjort, med meta-vakt for nøyaktig én gang -
+  verifisert i riggtest med to runder pluss cron-action. Aldri
+  beløp: ikke noe felt for det, prinsippet står i docs og
+  UI-tekstene. Riggtest test-g4.php (27 sjekker) dekker alle tre
+  veiene, vaktene, kappingen, påminnelsen og visningene. Alle 21
+  riggtester grønne to ganger på rad, WPCS grønn (én Yoda-retting),
+  hooks-/sikkerhetsdocs ført, POT regenerert. Seed-utfall kommer i
+  G8.
 - [ ] **G5. Rapportflate.** Undermeny «Rapport» under
   kontrollpanelet (samme capability, `edit_samlab_koblinger`):
   valgbar periode (30/90/365 dager) med aggregerte tall - nye

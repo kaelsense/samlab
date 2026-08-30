@@ -97,6 +97,19 @@ foreach ( samlab_koblinger_for( $samlab_bruker ) as $samlab_kobling ) {
 							<a href="<?php echo esc_url( 'mailto:' . $samlab_kontakt->user_email ); ?>"><?php echo esc_html( $samlab_kontakt->user_email ); ?></a>
 						</p>
 					<?php endif; ?>
+					<?php if ( 'introdusert' === get_post_meta( $samlab_kobling->ID, '_samlab_status', true ) && null === samlab_kobling_utfall( $samlab_kobling->ID ) ) : ?>
+						<p class="samlab-kort-meta"><?php esc_html_e( 'Ble det noe? Kun kategori og notat - aldri beløp.', 'samlab' ); ?></p>
+						<p class="samlab-kobling-utfall-skjema">
+							<label class="screen-reader-text" for="samlab-utfall-<?php echo esc_attr( (string) $samlab_kobling->ID ); ?>"><?php esc_html_e( 'Utfall', 'samlab' ); ?></label>
+							<select id="samlab-utfall-<?php echo esc_attr( (string) $samlab_kobling->ID ); ?>">
+								<?php foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) : ?>
+									<option value="<?php echo esc_attr( $samlab_slug ); ?>"><?php echo esc_html( $samlab_navn ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<input type="text" id="samlab-utfall-notat-<?php echo esc_attr( (string) $samlab_kobling->ID ); ?>" maxlength="500" placeholder="<?php esc_attr_e( 'Notat (valgfritt)', 'samlab' ); ?>" />
+							<button type="button" class="samlab-knapp er-primar samlab-kobling-utfall" data-kobling="<?php echo esc_attr( (string) $samlab_kobling->ID ); ?>"><?php esc_html_e( 'Registrer utfall', 'samlab' ); ?></button>
+						</p>
+					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
 		</ul>
@@ -108,46 +121,66 @@ foreach ( samlab_koblinger_for( $samlab_bruker ) as $samlab_kobling ) {
 		<h2><?php esc_html_e( 'Historikk', 'samlab' ); ?></h2>
 		<ul class="samlab-sokeliste">
 			<?php foreach ( $samlab_historikk as $samlab_kobling ) : ?>
+				<?php $samlab_utfall = samlab_kobling_utfall( $samlab_kobling->ID ); ?>
 				<li id="kobling-<?php echo esc_attr( (string) $samlab_kobling->ID ); ?>">
 					<?php echo esc_html( get_the_title( $samlab_kobling ) ); ?>
 					<?php samlab_render_kobling_statuskjede( $samlab_kobling->ID ); ?>
+					<?php if ( null !== $samlab_utfall ) : ?>
+						<p class="samlab-kort-meta">
+							<?php echo esc_html( sprintf( /* translators: %s: utfallets etikett. */ __( 'Utfall: %s', 'samlab' ), $samlab_utfall['etikett'] ) ); ?>
+							<?php if ( '' !== $samlab_utfall['notat'] ) : ?>
+								- <?php echo esc_html( $samlab_utfall['notat'] ); ?>
+							<?php endif; ?>
+						</p>
+					<?php endif; ?>
 				</li>
 			<?php endforeach; ?>
 		</ul>
 	</section>
 <?php endif; ?>
 
-<?php if ( array() !== $samlab_foresporsler ) : ?>
+<?php if ( array() !== $samlab_foresporsler || array() !== $samlab_aktive ) : ?>
 	<script>
-		// Svar-knappene poster mot G2-endepunktet. Kjøres på
-		// DOMContentLoaded fordi window.samlabRest settes i skallet
-		// etter hovedinnholdet.
+		// Svar- og utfall-knappene poster mot G2/G4-endepunktene.
+		// Kjøres på DOMContentLoaded fordi window.samlabRest settes
+		// i skallet etter hovedinnholdet.
 		document.addEventListener( 'DOMContentLoaded', function () {
 			var feil = document.getElementById( 'samlab-kobling-feil' );
+			var post = function ( knapp, rute, data ) {
+				knapp.disabled = true;
+				fetch( window.samlabRest.url + 'samlab/v1/koblinger/' + knapp.dataset.kobling + '/' + rute, {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-WP-Nonce': window.samlabRest.nonce
+					},
+					body: JSON.stringify( data )
+				} ).then( function ( svar ) {
+					if ( svar.ok ) {
+						window.location.reload();
+						return;
+					}
+					knapp.disabled = false;
+					feil.hidden = false;
+				} ).catch( function () {
+					knapp.disabled = false;
+					feil.hidden = false;
+				} );
+			};
 			document.querySelectorAll( '.samlab-kobling-svar' ).forEach( function ( knapp ) {
 				knapp.addEventListener( 'click', function () {
 					if ( 'nei' === knapp.dataset.svar && ! window.confirm( <?php echo wp_json_encode( __( 'Takke nei? Da avsluttes forslaget, og motparten får et nøytralt varsel uten navn.', 'samlab' ) ); ?> ) ) {
 						return;
 					}
-					knapp.disabled = true;
-					fetch( window.samlabRest.url + 'samlab/v1/koblinger/' + knapp.dataset.kobling + '/svar', {
-						method: 'POST',
-						credentials: 'same-origin',
-						headers: {
-							'Content-Type': 'application/json',
-							'X-WP-Nonce': window.samlabRest.nonce
-						},
-						body: JSON.stringify( { svar: knapp.dataset.svar } )
-					} ).then( function ( svar ) {
-						if ( svar.ok ) {
-							window.location.reload();
-							return;
-						}
-						knapp.disabled = false;
-						feil.hidden = false;
-					} ).catch( function () {
-						knapp.disabled = false;
-						feil.hidden = false;
+					post( knapp, 'svar', { svar: knapp.dataset.svar } );
+				} );
+			} );
+			document.querySelectorAll( '.samlab-kobling-utfall' ).forEach( function ( knapp ) {
+				knapp.addEventListener( 'click', function () {
+					post( knapp, 'utfall', {
+						utfall: document.getElementById( 'samlab-utfall-' + knapp.dataset.kobling ).value,
+						notat: document.getElementById( 'samlab-utfall-notat-' + knapp.dataset.kobling ).value
 					} );
 				} );
 			} );

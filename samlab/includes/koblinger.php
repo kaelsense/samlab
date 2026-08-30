@@ -38,19 +38,41 @@ function samlab_kobling_statuser() {
 }
 
 /**
+ * Gyldige utfall for en kobling (G4). Prinsipp fra decket:
+ * aggregert, aldri salgsdetaljer - kun kategori og notat, aldri
+ * beløp.
+ *
+ * @return array<string, string> Utfall-slug => etikett.
+ */
+function samlab_kobling_utfall_typer() {
+	return array(
+		'mote'       => __( 'Møte gjennomført', 'samlab' ),
+		'avtale'     => __( 'Avtale inngått', 'samlab' ),
+		'henvisning' => __( 'Henvisning videre', 'samlab' ),
+		'ingenting'  => __( 'Ble ikke noe av', 'samlab' ),
+	);
+}
+
+/**
  * Etiketter for statusloggen: statusene pluss samtykke-innslagene
- * samlab_kobling_svar() fører.
+ * samlab_kobling_svar() fører og utfall-innslagene fra
+ * samlab_sett_kobling_utfall().
  *
  * @return array<string, string> Logg-slug => etikett.
  */
 function samlab_kobling_logg_etiketter() {
-	return array_merge(
+	$etiketter = array_merge(
 		samlab_kobling_statuser(),
 		array(
 			'samtykke_ja'  => __( 'Takket ja', 'samlab' ),
 			'samtykke_nei' => __( 'Takket nei', 'samlab' ),
 		)
 	);
+	foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) {
+		/* translators: %s: utfallets etikett. */
+		$etiketter[ 'utfall_' . $samlab_slug ] = sprintf( __( 'Utfall: %s', 'samlab' ), $samlab_navn );
+	}
+	return $etiketter;
 }
 
 /**
@@ -390,6 +412,74 @@ function samlab_kobling_svar( $kobling_id, $part, $svar, $user_id = 0 ) {
 }
 
 /**
+ * Registrerer et utfall på en kobling («ble det noe?», G4): kun
+ * kategori og et valgfritt kort notat - aldri beløp eller
+ * salgsdetaljer. Krever at koblingen er introdusert eller fulgt
+ * opp; en introdusert kobling løftes til fulgt opp når utfallet
+ * føres.
+ *
+ * @param int    $kobling_id Koblingen.
+ * @param string $utfall     En av samlab_kobling_utfall_typer().
+ * @param string $notat      Valgfritt notat (kappes til 500 tegn).
+ * @param int    $user_id    Hvem som registrerte (til logg/action).
+ * @return true|WP_Error
+ */
+function samlab_sett_kobling_utfall( $kobling_id, $utfall, $notat = '', $user_id = 0 ) {
+	if ( 'samlab_kobling' !== get_post_type( $kobling_id ) ) {
+		return new WP_Error( 'samlab_ukjent_kobling', __( 'Fant ikke koblingen.', 'samlab' ) );
+	}
+	if ( ! array_key_exists( $utfall, samlab_kobling_utfall_typer() ) ) {
+		return new WP_Error( 'samlab_ugyldig_utfall', __( 'Ugyldig utfall.', 'samlab' ) );
+	}
+	$status = get_post_meta( $kobling_id, '_samlab_status', true );
+	if ( ! in_array( $status, array( 'introdusert', 'fulgt_opp' ), true ) ) {
+		return new WP_Error( 'samlab_feil_status', __( 'Utfall kan først registreres etter introduksjonen.', 'samlab' ) );
+	}
+
+	update_post_meta( $kobling_id, '_samlab_utfall', $utfall );
+	update_post_meta( $kobling_id, '_samlab_utfall_notat', mb_substr( sanitize_textarea_field( (string) $notat ), 0, 500 ) );
+	samlab_kobling_logg( $kobling_id, 'utfall_' . $utfall, $user_id );
+
+	/**
+	 * Kjøres når et utfall er registrert på en kobling.
+	 *
+	 * @since 0.2.0
+	 *
+	 * @param int    $kobling_id Koblingen.
+	 * @param string $utfall     Utfall-slug (mote|avtale|henvisning|ingenting).
+	 * @param int    $user_id    Hvem som registrerte (0 = system).
+	 */
+	do_action( 'samlab_kobling_utfall_satt', $kobling_id, $utfall, (int) $user_id );
+
+	if ( 'introdusert' === $status ) {
+		// Løftet er utfallets konsekvens og føres som system (0),
+		// samme prinsipp som statusløftene i samlab_kobling_svar().
+		samlab_sett_kobling_status( $kobling_id, 'fulgt_opp', 0 );
+	}
+	return true;
+}
+
+/**
+ * Utfallet på en kobling, med etikett og notat.
+ *
+ * @param int $kobling_id Koblingen.
+ * @return array{slug: string, etikett: string, notat: string}|null
+ *         Null når ikke noe utfall er registrert.
+ */
+function samlab_kobling_utfall( $kobling_id ) {
+	$utfall = get_post_meta( $kobling_id, '_samlab_utfall', true );
+	$typer  = samlab_kobling_utfall_typer();
+	if ( ! isset( $typer[ $utfall ] ) ) {
+		return null;
+	}
+	return array(
+		'slug'    => $utfall,
+		'etikett' => $typer[ $utfall ],
+		'notat'   => (string) get_post_meta( $kobling_id, '_samlab_utfall_notat', true ),
+	);
+}
+
+/**
  * Brukerens egne koblinger, nyeste først - som part direkte eller
  * som kontaktperson for en bedrift som er part (G3-flaten og
  * REST-listen).
@@ -568,6 +658,18 @@ function samlab_render_kobling_box( $post ) {
 	echo '<p class="description">' . esc_html__( 'Settes av partenes egne svar på en forespurt kobling. Settes status godkjent manuelt, føres samtykkene som ja - da har du innhentet dem utenfor portalen.', 'samlab' ) . '</p>';
 	echo '</td></tr>';
 
+	$utfall = get_post_meta( $post->ID, '_samlab_utfall', true );
+	echo '<tr><th scope="row"><label for="samlab_utfall">' . esc_html__( 'Utfall', 'samlab' ) . '</label></th><td>';
+	echo '<select id="samlab_utfall" name="samlab_utfall">';
+	echo '<option value="">' . esc_html__( '- Ikke registrert -', 'samlab' ) . '</option>';
+	foreach ( samlab_kobling_utfall_typer() as $samlab_slug => $samlab_navn ) {
+		echo '<option value="' . esc_attr( $samlab_slug ) . '"' . selected( $utfall, $samlab_slug, false ) . '>' . esc_html( $samlab_navn ) . '</option>';
+	}
+	echo '</select> ';
+	echo '<label>' . esc_html__( 'Notat:', 'samlab' ) . ' <input type="text" class="regular-text" name="samlab_utfall_notat" value="' . esc_attr( (string) get_post_meta( $post->ID, '_samlab_utfall_notat', true ) ) . '" /></label>';
+	echo '<p class="description">' . esc_html__( 'Kun kategori og notat - aldri beløp eller salgsdetaljer. Krever at koblingen er introdusert eller fulgt opp.', 'samlab' ) . '</p>';
+	echo '</td></tr>';
+
 	$bedrifter = get_posts(
 		array(
 			'post_type'      => 'samlab_bedrift',
@@ -659,6 +761,18 @@ function samlab_save_kobling_meta( $post_id ) {
 
 	if ( '' === (string) get_post_meta( $post_id, '_samlab_kilde', true ) ) {
 		update_post_meta( $post_id, '_samlab_kilde', 'manuell' );
+	}
+
+	if ( isset( $_POST['samlab_utfall'] ) && '' !== $_POST['samlab_utfall'] ) {
+		$utfall = sanitize_key( wp_unslash( $_POST['samlab_utfall'] ) );
+		$notat  = isset( $_POST['samlab_utfall_notat'] ) ? sanitize_text_field( wp_unslash( $_POST['samlab_utfall_notat'] ) ) : '';
+		// Kun ved faktisk endring - ellers fylles statusloggen ved
+		// hver lagring. Vaktene (gyldig type, status introdusert+)
+		// ligger i samlab_sett_kobling_utfall og avvises stille
+		// her, som resten av metaboks-lagringen.
+		if ( get_post_meta( $post_id, '_samlab_utfall', true ) !== $utfall || get_post_meta( $post_id, '_samlab_utfall_notat', true ) !== $notat ) {
+			samlab_sett_kobling_utfall( $post_id, $utfall, $notat, get_current_user_id() );
+		}
 	}
 
 	foreach ( array( 'a', 'b' ) as $part ) {

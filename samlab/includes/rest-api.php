@@ -115,6 +115,32 @@ function samlab_register_rest_routes() {
 	);
 	register_rest_route(
 		'samlab/v1',
+		'/koblinger/(?P<id>\d+)/utfall',
+		array(
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => 'samlab_rest_kobling_utfall',
+			'permission_callback' => 'samlab_rest_kobling_svar_tillatt',
+			'args'                => array(
+				'id'     => array(
+					'type'     => 'integer',
+					'required' => true,
+					'minimum'  => 1,
+				),
+				'utfall' => array(
+					'type'     => 'string',
+					'required' => true,
+					'enum'     => array( 'mote', 'avtale', 'henvisning', 'ingenting' ),
+				),
+				'notat'  => array(
+					'type'      => 'string',
+					'default'   => '',
+					'maxLength' => 500,
+				),
+			),
+		)
+	);
+	register_rest_route(
+		'samlab/v1',
 		'/brukere',
 		array(
 			'methods'             => WP_REST_Server::READABLE,
@@ -377,6 +403,29 @@ function samlab_rest_kobling_svar( $request ) {
 }
 
 /**
+ * Fører innlogget parts utfall på en introdusert/fulgt opp kobling
+ * («ble det noe?», G4). Samme partsvakt som svar-ruten.
+ *
+ * @param WP_REST_Request $request Forespørselen.
+ * @return WP_REST_Response|WP_Error
+ */
+function samlab_rest_kobling_utfall( $request ) {
+	$kobling_id = (int) $request['id'];
+	$bruker     = get_current_user_id();
+
+	$resultat = samlab_sett_kobling_utfall( $kobling_id, (string) $request['utfall'], (string) $request['notat'], $bruker );
+	if ( is_wp_error( $resultat ) ) {
+		// Utfall før introduksjonen er en tilstandskonflikt, som
+		// svar utenfor forespurt.
+		$status = 'samlab_feil_status' === $resultat->get_error_code() ? 409 : 400;
+		$resultat->add_data( array( 'status' => $status ) );
+		return $resultat;
+	}
+
+	return rest_ensure_response( samlab_rest_kobling_data( $kobling_id, $bruker ) );
+}
+
+/**
  * Innlogget brukers egne koblinger (datagrunnlaget for G3-flaten).
  *
  * @return WP_REST_Response
@@ -427,6 +476,7 @@ function samlab_rest_kobling_data( $kobling_id, $user_id ) {
 		'mitt_samtykke'   => samlab_kobling_samtykke( $kobling_id, $part ),
 		'motpart'         => samlab_kobling_part_navn( $kobling_id, $motpart ),
 		'motpart_kontakt' => $kontakt,
+		'utfall'          => samlab_kobling_utfall( $kobling_id ),
 		'opprettet'       => get_the_date( 'Y-m-d', $kobling_id ),
 	);
 }

@@ -214,6 +214,82 @@ function samlab_varsle_kobling_besvart( $kobling_id, $part, $svar ) {
 add_action( 'samlab_kobling_besvart', 'samlab_varsle_kobling_besvart', 10, 3 );
 
 /**
+ * «Ble det noe?»-påminnelser (G4): partene minnes på å registrere
+ * utfall 14 dager etter introduksjonen. Hektet på den daglige
+ * matching-cronen; sendes nøyaktig én gang per kobling
+ * (meta-vakten _samlab_utfall_paminnet).
+ *
+ * @param int $dager Dager etter introdusert før påminnelsen går.
+ * @return int Antall koblinger som fikk påminnelse.
+ */
+function samlab_kobling_utfall_paminnelser( $dager = 14 ) {
+	$dager   = max( 1, (int) $dager );
+	$grense  = time() - $dager * DAY_IN_SECONDS;
+	$sendt   = 0;
+	$aktuell = get_posts(
+		array(
+			'post_type'      => 'samlab_kobling',
+			'post_status'    => 'publish',
+			'posts_per_page' => 100,
+			'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Lavvolum dagsjobb.
+				array(
+					'key'   => '_samlab_status',
+					'value' => 'introdusert',
+				),
+				array(
+					'key'     => '_samlab_utfall_paminnet',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => '_samlab_utfall',
+					'compare' => 'NOT EXISTS',
+				),
+			),
+		)
+	);
+
+	foreach ( $aktuell as $kobling ) {
+		// Introduksjonstidspunktet fra statusloggen - nyeste
+		// introdusert-innslag gjelder.
+		$introdusert = 0;
+		$logg        = get_post_meta( $kobling->ID, '_samlab_statuslogg', true );
+		foreach ( is_array( $logg ) ? $logg : array() as $rad ) {
+			if ( isset( $rad['status'], $rad['tid'] ) && 'introdusert' === $rad['status'] ) {
+				$introdusert = max( $introdusert, (int) strtotime( $rad['tid'] . ' UTC' ) );
+			}
+		}
+		if ( ! $introdusert || $introdusert > $grense ) {
+			continue;
+		}
+
+		foreach ( samlab_kobling_part_brukere( $kobling->ID ) as $mottaker ) {
+			Samlab_Varsel::create(
+				array(
+					'user_id'     => $mottaker,
+					'type'        => 'kobling_utfall_paminnelse',
+					'object_type' => 'kobling',
+					'object_id'   => $kobling->ID,
+					'actor_id'    => 0,
+				)
+			);
+		}
+		update_post_meta( $kobling->ID, '_samlab_utfall_paminnet', '1' );
+		++$sendt;
+	}
+	return $sendt;
+}
+
+/**
+ * Kjører påminnelsene i den daglige matching-runden.
+ *
+ * @return void
+ */
+function samlab_kobling_utfall_paminnelser_tick() {
+	samlab_kobling_utfall_paminnelser();
+}
+add_action( 'samlab_matching_kjort', 'samlab_kobling_utfall_paminnelser_tick' );
+
+/**
  * Menneskelig tekst og lenke for et varsel.
  *
  * @param object $varsel Rad fra varseltabellen.
@@ -248,6 +324,11 @@ function samlab_varsel_visning( $varsel ) {
 			// Nøytralt, uten hvem som takket nei (avklaring 5).
 			/* translators: %s: koblingens tittel. */
 			$tekst = sprintf( __( 'Koblingen «%s» ble ikke noe av denne gangen', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
+			$lenke = samlab_portal_url( 'koblinger' );
+			break;
+		case 'kobling_utfall_paminnelse':
+			/* translators: %s: koblingens tittel. */
+			$tekst = sprintf( __( 'Ble det noe av koblingen «%s»? Registrer utfallet', 'samlab' ), get_the_title( (int) $varsel->object_id ) );
 			$lenke = samlab_portal_url( 'koblinger' );
 			break;
 		case 'kobling_besvart':
