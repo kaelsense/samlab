@@ -215,6 +215,58 @@ sjekk( 'scroll-regionene er navngitt og tastaturnåbare', $rammer->length > 0 &&
 // Tekstene testene i G4/G5/G7 henger på skal være urørt.
 sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
 
+// --- Fase 5: volumlappene ---
+// samlab_kp_liste() direkte: 40 elementer skal gi 10 åpne og resten
+// sammenbrettet, uansett hva som ligger i basen.
+ob_start();
+samlab_kp_liste(
+	range( 1, 40 ),
+	function ( $n ) {
+		echo '<li>' . esc_html( (string) $n ) . '</li>';
+	},
+	'tom'
+);
+$liste_html = ob_get_clean();
+$dom_l      = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom_l->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $liste_html . '</div>' );
+libxml_clear_errors();
+$xl = new DOMXPath( $dom_l );
+sjekk( 'lista viser ti rader åpent', SAMLAB_KP_VIS === $xl->query( '//div[@id="rot"]/ul/li' )->length );
+sjekk( 'resten ligger i details', 30 === $xl->query( '//details/ul/li' )->length );
+sjekk( 'summary sier hvor mange som er brettet sammen', false !== strpos( $liste_html, 'Vis 30 til' ) );
+
+ob_start();
+samlab_kp_liste( array(), 'esc_html', 'Ingen her.' );
+$tom_html = ob_get_clean();
+sjekk( 'tom liste viser tomteksten uten details', false !== strpos( $tom_html, 'Ingen her.' ) && false === strpos( $tom_html, '<details>' ) );
+
+// samlab_kp_avkortet(): linjen skal kun komme når taket er truffet.
+ob_start();
+samlab_kp_avkortet( array_fill( 0, SAMLAB_KP_TAK - 1, 1 ), array( 'foreslatt' ), 'test' );
+sjekk( 'under taket sies ingenting om avkorting', '' === ob_get_clean() );
+
+ob_start();
+samlab_kp_avkortet( array_fill( 0, SAMLAB_KP_TAK, 1 ), array( 'foreslatt' ), 'Foreslåtte koblinger' );
+$avkortet = ob_get_clean();
+sjekk( 'på taket sies det hvor mye som vises', false !== strpos( $avkortet, 'Viser 100 av' ) );
+sjekk( 'avkortingen lenker videre til hele listen', false !== strpos( $avkortet, 'post_type=samlab_kobling' ) );
+sjekk( 'lenken er navngitt for skjermlesere', false !== strpos( $avkortet, 'screen-reader-text' ) );
+
+// Invarianten som holder uansett data: ingen liste på siden er lengre
+// enn navnegrensen pluss «og N til»-raden.
+$lengste = 0;
+foreach ( $xpath->query( '//ul' ) as $samlab_ul ) {
+	$n = 0;
+	foreach ( $samlab_ul->childNodes as $samlab_barn ) {
+		if ( XML_ELEMENT_NODE === $samlab_barn->nodeType && 'li' === $samlab_barn->nodeName ) {
+			++$n;
+		}
+	}
+	$lengste = max( $lengste, $n );
+}
+sjekk( 'ingen liste er lengre enn navnegrensen', $lengste <= SAMLAB_KP_NAVN + 1 );
+
 // --- Fase 4: rapporten ---
 set_current_screen( 'kontrollpanel_page_samlab-rapport' );
 ob_start();
