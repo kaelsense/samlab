@@ -761,8 +761,8 @@ introduksjonsflyten (slide 6, steg 4: «ingen kontaktes uten å ha
 sagt ja»), utfallsregistrering og rapport (slide 6 steg 6 og hele
 slide 7), og assistentens ubesvart-løkke (slide 10). Fase G lukker
 dem. Rekkefølgen er bevisst: G1-G3 er samtykkeflyten, G4-G5 bygger
-på den, G6-G7 er uavhengige men venter på avklaring 7. Veivalgene
-bak fasen står som punkt 5-8 i AVKLARINGER.md.*
+på den, G6-G7 er uavhengige av resten. Veivalgene bak fasen er
+avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
 
 - [ ] **G1. Samtykke-datamodell og statuskjede.** Ny status
   `forespurt` mellom foreslått og godkjent, slik at
@@ -839,8 +839,7 @@ bak fasen står som punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* tallene stemmer mot seed-dataene i riggen for alle
   tre periodene, CSV-en åpner i regneark, og siden svarer 403 uten
   koblings-capability.
-- [ ] **G6. Ubesvart-deteksjon i assistenten.** [BLOKKERT:
-  avklaring 7 - kolliderer med «logges aldri»-løftet.]
+- [ ] **G6. Ubesvart-deteksjon i assistenten.**
   Systemprompten instruerer modellen til å starte svaret med
   markøren `[UBESVART]` når kunnskapsgrunnlaget ikke holder;
   api.php stripper markøren før svaret går til medlemmet og legger
