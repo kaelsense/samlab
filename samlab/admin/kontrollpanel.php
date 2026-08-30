@@ -382,28 +382,6 @@ function samlab_kp_kort_slutt() {
 }
 
 /**
- * Sammendragsraden: fire tall som hopper til hver sin seksjon.
- *
- * Tallene er navigasjon, ikke handlinger, så de er lenker og ikke
- * knapper. De kommer fra listene seksjonene allerede har hentet -
- * ingen nye spørringer.
- *
- * @param array<int, array{id: string, tall: int, etikett: string}> $tall Sammendraget.
- * @return void
- */
-function samlab_kp_sammendrag( $tall ) {
-	echo '<ul class="samlab-sammendrag" aria-label="' . esc_attr__( 'Sammendrag', 'samlab' ) . '">';
-	foreach ( $tall as $rad ) {
-		$vist = $rad['tall'] >= SAMLAB_KP_TAK ? SAMLAB_KP_TAK . '+' : (string) $rad['tall'];
-		echo '<li><a href="#' . esc_attr( $rad['id'] ) . '">';
-		echo '<span class="samlab-sammendrag-tall">' . esc_html( $vist ) . '</span>';
-		echo '<span class="samlab-sammendrag-etikett">' . esc_html( $rad['etikett'] ) . '</span>';
-		echo '</a></li>';
-	}
-	echo '</ul>';
-}
-
-/**
  * Skjemaknappene for en koblingsrad.
  *
  * @param int      $kobling_id Koblingen.
@@ -480,20 +458,23 @@ function samlab_render_kontrollpanel() {
 	$ufullstendige = samlab_kp_ufullstendige_bedrifter();
 	$stille        = samlab_kp_stille_medlemmer();
 
-	samlab_kp_sammendrag(
+	samlab_admin_sammendrag(
 		array(
 			array(
 				'id'      => 'samlab-forslag',
 				'tall'    => count( $foreslatte ),
 				'etikett' => __( 'Forslag i køen', 'samlab' ),
+				'tak'     => SAMLAB_KP_TAK,
 			),
 			array(
 				'id'      => 'samlab-venter',
+				'tak'     => SAMLAB_KP_TAK,
 				'tall'    => count( $forespurte ),
 				'etikett' => __( 'Venter på partene', 'samlab' ),
 			),
 			array(
 				'id'      => 'samlab-aktive',
+				'tak'     => SAMLAB_KP_TAK,
 				'tall'    => count( $aktive ),
 				'etikett' => __( 'Aktive koblinger', 'samlab' ),
 			),

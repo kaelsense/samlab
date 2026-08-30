@@ -215,6 +215,49 @@ sjekk( 'scroll-regionene er navngitt og tastaturnåbare', $rammer->length > 0 &&
 // Tekstene testene i G4/G5/G7 henger på skal være urørt.
 sjekk( 'seksjonsoverskriftene er uendret', false !== strpos( $html, 'Foreslåtte koblinger' ) && false !== strpos( $html, 'Trenger oppmerksomhet' ) );
 
+// --- Fase 4: rapporten ---
+set_current_screen( 'kontrollpanel_page_samlab-rapport' );
+ob_start();
+samlab_render_rapport();
+$html = ob_get_clean();
+
+$dom_r = new DOMDocument();
+libxml_use_internal_errors( true );
+$dom_r->loadHTML( '<?xml encoding="utf-8" ?><div id="rot">' . $html . '</div>' );
+libxml_clear_errors();
+$xr = new DOMXPath( $dom_r );
+
+$perioder = $xr->query( '//ul[contains(@class, "subsubsub")]/li/a' );
+sjekk( 'periodevalget er core sin subsubsub', 3 === $perioder->length );
+$aktive = $xr->query( '//ul[contains(@class, "subsubsub")]/li/a[@aria-current="page"]' );
+sjekk( 'aktiv periode er merket med aria-current', 1 === $aktive->length && false !== strpos( $aktive->item( 0 )->getAttribute( 'class' ), 'current' ) );
+sjekk( 'alle periodene er lenker, også den aktive', 0 === $xr->query( '//ul[contains(@class, "subsubsub")]//strong' )->length );
+
+$ruter = $xr->query( '//ul[contains(@class, "samlab-sammendrag")]/li' );
+sjekk( 'rapporten har en sammendragsrad', 4 === $ruter->length );
+sjekk( 'rapportens sammendrag er ikke lenker - det er ingen seksjoner å hoppe til', 0 === $xr->query( '//ul[contains(@class, "samlab-sammendrag")]//a' )->length );
+
+sjekk( 'tallkolonnen er merket', $xr->query( '//td[contains(@class, "samlab-tallkolonne")]' )->length > 10 );
+
+// Sammendraget må stemme med tabellen - ellers forteller de to delene
+// av samme side ulike historier.
+$fra_tabell = array();
+foreach ( $xr->query( '//table//tr' ) as $samlab_tr ) {
+	$celler = $samlab_tr->getElementsByTagName( 'td' );
+	if ( 2 === $celler->length ) {
+		$fra_tabell[ trim( $celler->item( 0 )->textContent ) ] = trim( $celler->item( 1 )->textContent );
+	}
+}
+$stemmer = true;
+foreach ( $ruter as $samlab_rute ) {
+	$t = trim( $xr->query( './/span[contains(@class, "samlab-sammendrag-tall")]', $samlab_rute )->item( 0 )->textContent );
+	$e = trim( $xr->query( './/span[contains(@class, "samlab-sammendrag-etikett")]', $samlab_rute )->item( 0 )->textContent );
+	if ( ! isset( $fra_tabell[ $e ] ) || $fra_tabell[ $e ] !== $t ) {
+		$stemmer = false;
+	}
+}
+sjekk( 'sammendragstallene stemmer med tabellraden de speiler', $stemmer );
+
 // --- Fase 2: innstillingssiden som kortstabel ---
 set_current_screen( 'admin_page_samlab' );
 ob_start();

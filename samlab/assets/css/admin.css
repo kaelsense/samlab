@@ -109,7 +109,8 @@
 	list-style: none;
 }
 
-.samlab-admin-side .samlab-sammendrag a {
+.samlab-admin-side .samlab-sammendrag a,
+.samlab-admin-side .samlab-sammendrag .samlab-sammendrag-rute {
 	display: block;
 	padding: var( --samlab-a-pad );
 	border: 1px solid var( --samlab-a-linje );
@@ -128,6 +129,20 @@
 .samlab-admin-side .samlab-sammendrag-etikett {
 	display: block;
 	color: var( --samlab-a-demp );
+}
+
+/**
+ * Rapportens tallkolonne. Høyrestilt med tabellsifre, så sifrene står
+ * under hverandre og tallene er sammenlignbare nedover kolonnen.
+ */
+.samlab-admin-side .samlab-tallkolonne {
+	text-align: end;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Periodevalget står som core sin .subsubsub, med litt luft under. */
+.samlab-admin-side .samlab-perioder {
+	margin-block-end: var( --samlab-a-gap );
 }
 
 /**
