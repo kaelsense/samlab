@@ -195,6 +195,23 @@
 }
 
 /**
+ * Sammenbrettede lister. <summary> er fokuserbar og klikkbar av seg
+ * selv - vi gir den bare litt luft og en tydelig peker.
+ */
+.samlab-admin-side details {
+	margin-block-start: var( --samlab-a-gap-sm );
+}
+
+.samlab-admin-side details > summary {
+	cursor: pointer;
+	inline-size: fit-content;
+}
+
+.samlab-admin-side details > ul {
+	margin-block-start: var( --samlab-a-gap-sm );
+}
+
+/**
  * Klebrig lagre-rad. submit_button() gir <p class="submit">, så dette
  * krever ingen markupendring.
  *

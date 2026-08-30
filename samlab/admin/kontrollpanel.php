@@ -358,6 +358,119 @@ function samlab_kontrollpanel_post() {
 add_action( 'admin_post_samlab_kobling', 'samlab_kontrollpanel_post' );
 
 /**
+ * Hvor mange rader som vises åpent før resten brettes sammen.
+ */
+const SAMLAB_KP_VIS = 10;
+
+/**
+ * Maks antall navn i en sammenbrettet liste før den kappes.
+ */
+const SAMLAB_KP_NAVN = 25;
+
+/**
+ * Rendrer en liste der bare de første radene står åpne.
+ *
+ * Dette er en lapp, ikke en løsning: <details> skjuler noder, den
+ * fjerner dem ikke, så DOM-en er like tung. Den ordentlige løsningen
+ * er paginering per seksjon med WP_List_Table. Lappen fjerner likevel
+ * det verste - en side man må scrolle forbi hundrevis av rader på.
+ *
+ * @param array    $elementer Elementene.
+ * @param callable $rad       Rendrer ett <li> for ett element.
+ * @param string   $tom       Teksten når listen er tom.
+ * @param int      $vis       Hvor mange som står åpne.
+ * @return void
+ */
+function samlab_kp_liste( $elementer, $rad, $tom, $vis = SAMLAB_KP_VIS ) {
+	if ( array() === $elementer ) {
+		echo '<ul><li>' . esc_html( $tom ) . '</li></ul>';
+		return;
+	}
+
+	echo '<ul>';
+	foreach ( array_slice( $elementer, 0, $vis ) as $samlab_e ) {
+		call_user_func( $rad, $samlab_e );
+	}
+	echo '</ul>';
+
+	$resten = array_slice( $elementer, $vis );
+	if ( array() === $resten ) {
+		return;
+	}
+
+	echo '<details><summary>';
+	/* translators: %d: antall rader som er brettet sammen. */
+	echo esc_html( sprintf( __( 'Vis %d til', 'samlab' ), count( $resten ) ) );
+	echo '</summary><ul>';
+	foreach ( $resten as $samlab_e ) {
+		call_user_func( $rad, $samlab_e );
+	}
+	echo '</ul></details>';
+}
+
+/**
+ * Antall koblinger med gitt status, uten taket.
+ *
+ * Kalles kun når en liste har truffet taket, så den koster ingenting i
+ * det vanlige tilfellet. Henter kun ID-er.
+ *
+ * @param string[] $statuser Statusene.
+ * @return int
+ */
+function samlab_kp_koblinger_antall( $statuser ) {
+	return count(
+		get_posts(
+			array(
+				'post_type'              => 'samlab_kobling',
+				'post_status'            => 'publish',
+				'posts_per_page'         => -1,
+				'fields'                 => 'ids',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'meta_query'             => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Kun når taket er truffet.
+					array(
+						'key'     => '_samlab_status',
+						'value'   => $statuser,
+						'compare' => 'IN',
+					),
+				),
+			)
+		)
+	);
+}
+
+/**
+ * Linjen under en tabell som har truffet taket.
+ *
+ * Kontrollpanelet er et dashbord, ikke hele listen. Når en seksjon er
+ * avkortet, skal det stå der - stille avkorting er verre enn en synlig
+ * lenke videre.
+ *
+ * @param array    $vist     Radene som ble vist.
+ * @param string[] $statuser Statusene listen dekker.
+ * @param string   $hva      Hva lenken fører til, til skjermlesere.
+ * @return void
+ */
+function samlab_kp_avkortet( $vist, $statuser, $hva ) {
+	if ( count( $vist ) < SAMLAB_KP_TAK ) {
+		return;
+	}
+	$totalt = samlab_kp_koblinger_antall( $statuser );
+	echo '<p class="description">';
+	echo esc_html(
+		sprintf(
+			/* translators: 1: antall viste rader, 2: totalt antall. */
+			__( 'Viser %1$d av %2$d.', 'samlab' ),
+			count( $vist ),
+			$totalt
+		)
+	);
+	echo ' <a href="' . esc_url( admin_url( 'edit.php?post_type=samlab_kobling' ) ) . '">';
+	echo esc_html__( 'Se alle koblinger', 'samlab' );
+	echo '<span class="screen-reader-text"> ' . esc_html( $hva ) . '</span></a></p>';
+}
+
+/**
  * Åpner et seksjonskort med overskrift.
  *
  * .postbox er core sin egen kort-idiom - stilene er alt lastet, så
@@ -508,6 +621,7 @@ function samlab_render_kontrollpanel() {
 		}
 		echo '</tbody></table>';
 		samlab_admin_tabellramme_slutt();
+		samlab_kp_avkortet( $foreslatte, array( 'foreslatt' ), __( 'Foreslåtte koblinger', 'samlab' ) );
 	}
 
 	samlab_kp_kort_slutt();
@@ -542,6 +656,7 @@ function samlab_render_kontrollpanel() {
 		}
 		echo '</tbody></table>';
 		samlab_admin_tabellramme_slutt();
+		samlab_kp_avkortet( $forespurte, array( 'forespurt' ), __( 'Venter på partene', 'samlab' ) );
 	}
 
 	samlab_kp_kort_slutt();
@@ -567,6 +682,7 @@ function samlab_render_kontrollpanel() {
 		}
 		echo '</tbody></table>';
 		samlab_admin_tabellramme_slutt();
+		samlab_kp_avkortet( $aktive, array( 'godkjent', 'introdusert' ), __( 'Aktive koblinger', 'samlab' ) );
 	}
 
 	samlab_kp_kort_slutt();
@@ -586,6 +702,7 @@ function samlab_render_kontrollpanel() {
 		}
 		echo '</tbody></table>';
 		samlab_admin_tabellramme_slutt();
+		samlab_kp_avkortet( $fulgte, array( 'fulgt_opp' ), __( 'Utfall', 'samlab' ) );
 	}
 
 	samlab_kp_kort_slutt();
@@ -596,46 +713,50 @@ function samlab_render_kontrollpanel() {
 	echo '<div class="samlab-oppmerksomhet">';
 
 	echo '<div class="samlab-oppmerksomhet-gruppe">';
-	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3><ul>';
-	if ( array() === $nye ) {
-		echo '<li>' . esc_html__( 'Ingen - alle nye er introdusert.', 'samlab' ) . '</li>';
-	}
-	foreach ( $nye as $bruker ) {
-		echo '<li>' . esc_html( $bruker->display_name ) . ' <span class="description">(' . esc_html( gmdate( 'd.m.Y', strtotime( $bruker->user_registered ) ) ) . ')</span></li>';
-	}
-	echo '</ul></div>';
+	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3>';
+	samlab_kp_liste(
+		$nye,
+		function ( $bruker ) {
+			echo '<li>' . esc_html( $bruker->display_name ) . ' <span class="description">(' . esc_html( gmdate( 'd.m.Y', strtotime( $bruker->user_registered ) ) ) . ')</span></li>';
+		},
+		__( 'Ingen - alle nye er introdusert.', 'samlab' )
+	);
+	echo '</div>';
 
 	echo '<div class="samlab-oppmerksomhet-gruppe">';
-	echo '<h3>' . esc_html__( 'Åpne behov eldre enn 14 dager', 'samlab' ) . '</h3><ul>';
-	if ( array() === $gamle ) {
-		echo '<li>' . esc_html__( 'Ingen.', 'samlab' ) . '</li>';
-	}
-	foreach ( $gamle as $behov ) {
-		echo '<li><a href="' . esc_url( get_edit_post_link( $behov->ID ) ) . '">' . esc_html( get_the_title( $behov ) ) . '</a> <span class="description">(' . esc_html( get_the_date( 'd.m.Y', $behov ) ) . ')</span></li>';
-	}
-	echo '</ul></div>';
+	echo '<h3>' . esc_html__( 'Åpne behov eldre enn 14 dager', 'samlab' ) . '</h3>';
+	samlab_kp_liste(
+		$gamle,
+		function ( $behov ) {
+			echo '<li><a href="' . esc_url( get_edit_post_link( $behov->ID ) ) . '">' . esc_html( get_the_title( $behov ) ) . '</a> <span class="description">(' . esc_html( get_the_date( 'd.m.Y', $behov ) ) . ')</span></li>';
+		},
+		__( 'Ingen.', 'samlab' )
+	);
+	echo '</div>';
 
 	echo '<div class="samlab-oppmerksomhet-gruppe">';
-	echo '<h3>' . esc_html__( 'Ufullstendige bedriftsprofiler', 'samlab' ) . '</h3><ul>';
-	if ( array() === $ufullstendige ) {
-		echo '<li>' . esc_html__( 'Ingen - alle profiler er komplette.', 'samlab' ) . '</li>';
-	}
-	foreach ( $ufullstendige as $rad ) {
-		echo '<li><a href="' . esc_url( get_edit_post_link( $rad['bedrift']->ID ) ) . '">' . esc_html( get_the_title( $rad['bedrift'] ) ) . '</a>: ';
-		/* translators: %s: kommaseparert liste over manglende felter. */
-		echo esc_html( sprintf( __( 'mangler %s', 'samlab' ), implode( ', ', $rad['mangler'] ) ) ) . '</li>';
-	}
-	echo '</ul></div>';
+	echo '<h3>' . esc_html__( 'Ufullstendige bedriftsprofiler', 'samlab' ) . '</h3>';
+	samlab_kp_liste(
+		$ufullstendige,
+		function ( $rad ) {
+			echo '<li><a href="' . esc_url( get_edit_post_link( $rad['bedrift']->ID ) ) . '">' . esc_html( get_the_title( $rad['bedrift'] ) ) . '</a>: ';
+			/* translators: %s: kommaseparert liste over manglende felter. */
+			echo esc_html( sprintf( __( 'mangler %s', 'samlab' ), implode( ', ', $rad['mangler'] ) ) ) . '</li>';
+		},
+		__( 'Ingen - alle profiler er komplette.', 'samlab' )
+	);
+	echo '</div>';
 
 	echo '<div class="samlab-oppmerksomhet-gruppe">';
-	echo '<h3>' . esc_html__( 'Stille medlemmer (ingen aktivitet siste 30 dager)', 'samlab' ) . '</h3><ul>';
-	if ( array() === $stille ) {
-		echo '<li>' . esc_html__( 'Ingen.', 'samlab' ) . '</li>';
-	}
-	foreach ( $stille as $bruker ) {
-		echo '<li>' . esc_html( $bruker->display_name ) . '</li>';
-	}
-	echo '</ul></div>';
+	echo '<h3>' . esc_html__( 'Stille medlemmer (ingen aktivitet siste 30 dager)', 'samlab' ) . '</h3>';
+	samlab_kp_liste(
+		$stille,
+		function ( $bruker ) {
+			echo '<li>' . esc_html( $bruker->display_name ) . '</li>';
+		},
+		__( 'Ingen.', 'samlab' )
+	);
+	echo '</div>';
 	echo '</div>';
 	samlab_kp_kort_slutt();
 
@@ -645,7 +766,13 @@ function samlab_render_kontrollpanel() {
 	if ( array() === $lesekrav ) {
 		echo '<p>' . esc_html__( 'Ingen oppslag krever lesebekreftelse. Fest et oppslag på veggen og velg «Krev lest».', 'samlab' ) . '</p>';
 	}
+	// Kun de som mangler rendres. Hvem som HAR bekreftet er ikke et
+	// handlingsbart sett - tallet over dekker det - og seksjonen var
+	// den tyngste på siden: 20 oppslag x 500 medlemmer ga opptil
+	// 10 000 listeelementer i én HTML-side.
 	foreach ( $lesekrav as $rad ) {
+		$samlab_mangler = $rad['mangler'];
+		$samlab_antall  = count( $samlab_mangler );
 		echo '<h3>' . esc_html( wp_html_excerpt( wp_strip_all_tags( $rad['innlegg']->content ), 80, '…' ) ) . '</h3>';
 		echo '<p>';
 		echo esc_html(
@@ -653,17 +780,31 @@ function samlab_render_kontrollpanel() {
 				/* translators: 1: antall som har bekreftet, 2: antall medlemmer totalt. */
 				__( '%1$d av %2$d har bekreftet.', 'samlab' ),
 				count( $rad['bekreftet'] ),
-				count( $rad['bekreftet'] ) + count( $rad['mangler'] )
+				count( $rad['bekreftet'] ) + $samlab_antall
 			)
 		);
-		echo '</p><ul>';
-		foreach ( $rad['bekreftet'] as $bruker ) {
-			echo '<li>&#10003; ' . esc_html( $bruker->display_name ) . '</li>';
+		echo '</p>';
+
+		if ( 0 === $samlab_antall ) {
+			echo '<p>' . esc_html__( 'Alle har bekreftet.', 'samlab' ) . '</p>';
+			continue;
 		}
-		foreach ( $rad['mangler'] as $bruker ) {
-			echo '<li>&#8211; ' . esc_html( $bruker->display_name ) . ' <span class="description">' . esc_html__( '(ikke bekreftet)', 'samlab' ) . '</span></li>';
+
+		// Tallet står i summary, så den er meningsbærende sammenbrettet.
+		echo '<details><summary>';
+		/* translators: %d: antall medlemmer som ikke har bekreftet. */
+		echo esc_html( sprintf( __( 'Ikke bekreftet (%d)', 'samlab' ), $samlab_antall ) );
+		echo '</summary><ul>';
+		foreach ( array_slice( $samlab_mangler, 0, SAMLAB_KP_NAVN ) as $samlab_bruker ) {
+			echo '<li>' . esc_html( $samlab_bruker->display_name ) . '</li>';
 		}
-		echo '</ul>';
+		if ( $samlab_antall > SAMLAB_KP_NAVN ) {
+			echo '<li class="description">';
+			/* translators: %d: antall navn som ikke vises. */
+			echo esc_html( sprintf( __( 'og %d til', 'samlab' ), $samlab_antall - SAMLAB_KP_NAVN ) );
+			echo '</li>';
+		}
+		echo '</ul></details>';
 	}
 
 	samlab_kp_kort_slutt();
