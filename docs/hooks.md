@@ -282,7 +282,10 @@ Siden: 0.2.0.
 ### `samlab_kobling_status_endret`
 
 Kjøres når en kobling/introduksjon endrer status i statuskjeden
-(foreslått → godkjent → introdusert → fulgt opp, eller avvist).
+(foreslått → forespurt → godkjent → introdusert → fulgt opp, eller
+avvist). Fra G1 betyr godkjent at begge parter har takket ja -
+kontrollpanelets godkjenning setter forespurt, og
+`samlab_kobling_svar()` løfter til godkjent/avvist ut fra svarene.
 
 ```php
 do_action( 'samlab_kobling_status_endret', $kobling_id, $status, $gammel, $user_id );
@@ -294,6 +297,26 @@ do_action( 'samlab_kobling_status_endret', $kobling_id, $status, $gammel, $user_
 | `$status` | string | Ny status-slug |
 | `$gammel` | string | Forrige status (tom streng ved opprettelse) |
 | `$user_id` | int | Hvem som endret (0 = system/cron) |
+
+Siden: 0.2.0.
+
+### `samlab_kobling_besvart`
+
+Kjøres når en part har svart på en forespurt kobling (via
+`samlab_kobling_svar()`), før en eventuell statusendring: begge ja
+løfter koblingen til godkjent, ett nei setter avvist - da fyrer
+`samlab_kobling_status_endret` rett etterpå.
+
+```php
+do_action( 'samlab_kobling_besvart', $kobling_id, $part, $svar, $user_id );
+```
+
+| Parameter | Type | Beskrivelse |
+| --- | --- | --- |
+| `$kobling_id` | int | Koblingens post-ID |
+| `$part` | string | Parten som svarte (`a` eller `b`) |
+| `$svar` | string | `ja` eller `nei` |
+| `$user_id` | int | Hvem som svarte (0 = system) |
 
 Siden: 0.2.0.
 

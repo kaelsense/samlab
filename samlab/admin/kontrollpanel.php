@@ -2,9 +2,11 @@
 /**
  * Kontrollpanelet: community-managerens wp-admin-side (planens 3.4).
  *
- * Koblingskø med godkjenn/avvis, aktive koblinger med statuskjede,
- * og «trenger oppmerksomhet»-listene: nye medlemmer uten
- * introduksjon, åpne behov eldre enn 14 dager, ufullstendige
+ * Koblingskø med godkjenn/avvis (godkjenn setter forespurt og
+ * overlater neste steg til partenes samtykke, G1), forespurte
+ * koblinger som venter på partene, aktive koblinger med
+ * statuskjede, og «trenger oppmerksomhet»-listene: nye medlemmer
+ * uten introduksjon, åpne behov eldre enn 14 dager, ufullstendige
  * bedriftsprofiler og stille medlemmer.
  *
  * Tilgang: koblings-capability (moderator, redaktør, administrator).
@@ -283,7 +285,9 @@ function samlab_kp_lesebekreftelser() {
  */
 function samlab_kontrollpanel_utfor( $kobling_id, $handling, $user_id ) {
 	$statusmap = array(
-		'godkjenn'    => 'godkjent',
+		// Godkjenn setter forespurt: veien til godkjent går gjennom
+		// partenes eget samtykke (samlab_kobling_svar, G1).
+		'godkjenn'    => 'forespurt',
 		'avvis'       => 'avvist',
 		'introdusert' => 'introdusert',
 		'fulgt_opp'   => 'fulgt_opp',
@@ -378,7 +382,7 @@ function samlab_render_kontrollpanel() {
 			samlab_kp_handlingsskjema(
 				$kobling->ID,
 				array(
-					'godkjenn' => __( 'Godkjenn', 'samlab' ),
+					'godkjenn' => __( 'Godkjenn og spør partene', 'samlab' ),
 					'avvis'    => __( 'Avvis', 'samlab' ),
 				)
 			);
@@ -387,7 +391,38 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
-	// 2) Aktive koblinger med statuskjeden.
+	// 2) Forespurte koblinger som venter på partenes samtykke (G1).
+	echo '<h2>' . esc_html__( 'Venter på partene', 'samlab' ) . '</h2>';
+	$forespurte = samlab_kp_koblinger( array( 'forespurt' ) );
+	if ( array() === $forespurte ) {
+		echo '<p>' . esc_html__( 'Ingen forespørsler venter på svar.', 'samlab' ) . '</p>';
+	} else {
+		$samtykker = array(
+			'venter' => __( 'venter', 'samlab' ),
+			'ja'     => __( 'ja', 'samlab' ),
+			'nei'    => __( 'nei', 'samlab' ),
+		);
+		echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'Parter', 'samlab' ) . '</th><th>' . esc_html__( 'Samtykke', 'samlab' ) . '</th><th>' . esc_html__( 'Handling', 'samlab' ) . '</th></tr></thead><tbody>';
+		foreach ( $forespurte as $kobling ) {
+			echo '<tr><td><a href="' . esc_url( get_edit_post_link( $kobling->ID ) ) . '">' . esc_html( samlab_kp_part_tekst( $kobling->ID ) ) . '</a></td>';
+			echo '<td>' . esc_html(
+				sprintf(
+					/* translators: 1: part A sitt samtykke, 2: part B sitt samtykke. */
+					__( 'A: %1$s - B: %2$s', 'samlab' ),
+					$samtykker[ samlab_kobling_samtykke( $kobling->ID, 'a' ) ],
+					$samtykker[ samlab_kobling_samtykke( $kobling->ID, 'b' ) ]
+				)
+			) . '</td><td>';
+			samlab_kp_handlingsskjema(
+				$kobling->ID,
+				array( 'avvis' => __( 'Trekk tilbake', 'samlab' ) )
+			);
+			echo '</td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+
+	// 3) Aktive koblinger med statuskjeden.
 	echo '<h2>' . esc_html__( 'Aktive koblinger', 'samlab' ) . '</h2>';
 	$aktive   = samlab_kp_koblinger( array( 'godkjent', 'introdusert' ) );
 	$statuser = samlab_kobling_statuser();
@@ -410,7 +445,7 @@ function samlab_render_kontrollpanel() {
 		echo '</tbody></table>';
 	}
 
-	// 3) Trenger oppmerksomhet.
+	// 4) Trenger oppmerksomhet.
 	echo '<h2>' . esc_html__( 'Trenger oppmerksomhet', 'samlab' ) . '</h2>';
 
 	echo '<h3>' . esc_html__( 'Nye medlemmer uten introduksjon (siste 30 dager)', 'samlab' ) . '</h3><ul>';
@@ -455,7 +490,7 @@ function samlab_render_kontrollpanel() {
 	}
 	echo '</ul>';
 
-	// 4) Lesebekreftelser.
+	// 5) Lesebekreftelser.
 	echo '<h2>' . esc_html__( 'Lesebekreftelser', 'samlab' ) . '</h2>';
 	$lesekrav = samlab_kp_lesebekreftelser();
 	if ( array() === $lesekrav ) {

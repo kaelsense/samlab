@@ -764,7 +764,7 @@ dem. Rekkefølgen er bevisst: G1-G3 er samtykkeflyten, G4-G5 bygger
 på den, G6-G7 er uavhengige av resten. Veivalgene bak fasen er
 avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
 
-- [ ] **G1. Samtykke-datamodell og statuskjede.** Ny status
+- [x] **G1. Samtykke-datamodell og statuskjede.** Ny status
   `forespurt` mellom foreslått og godkjent, slik at
   `samlab_kobling_statuser()` blir foreslått → forespurt → godkjent
   → introdusert → fulgt opp (avvist fortsatt terminal sidegren).
@@ -783,6 +783,23 @@ avgjort av Kay 2026-08-30 - se punkt 5-8 i AVKLARINGER.md.*
   *Ferdig når:* ingen kobling kan nå godkjent uten to ja (håndhevet
   i `samlab_kobling_svar`, ikke bare i UI), riggtest dekker begge
   ja / ett nei / svar i feil status, og WPCS er grønn.
+  *Notat (2026-08-30):* Statuskjeden utvidet med forespurt;
+  samtykke-meta med lat historikk-tolkning (godkjent+ uten meta =
+  to ja), samlab_kobling_svar() med vakter for part/svar/status og
+  statusløft ført som system (0) - ellers hadde varselsystemets
+  aktør-hopp latt den som svarte sist stå uten godkjent-varsel.
+  Logg-uttrekk i samlab_kobling_logg() med samtykke_ja/nei-innslag
+  og egne etiketter; forespurt nullstiller samtykkene (også ved
+  re-forespørsel). Kontrollpanelet fikk «Venter på partene»-seksjon
+  med samtykkekolonne og trekk tilbake-knapp; metaboksen viser
+  samtykke per part, og manuell overstyring til godkjent+ fører
+  samtykkene som ja. Manglende forespurt-varsel til partene er
+  G2s jobb. Ny riggtest test-g1.php (22 sjekker) dekker kontrakten;
+  test-e3 omskrevet til to-parts-flyten. docs/hooks.md dokumenterer
+  samlab_kobling_besvart og den nye kjeden. Alle 18 riggtester
+  grønne to ganger på rad (329 sjekker), admin-flatene røyk-rendret
+  uten warnings, WPCS grønn. POT-fila var utdatert (38 av 254
+  strenger) og ble regenerert med wp i18n make-pot.
 - [ ] **G2. Forespørsel-varsler og svar-endepunkt.** Varseltype
   `kobling_forespurt` til begge parter når status settes til
   forespurt - med begrunnelsen (koblingens brødtekst), uten
