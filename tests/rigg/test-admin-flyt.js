@@ -65,6 +65,21 @@ const SIDER = [
   });
   sjekk('lagre-raden dekker ikke det fokuserte feltet', !dekket);
 
+  // Rapporten: .subsubsub er float: left i core, så alt under den må
+  // tømme floaten. Uten det klemmes sammendragsraden ned til null
+  // bredde ved siden av periodevalget - noe bare en nettleser ser.
+  await page.goto(BASE + '/wp-admin/admin.php?page=samlab-rapport');
+  await page.waitForSelector('.subsubsub');
+  await page.waitForSelector('.samlab-sammendrag');
+  const layout = await page.evaluate(() => {
+    const per = document.querySelector('.subsubsub').getBoundingClientRect();
+    const ul = document.querySelector('.samlab-sammendrag').getBoundingClientRect();
+    const wrap = document.querySelector('.wrap').getBoundingClientRect();
+    return { under: ul.top >= per.bottom - 1, andel: ul.width / wrap.width };
+  });
+  sjekk('sammendraget ligger under periodevalget, ikke ved siden av', layout.under);
+  sjekk('sammendraget bruker hele bredden', layout.andel > 0.9);
+
   // Tjeneste-repeateren i bedrifts-metaboksen.
   await page.goto(BASE + '/wp-admin/edit.php?post_type=samlab_bedrift');
   const forste = page.locator('a.row-title').first();

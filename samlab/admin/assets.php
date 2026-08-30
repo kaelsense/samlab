@@ -116,6 +116,41 @@ function samlab_admin_body_class( $classes ) {
 add_filter( 'admin_body_class', 'samlab_admin_body_class' );
 
 /**
+ * Sammendragsrad: noen få tall øverst på en flate.
+ *
+ * Tall med «id» blir lenker som hopper til seksjonen med den id-en -
+ * navigasjon, altså <a> og ikke <button>. Tall uten id er ren
+ * oppsummering og rendres som tekst.
+ *
+ * «tak» sier hvor listen bak tallet er avkortet. Treffer tallet taket,
+ * vises «100+» framfor et presist tall det ikke er dekning for.
+ *
+ * Raden setter ingen farge: tallet arver lenkefargen fra brukerens
+ * fargeskjema.
+ *
+ * @param array<int, array{tall: int, etikett: string, id?: string, tak?: int}> $tall Radene.
+ * @return void
+ */
+function samlab_admin_sammendrag( $tall ) {
+	echo '<ul class="samlab-sammendrag" aria-label="' . esc_attr__( 'Sammendrag', 'samlab' ) . '">';
+	foreach ( $tall as $rad ) {
+		$tak  = isset( $rad['tak'] ) ? (int) $rad['tak'] : 0;
+		$vist = ( $tak > 0 && $rad['tall'] >= $tak ) ? $tak . '+' : (string) $rad['tall'];
+		$inni = '<span class="samlab-sammendrag-tall">' . esc_html( $vist ) . '</span>'
+			. '<span class="samlab-sammendrag-etikett">' . esc_html( $rad['etikett'] ) . '</span>';
+
+		echo '<li>';
+		if ( ! empty( $rad['id'] ) ) {
+			echo '<a href="#' . esc_attr( $rad['id'] ) . '">' . $inni . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- $inni er bygget av esc_html over.
+		} else {
+			echo '<span class="samlab-sammendrag-rute">' . $inni . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Samme.
+		}
+		echo '</li>';
+	}
+	echo '</ul>';
+}
+
+/**
  * Åpner en vannrett scroll-region rundt en bred tabell.
  *
  * De håndskrevne widefat-tabellene er bredere enn 320 px og ga

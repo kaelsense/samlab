@@ -254,8 +254,14 @@ function samlab_render_rapport() {
 	echo '<hr class="wp-header-end" />';
 	echo '<p>' . esc_html__( 'Hva fasiliteringen skaper - aggregert, aldri hvem som gjorde hva, og aldri beløp.', 'samlab' ) . '</p>';
 
-	echo '<p class="samlab-perioder">';
-	foreach ( samlab_rapport_perioder() as $samlab_periode ) {
+	// .subsubsub er core sin egen rad for gjensidig utelukkende
+	// visninger av samme datasett - «Alle | Publisert | Utkast». Det er
+	// semantisk dette. .nav-tab-wrapper er for å bytte mellom ULIKE
+	// skjermer, og hører ikke hjemme her.
+	$perioder = samlab_rapport_perioder();
+	$siste    = count( $perioder ) - 1;
+	echo '<ul class="subsubsub samlab-perioder">';
+	foreach ( $perioder as $samlab_i => $samlab_periode ) {
 		$url = add_query_arg(
 			array(
 				'page'  => 'samlab-rapport',
@@ -264,21 +270,46 @@ function samlab_render_rapport() {
 			admin_url( 'admin.php' )
 		);
 		/* translators: %d: antall dager. */
-		$tekst = sprintf( __( 'Siste %d dager', 'samlab' ), $samlab_periode );
-		if ( $samlab_periode === $dager ) {
-			echo '<strong>' . esc_html( $tekst ) . '</strong>';
-		} else {
-			echo '<a href="' . esc_url( $url ) . '">' . esc_html( $tekst ) . '</a>';
-		}
+		$tekst  = sprintf( __( 'Siste %d dager', 'samlab' ), $samlab_periode );
+		$aktiv  = $samlab_periode === $dager;
+		$skille = $samlab_i < $siste ? ' | ' : '';
+		echo '<li><a href="' . esc_url( $url ) . '"' . ( $aktiv ? ' class="current" aria-current="page"' : '' ) . '>';
+		echo esc_html( $tekst ) . '</a>' . esc_html( $skille ) . '</li>';
 	}
-	echo '</p>';
+	echo '</ul>';
+	// .subsubsub er float: left i core, og core tømmer den selv med
+	// <br class="clear" /> (class-wp-list-table.php). Uten den blir
+	// sammendragsraden under klemt ned til null bredde.
+	echo '<br class="clear" />';
+
+	$etiketter = samlab_rapport_etiketter();
+	samlab_admin_sammendrag(
+		array(
+			array(
+				'tall'    => (int) $tall['nye_behov'],
+				'etikett' => $etiketter['nye_behov'],
+			),
+			array(
+				'tall'    => (int) $tall['forespurte'],
+				'etikett' => $etiketter['forespurte'],
+			),
+			array(
+				'tall'    => (int) $tall['introduserte'],
+				'etikett' => $etiketter['introduserte'],
+			),
+			array(
+				'tall'    => (int) $tall['aktive_medlemmer'],
+				'etikett' => $etiketter['aktive_medlemmer'],
+			),
+		)
+	);
 
 	samlab_admin_tabellramme( __( 'Måltall', 'samlab' ) );
-	echo '<table class="widefat striped samlab-tabell-smal"><thead><tr><th scope="col">' . esc_html__( 'Måltall', 'samlab' ) . '</th><th scope="col">' . esc_html__( 'Antall', 'samlab' ) . '</th></tr></thead><tbody>';
-	foreach ( samlab_rapport_etiketter() as $nokkel => $etikett ) {
-		echo '<tr><td>' . esc_html( $etikett ) . '</td><td>' . esc_html( (string) $tall[ $nokkel ] ) . '</td></tr>';
+	echo '<table class="widefat striped samlab-tabell-smal"><thead><tr><th scope="col">' . esc_html__( 'Måltall', 'samlab' ) . '</th><th scope="col" class="samlab-tallkolonne">' . esc_html__( 'Antall', 'samlab' ) . '</th></tr></thead><tbody>';
+	foreach ( $etiketter as $nokkel => $etikett ) {
+		echo '<tr><td>' . esc_html( $etikett ) . '</td><td class="samlab-tallkolonne">' . esc_html( (string) $tall[ $nokkel ] ) . '</td></tr>';
 	}
-	echo '<tr><td>' . esc_html__( 'Lesebekreftelsesgrad nå', 'samlab' ) . '</td><td>';
+	echo '<tr><td>' . esc_html__( 'Lesebekreftelsesgrad nå', 'samlab' ) . '</td><td class="samlab-tallkolonne">';
 	echo esc_html( null === $lesegrad ? __( 'Ingen krav-oppslag', 'samlab' ) : $lesegrad . ' %' );
 	echo '</td></tr>';
 	echo '</tbody></table>';
