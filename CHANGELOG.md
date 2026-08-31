@@ -7,7 +7,13 @@ og versjonsnumrene følger [semantisk versjonering](https://semver.org/lang/no/)
 
 ## [Uutgitt]
 
-Ingenting ennå.
+### Lagt til
+
+- Offentlig API-dokumentasjonsside for integratorer
+  (`docs/api-dokumentasjon.html`): mørk, monokrom enkeltside med
+  autentisering, koblingsmodellen, alle endepunkter med interaktive
+  testere, hooks-referanse, feilkoder og kodeeksempler. Bygger på
+  `docs/hooks.md` og føres i samme endring som API-flaten.
 
 ## [0.5.0] - 2026-08-30
 

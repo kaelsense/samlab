@@ -1,0 +1,764 @@
+<title>Samlab API</title>
+<style>
+  /* Ett tema: mørkt og monokromt - et bevisst valg, derfor ingen
+     prefers-color-scheme. All differensiering skjer med valør,
+     vekt og form, aldri kulør. */
+  :root {
+    --ground: #121212;
+    --panel: #1a1a1a;
+    --panel2: #212121;
+    --ink: #e4e4e4;
+    --sterk: #ffffff;
+    --muted: #949494;
+    --svak: #6e6e6e;
+    --line: #2d2d2d;
+    --line2: #3d3d3d;
+    --code-bg: #0a0a0a;
+    --code-ink: #d2d2d2;
+    --code-muted: #737373;
+    --code-str: #f5f5f5;
+  }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    margin: 0;
+  }
+  * { box-sizing: border-box; }
+  .ramme { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  h1, h2, h3, h4 {
+    font-family: "Public Sans", "Segoe UI", system-ui, sans-serif;
+    font-weight: 700;
+    line-height: 1.2;
+    text-wrap: balance;
+    color: var(--sterk);
+  }
+  h1 { font-size: 2.5rem; margin: 0 0 0.4rem; }
+  h1 .api { border-bottom: 4px solid var(--sterk); }
+  h2 {
+    font-size: 1.6rem;
+    margin: 3.5rem 0 0.75rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+  }
+  h3 { font-size: 1.15rem; margin: 2rem 0 0.5rem; }
+  p, li { max-width: 70ch; }
+  .ingress { font-size: 1.1rem; color: var(--muted); max-width: 64ch; margin-top: 0.25rem; }
+
+  code, pre, .sti, .metode, .tester input, .tester textarea, .tester select {
+    font-family: "JetBrains Mono", "Consolas", "Courier New", monospace;
+  }
+  code {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.08em 0.35em;
+    font-size: 0.85em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    color: var(--code-ink);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.6;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; color: inherit; }
+  pre .kom { color: var(--code-muted); }
+  pre .str { color: var(--code-str); }
+  a { color: var(--sterk); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin: 0.75rem 0 1rem; }
+  th, td {
+    text-align: left;
+    padding: 0.5rem 0.9rem 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .tabellrull { overflow-x: auto; }
+
+  /* Innholdsfortegnelse */
+  .toc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin: 2rem 0 0;
+  }
+  .toc h3 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .toc ol {
+    columns: 2;
+    column-gap: 2.5rem;
+    margin: 0;
+    padding-left: 1.2rem;
+    font-size: 0.92rem;
+  }
+  .toc li { padding: 0.14rem 0; }
+  .toc a { text-decoration: none; color: var(--ink); }
+  .toc a:hover { color: var(--sterk); text-decoration: underline; }
+
+  /* Metode-chips: form skiller, ikke farge */
+  .metode {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 0.18rem 0.55rem;
+    border-radius: 4px;
+    border: 1px solid var(--sterk);
+  }
+  .metode.get { background: transparent; color: var(--sterk); }
+  .metode.post { background: var(--sterk); color: var(--ground); }
+
+  .badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    border-radius: 999px;
+    padding: 0.05rem 0.55rem;
+    white-space: nowrap;
+  }
+  .badge.pakrevd { background: var(--sterk); color: var(--ground); }
+  .badge.valgfri { border: 1px solid var(--line2); color: var(--muted); }
+
+  /* Endepunkt-blokker */
+  .endepunkt {
+    border: 1px solid var(--line);
+    border-radius: 10px 10px 0 0;
+    background: var(--panel);
+    padding: 1.25rem 1.5rem 1rem;
+    margin: 1.5rem 0 0;
+  }
+  .endepunkt-hode { display: flex; align-items: baseline; gap: 0.65rem; flex-wrap: wrap; margin-bottom: 0.4rem; }
+  .sti { font-size: 0.95rem; font-weight: 600; word-break: break-all; color: var(--sterk); }
+  .krav { font-size: 0.8rem; color: var(--muted); margin: 0 0 0.5rem; }
+  .endepunkt h4, .tester h4 {
+    font-family: "Public Sans", system-ui, sans-serif;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin: 1rem 0 0.2rem;
+  }
+  .feilkoder { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.3rem 0 0.75rem; padding: 0; list-style: none; }
+  .feilkoder li {
+    font-size: 0.78rem;
+    border: 1px solid var(--line2);
+    border-radius: 999px;
+    padding: 0.12rem 0.7rem;
+    color: var(--muted);
+  }
+  .feilkoder li strong { color: var(--sterk); font-variant-numeric: tabular-nums; }
+
+  /* Testeren: henger under endepunktet */
+  .tester {
+    border: 1px solid var(--line);
+    border-top: 1px dashed var(--line2);
+    border-radius: 0 0 10px 10px;
+    background: var(--panel2);
+    padding: 1rem 1.5rem 1.25rem;
+    margin: 0 0 1.5rem;
+  }
+  .tester-felt { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.6rem; margin: 0.5rem 0 0.75rem; }
+  .tester label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.15rem; }
+  .tester input, .tester textarea, .tester select {
+    width: 100%;
+    background: var(--ground);
+    border: 1px solid var(--line2);
+    border-radius: 6px;
+    color: var(--ink);
+    padding: 0.45rem 0.6rem;
+    font-size: 0.82rem;
+  }
+  .tester input:focus, .tester textarea:focus, .tester select:focus, .knapp:focus {
+    outline: 2px solid var(--sterk);
+    outline-offset: 1px;
+  }
+  .knapp {
+    font-family: "Public Sans", system-ui, sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--sterk);
+    color: var(--ground);
+    border: 1px solid var(--sterk);
+    border-radius: 6px;
+    padding: 0.45rem 1.1rem;
+    cursor: pointer;
+  }
+  .knapp:disabled { opacity: 0.5; cursor: wait; }
+  .knapp.sekundar { background: transparent; color: var(--sterk); }
+  .tester-svar { display: none; margin-top: 0.75rem; }
+  .tester-svar.synlig { display: block; }
+  .tester-status { font-size: 0.8rem; font-weight: 700; color: var(--sterk); margin: 0 0 0.25rem; font-variant-numeric: tabular-nums; }
+  .tester-svar pre { max-height: 320px; overflow: auto; margin: 0.25rem 0 0; }
+
+  /* Auth-banner for testeren */
+  .auth-banner {
+    border: 1px solid var(--line2);
+    border-radius: 10px;
+    background: var(--panel);
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .auth-banner h3 { margin-top: 0; }
+  .auth-status { font-size: 0.85rem; color: var(--muted); margin: 0.6rem 0 0; }
+  .auth-status strong { color: var(--sterk); }
+
+  /* Merknader: form i stedet for farge */
+  .info, .advarsel {
+    border-radius: 8px;
+    padding: 0.75rem 1.25rem;
+    margin: 1.25rem 0;
+    font-size: 0.92rem;
+    max-width: 74ch;
+  }
+  .info { background: var(--panel); border-left: 3px solid var(--sterk); }
+  .advarsel { background: var(--panel); border: 1px dashed var(--line2); }
+  .info p, .advarsel p { margin: 0.35rem 0; max-width: none; }
+  .merkelapp {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  /* Statuskjeden */
+  .kjede { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin: 1.25rem 0; font-size: 0.85rem; }
+  .kjede .steg { border: 1px solid var(--line2); background: var(--panel); border-radius: 999px; padding: 0.3rem 0.9rem; white-space: nowrap; }
+  .kjede .steg.hoved { border-color: var(--sterk); color: var(--sterk); font-weight: 700; }
+  .kjede .pil, .kjede .avstikker { color: var(--muted); }
+  .kjede .avstikker { font-size: 0.8rem; }
+
+  footer.bunn { border-top: 1px solid var(--line); color: var(--muted); font-size: 0.82rem; padding-top: 1.25rem; margin-top: 3.5rem; }
+
+  @media (max-width: 640px) {
+    .toc ol { columns: 1; }
+    .ramme { padding: 2rem 1rem 4rem; }
+  }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" />
+
+<div class="ramme">
+
+<h1>Samlab <span class="api">API</span></h1>
+<p class="ingress">Integrasjonsdokumentasjon for Samlab - community-portalen for coworking-hus og kontorfellesskap. REST-endepunkter under <code>samlab/v1</code>, PHP-hendelser for server-side integrasjon, og en tester så du kan prøve kallene rett fra denne siden.</p>
+
+<nav class="toc">
+  <h3>Innholdsfortegnelse</h3>
+  <ol>
+    <li><a href="#introduksjon">Introduksjon</a></li>
+    <li><a href="#kom-i-gang">Kom i gang</a></li>
+    <li><a href="#autentisering">Autentisering</a></li>
+    <li><a href="#rate-limiting">Rate limiting</a></li>
+    <li><a href="#koblingsmodellen">Koblingsmodellen</a></li>
+    <li><a href="#endepunkter">API-endepunkter &amp; test</a></li>
+    <li><a href="#webhooks">Webhooks (PHP-hendelser)</a></li>
+    <li><a href="#feilkoder">Feilkoder</a></li>
+    <li><a href="#kodeeksempler">Kodeeksempler</a></li>
+    <li><a href="#spilleregler">Spilleregler</a></li>
+  </ol>
+</nav>
+
+<h2 id="introduksjon">Introduksjon</h2>
+<p>Samlab-API-et har to flater:</p>
+<ul>
+  <li><strong>REST-endepunkter</strong> under navnerommet <code>samlab/v1</code> - for klienter og eksterne systemer.</li>
+  <li><strong>PHP-hendelser</strong> (actions og filters) - for server-side integrasjon i samme WordPress, f.eks. en bro som videresender hendelser til CRM, Slack eller husets driftssystem.</li>
+</ul>
+<div class="info">
+  <p><span class="merkelapp">Prinsipper</span></p>
+  <p><strong>Samtykke før kontakt.</strong> Ingen kobles uten at begge parter har takket ja - motpartens kontaktinfo finnes ikke i noe svar før koblingen er godkjent.</p>
+  <p><strong>Aggregert, aldri salgsdetaljer.</strong> Utfall er kategori og notat - det finnes ikke noe beløpsfelt, og rapporter navngir aldri hvem som gjorde hva.</p>
+  <p><strong>Brukerens rettigheter gjelder alltid.</strong> Hvert kall håndheves med capabilities og partskap - en integrasjon ser aldri mer enn brukeren den opptrer som.</p>
+</div>
+
+<h2 id="kom-i-gang">Kom i gang</h2>
+<h3>1. Opprett en integrasjonsbruker med applikasjonspassord</h3>
+<p>Opprett en egen WordPress-bruker for integrasjonen med rollen Medlem (eller Moderator hvis integrasjonen skal opptre som verten). Generer et <a href="https://make.wordpress.org/core/2020/11/05/application-passwords-integration-guide/" rel="noopener">applikasjonspassord</a> på brukerens profilside i wp-admin - det gir Basic auth over HTTPS uten å dele hovedpassordet, og kan trekkes tilbake når som helst.</p>
+<h3>2. Test API-et</h3>
+<p>Fyll inn base-URL og legitimasjon i <a href="#auth-banner">testeren under</a>, og prøv <code>GET /koblinger</code> - eller fra terminalen:</p>
+<pre><code>curl -u <span class="str">'integrasjon:xxxx xxxx xxxx xxxx xxxx xxxx'</span> \
+  https://huset-ditt.no/wp-json/samlab/v1/koblinger</code></pre>
+
+<h2 id="autentisering">Autentisering</h2>
+<p>Alle endepunkter krever en innlogget WordPress-bruker med portaltilgang (capability <code>samlab_read_portal</code> - rollene Medlem, Bedriftsredaktør og Moderator har den, samt administrator og redaktør).</p>
+<h3>Fra portalens frontend</h3>
+<p>Portalskallet eksponerer <code>window.samlabRest</code> med base-URL og et ferskt <code>wp_rest</code>-nonce. Send nonce-et i <code>X-WP-Nonce</code>-headeren sammen med sesjonscookien (<code>credentials: 'same-origin'</code>).</p>
+<h3>Server-til-server</h3>
+<p>Basic auth med applikasjonspassord over HTTPS:</p>
+<pre><code>Authorization: Basic base64( <span class="str">'brukernavn:applikasjonspassord'</span> )</code></pre>
+<div class="advarsel">
+  <p><span class="merkelapp">Merk</span></p>
+  <p>Integrasjonen arver brukerens rettigheter - verken mer eller mindre. Partskapsvaktene betyr at en integrasjonsbruker bare ser koblinger den selv er part i. Trenger du et bredere bilde (alle hendelser til et CRM), er <a href="#webhooks">PHP-hendelsene</a> riktig verktøy - ikke moderatorrolle på integrasjonsbrukeren.</p>
+</div>
+
+<h2 id="rate-limiting">Rate limiting</h2>
+<p>Assistent-endepunktet er begrenset til <strong>15 kall per 5 minutter per bruker</strong> og svarer <code>429</code> over grensen - svaret har ingen retry-headere: vent noen minutter. Øvrige endepunkter er bygget for husets hverdag - kall dem i menneskelig takt, ikke til masseuttrekk. Volumvern utover dette hører hjemme på server-nivå og bør være på plass i normal WordPress-drift.</p>
+
+<h2 id="koblingsmodellen">Koblingsmodellen</h2>
+<p>Koblinger er Samlabs kjerne: fasiliterte introduksjoner mellom to parter (en bedrift eller en person). API-et håndhever statuskjeden strengt:</p>
+<div class="kjede">
+  <span class="steg">foreslått</span><span class="pil">→</span>
+  <span class="steg hoved">forespurt</span><span class="pil">→</span>
+  <span class="steg hoved">godkjent</span><span class="pil">→</span>
+  <span class="steg">introdusert</span><span class="pil">→</span>
+  <span class="steg">fulgt opp</span>
+  <span class="avstikker">(avvist er terminal sidegren)</span>
+</div>
+<ul>
+  <li><strong>foreslått</strong> - forslaget ligger i vertens kø. Vises aldri for partene.</li>
+  <li><strong>forespurt</strong> - verten har spurt begge parter; hver part svarer ja eller nei.</li>
+  <li><strong>godkjent</strong> - begge har takket ja. Først nå deles kontaktinfo, og statusen kan ikke nås på annen måte.</li>
+  <li><strong>introdusert / fulgt opp</strong> - verten har introdusert partene; utfallet («ble det noe?») kan registreres.</li>
+  <li><strong>avvist</strong> - verten trakk forslaget, eller en part takket nei. Hvem som takket nei, deles aldri.</li>
+</ul>
+
+<h2 id="endepunkter">API-endepunkter &amp; test</h2>
+<h3>Base-URL</h3>
+<p>REST-navnerommet ligger fast, uavhengig av portal-stien:</p>
+<pre><code>https://huset-ditt.no/wp-json/samlab/v1/</code></pre>
+
+<div class="auth-banner" id="auth-banner">
+  <h3>Test API-et direkte fra siden</h3>
+  <p style="font-size:0.9rem; color:var(--muted); margin:0.25rem 0 0.75rem;">Legitimasjonen brukes kun i denne fanen, rett mot din WordPress - den sendes aldri til andre. Skriv aldri inn applikasjonspassord på dokumentasjonssider som ikke serveres fra husets eget domene over HTTPS.</p>
+  <div class="tester">
+    <div class="tester-felt">
+      <div><label for="cfg-base">Base-URL</label><input id="cfg-base" type="url" placeholder="https://huset-ditt.no" /></div>
+      <div><label for="cfg-bruker">Brukernavn</label><input id="cfg-bruker" type="text" placeholder="integrasjon" autocomplete="off" /></div>
+      <div><label for="cfg-passord">Applikasjonspassord</label><input id="cfg-passord" type="password" placeholder="xxxx xxxx xxxx xxxx xxxx xxxx" autocomplete="off" /></div>
+    </div>
+    <button type="button" class="knapp" id="cfg-lagre">Bruk i testerne</button>
+    <p class="auth-status" id="cfg-status">Ikke konfigurert - testerne genererer likevel curl-kommandoer du kan kjøre fra terminalen.</p>
+  </div>
+  <div class="advarsel" style="margin-bottom:0;">
+    <p><span class="merkelapp">CORS</span></p>
+    <p>Kall rett fra nettleseren fungerer når denne siden ligger på samme domene som WordPress (f.eks. <code>/api-dokumentasjon.html</code> på husets nettsted). Fra andre domener blokkerer nettleseren normalt kallet - bruk da curl-kommandoen testeren genererer.</p>
+  </div>
+</div>
+
+<h3>Koblinger</h3>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode get">GET</span><span class="sti">/koblinger</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Returnerer kun koblinger brukeren selv er part i - direkte, eller som kontaktperson for en bedrift. Nyeste først, maks 100.</p>
+  <h4>Svar</h4>
+  <pre><code>{ <span class="str">"koblinger"</span>: [ {
+  <span class="str">"id"</span>: 42,
+  <span class="str">"tittel"</span>: <span class="str">"Brygga Design ↔ Jonas Dal"</span>,
+  <span class="str">"begrunnelse"</span>: <span class="str">"Jonas trenger designhjelp til lanseringen."</span>,
+  <span class="str">"status"</span>: <span class="str">"forespurt"</span>,
+  <span class="str">"status_etikett"</span>: <span class="str">"Forespurt"</span>,
+  <span class="str">"min_part"</span>: <span class="str">"b"</span>,
+  <span class="str">"mitt_samtykke"</span>: <span class="str">"venter"</span>,      <span class="kom">// venter | ja | nei</span>
+  <span class="str">"motpart"</span>: <span class="str">"Brygga Design"</span>,
+  <span class="str">"motpart_kontakt"</span>: null,          <span class="kom">// { navn, epost } først fra godkjent</span>
+  <span class="str">"utfall"</span>: null,                   <span class="kom">// { slug, etikett, notat } når registrert</span>
+  <span class="str">"opprettet"</span>: <span class="str">"2026-08-30"</span>
+} ] }</code></pre>
+</div>
+<div class="tester" data-tester data-metode="GET" data-sti="/koblinger"></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/koblinger/&lt;id&gt;/svar</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code> + at brukeren er part i koblingen. Koblingen må stå i <code>forespurt</code>.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>svar</code></td><td>string</td><td><span class="badge pakrevd">påkrevd</span></td><td><code>ja</code> eller <code>nei</code></td></tr>
+  </table></div>
+  <p>Begge ja løfter koblingen til <code>godkjent</code> og varsler begge parter; ett nei setter <code>avvist</code> og gir motparten et nøytralt varsel uten navn. Svaret er koblingsobjektet som i <code>GET /koblinger</code>.</p>
+  <ul class="feilkoder"><li><strong>403</strong> ikke part</li><li><strong>404</strong> ukjent kobling</li><li><strong>409</strong> venter ikke på svar</li></ul>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/koblinger/{id}/svar" data-felter='[{"navn":"id","type":"tall","plassholder":"42"},{"navn":"svar","type":"valg","valg":["ja","nei"]}]'></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/koblinger/&lt;id&gt;/utfall</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code> + partskap. Koblingen må være <code>introdusert</code> eller <code>fulgt_opp</code>; en introdusert kobling løftes til fulgt opp når utfallet føres.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>utfall</code></td><td>string</td><td><span class="badge pakrevd">påkrevd</span></td><td><code>mote</code>, <code>avtale</code>, <code>henvisning</code> eller <code>ingenting</code></td></tr>
+    <tr><td><code>notat</code></td><td>string</td><td><span class="badge valgfri">valgfri</span></td><td>Maks 500 tegn. Kun kategori og notat - det finnes ikke noe beløpsfelt.</td></tr>
+  </table></div>
+  <ul class="feilkoder"><li><strong>403</strong> ikke part</li><li><strong>404</strong> ukjent kobling</li><li><strong>409</strong> utfall før introduksjonen</li></ul>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/koblinger/{id}/utfall" data-felter='[{"navn":"id","type":"tall","plassholder":"42"},{"navn":"utfall","type":"valg","valg":["mote","avtale","henvisning","ingenting"]},{"navn":"notat","type":"tekst","plassholder":"Godt kvarter over kaffen"}]'></div>
+
+<h3>Vegg og engasjement</h3>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/reaksjoner</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Slår en reaksjon av/på for innlogget bruker.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>object_type</code></td><td>string</td><td><span class="badge valgfri">valgfri</span></td><td><code>innlegg</code> (standard) eller <code>kommentar</code></td></tr>
+    <tr><td><code>object_id</code></td><td>int</td><td><span class="badge pakrevd">påkrevd</span></td><td>Objektets ID</td></tr>
+    <tr><td><code>reaction</code></td><td>string</td><td><span class="badge valgfri">valgfri</span></td><td>Standard <code>like</code>. Nøkkelen <code>lest</code> er reservert - bruk <code>/lest</code>.</td></tr>
+  </table></div>
+  <h4>Svar</h4>
+  <p><code>{ object_type, object_id, reaction, reacted, counts }</code></p>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/reaksjoner" data-felter='[{"navn":"object_id","type":"tall","plassholder":"1"},{"navn":"object_type","type":"valg","valg":["innlegg","kommentar"]},{"navn":"reaction","type":"tekst","plassholder":"like"}]'></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/stemmer</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Én stemme per medlem; ny stemme erstatter den gamle.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>innlegg_id</code></td><td>int</td><td><span class="badge pakrevd">påkrevd</span></td><td>Innlegget med avstemningen</td></tr>
+    <tr><td><code>valg</code></td><td>int</td><td><span class="badge pakrevd">påkrevd</span></td><td>Alternativindeks 0-4</td></tr>
+  </table></div>
+  <h4>Svar</h4>
+  <p><code>{ innlegg_id, valg, counts, totalt }</code>. 404 uten avstemning, 400 ved ugyldig indeks.</p>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/stemmer" data-felter='[{"navn":"innlegg_id","type":"tall","plassholder":"1"},{"navn":"valg","type":"tall","plassholder":"0"}]'></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/lest</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Bekrefter at brukeren har lest et festet oppslag med lest-krav. Idempotent - kan aldri trekkes tilbake.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>innlegg_id</code></td><td>int</td><td><span class="badge pakrevd">påkrevd</span></td><td>Oppslaget med lest-krav</td></tr>
+  </table></div>
+  <h4>Svar</h4>
+  <p><code>{ innlegg_id, bekreftet, allerede, antall }</code>. 404 når oppslaget ikke krever lesebekreftelse.</p>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/lest" data-felter='[{"navn":"innlegg_id","type":"tall","plassholder":"1"}]'></div>
+
+<h3>Varsler og brukere</h3>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode get">GET</span><span class="sti">/varsler</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Innlogget brukers varsler (maks 20, nyeste først) med uleste-teller - alltid brukerens egne, aldri styrbart med parametre.</p>
+  <h4>Svar</h4>
+  <p><code>{ varsler: [{ id, tekst, lenke, tid, lest }], uleste }</code></p>
+  <h4>Varseltyper</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Type</th><th>Sendes når</th></tr>
+    <tr><td><code>mention</code>, <code>kommentar</code>, <code>reaksjon</code></td><td>Aktivitet på veggen som angår brukeren</td></tr>
+    <tr><td><code>kobling_forespurt</code></td><td>Forespørsel til partene, med begrunnelsen - aldri motpartens kontaktinfo</td></tr>
+    <tr><td><code>kobling_godkjent</code> / <code>_introdusert</code> / <code>_fulgt_opp</code></td><td>Statusløft, til begge parter</td></tr>
+    <tr><td><code>kobling_ikke_noe</code></td><td>Nøytralt til motparten når en part takker nei - sier aldri hvem</td></tr>
+    <tr><td><code>kobling_utfall_paminnelse</code></td><td>«Ble det noe?» 14 dager etter introduksjonen, én gang per kobling</td></tr>
+    <tr><td><code>kobling_besvart</code></td><td>Til moderatorene når begge parter har svart</td></tr>
+  </table></div>
+</div>
+<div class="tester" data-tester data-metode="GET" data-sti="/varsler"></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/varsler/lest</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Markerer alle brukerens varsler som lest. Svar: <code>{ uleste: 0 }</code></p>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/varsler/lest"></div>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode get">GET</span><span class="sti">/brukere?sok=…</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Brukerforslag til @-mentions - kun kontoer med portaltilgang kan finnes.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>sok</code></td><td>string</td><td><span class="badge pakrevd">påkrevd</span></td><td>Søkestreng mot brukernavn og visningsnavn</td></tr>
+  </table></div>
+  <h4>Svar</h4>
+  <p>Liste av <code>{ login, navn }</code>, maks 8.</p>
+</div>
+<div class="tester" data-tester data-metode="GET" data-sti="/brukere" data-felter='[{"navn":"sok","type":"tekst","plassholder":"kari","sporring":true}]'></div>
+
+<h3>Assistenten</h3>
+
+<div class="endepunkt">
+  <div class="endepunkt-hode"><span class="metode post">POST</span><span class="sti">/assistent</span></div>
+  <p class="krav">Krever <code>samlab_read_portal</code>. Finnes kun når assistent-modulen er på - ellers 404. Kallet går server-side mot Claude API; nøkkelen forlater aldri serveren.</p>
+  <h4>Parametre</h4>
+  <div class="tabellrull"><table>
+    <tr><th>Navn</th><th>Type</th><th></th><th>Beskrivelse</th></tr>
+    <tr><td><code>melding</code></td><td>string</td><td><span class="badge pakrevd">påkrevd</span></td><td>Spørsmålet, maks 4000 tegn</td></tr>
+    <tr><td><code>historikk</code></td><td>array</td><td><span class="badge valgfri">valgfri</span></td><td><code>[{ rolle: user|assistant, tekst }]</code> - avgrenses server-side til de siste 10</td></tr>
+  </table></div>
+  <h4>Svar</h4>
+  <p><code>{ svar, navn }</code>. Samtaler logges aldri; ubesvarte spørsmål lagres anonymt (kun spørsmålstekst) i vertens kø når innstillingen er på.</p>
+  <ul class="feilkoder"><li><strong>503</strong> nøkkel ikke satt</li><li><strong>429</strong> over rate-grensen</li><li><strong>400</strong> tom melding</li><li><strong>502</strong> feil mot Claude API</li></ul>
+</div>
+<div class="tester" data-tester data-metode="POST" data-sti="/assistent" data-felter='[{"navn":"melding","type":"tekst","plassholder":"Hvem i huset kan regnskap?"}]'></div>
+
+<h2 id="webhooks">Webhooks (PHP-hendelser)</h2>
+<p>Samlab sender ikke webhooks selv - i stedet eksponerer pluginen alle hendelser som WordPress-actions, så du bygger akkurat den webhooken du trenger med en liten bro-plugin i samme WordPress. Da ser du alt, uansett hvilken bruker som utløste det:</p>
+<pre><code>&lt;?php <span class="kom">// wp-content/mu-plugins/samlab-bro.php
+// Videresender koblingshendelser til ditt system.</span>
+add_action( <span class="str">'samlab_kobling_status_endret'</span>, function ( $kobling_id, $status, $gammel, $user_id ) {
+    wp_remote_post( <span class="str">'https://ditt-system.no/webhook/samlab'</span>, array(
+        <span class="str">'timeout'</span> =&gt; 5,
+        <span class="str">'headers'</span> =&gt; array( <span class="str">'Content-Type'</span> =&gt; <span class="str">'application/json'</span> ),
+        <span class="str">'body'</span>    =&gt; wp_json_encode( array(
+            <span class="str">'hendelse'</span> =&gt; <span class="str">'kobling_status_endret'</span>,
+            <span class="str">'kobling'</span>  =&gt; $kobling_id,
+            <span class="str">'status'</span>   =&gt; $status,
+            <span class="str">'forrige'</span>  =&gt; $gammel,
+        ) ),
+    ) );
+}, 10, 4 );</code></pre>
+<div class="advarsel">
+  <p><span class="merkelapp">Retry og signering er ditt ansvar</span></p>
+  <p>Broen over er fyr-og-glem. Trenger mottakeren garantert levering, legg kallene i en kø (f.eks. Action Scheduler) og signer payloaden med en delt hemmelighet (HMAC) så mottakeren kan verifisere avsenderen.</p>
+</div>
+
+<h3>Støttede hendelser</h3>
+<p>Alle har prefikset <code>samlab_</code> og navngis på bokmål i preteritum. Navn og signaturer er en API-flate - de endres aldri uten versjonsbump.</p>
+<div class="tabellrull"><table>
+  <tr><th>Hendelse</th><th>Parametre</th><th>Kjøres når</th></tr>
+  <tr><td><code>samlab_kobling_status_endret</code></td><td><code>$kobling_id, $status, $gammel, $user_id</code></td><td>En kobling endrer status i kjeden. <code>$user_id</code> 0 = system/cron.</td></tr>
+  <tr><td><code>samlab_kobling_besvart</code></td><td><code>$kobling_id, $part, $svar, $user_id</code></td><td>En part har svart ja/nei - før et eventuelt statusløft.</td></tr>
+  <tr><td><code>samlab_kobling_utfall_satt</code></td><td><code>$kobling_id, $utfall, $user_id</code></td><td>Et utfall er registrert (kategori-slug, aldri beløp).</td></tr>
+  <tr><td><code>samlab_matching_kjort</code></td><td><code>$opprettet</code></td><td>Etter en matching-runde - post-ID-ene til nye forslag.</td></tr>
+  <tr><td><code>samlab_behov_opprettet</code></td><td><code>$behov_id, $user_id</code></td><td>Nytt behov fra portalens skjema.</td></tr>
+  <tr><td><code>samlab_innlegg_opprettet</code></td><td><code>$innlegg_id, $user_id</code></td><td>Nytt vegginnlegg.</td></tr>
+  <tr><td><code>samlab_arrangement_opprettet</code></td><td><code>$arrangement_id, $user_id</code></td><td>Nytt arrangement fra portalens skjema.</td></tr>
+  <tr><td><code>samlab_reaksjon_endret</code></td><td><code>$type, $obj_id, $user_id, $reaction, $reacted</code></td><td>Reaksjon lagt til eller fjernet.</td></tr>
+  <tr><td><code>samlab_stemme_avgitt</code></td><td><code>$innlegg_id, $user_id, $valg</code></td><td>Stemme avgitt eller endret.</td></tr>
+  <tr><td><code>samlab_lest_bekreftet</code></td><td><code>$innlegg_id, $user_id</code></td><td>Lesebekreftelse - kun første gang per medlem.</td></tr>
+  <tr><td><code>samlab_assistent_svarte</code></td><td><code>$user_id</code></td><td>Vellykket assistent-svar. Aldri spørsmål eller svar med.</td></tr>
+  <tr><td><code>samlab_kunnskap_bygget</code></td><td><code>$grunnlag</code></td><td>Kunnskapsgrunnlaget er bygget (kun med modulen på).</td></tr>
+  <tr><td><code>samlab_ukesbrev_sendt</code></td><td><code>$antall, $seksjoner</code></td><td>Ukesbrevet er sendt.</td></tr>
+  <tr><td><code>samlab_portal_bunn</code></td><td>-</td><td>Nederst i portalskallet på alle flater - for egen HTML/JS.</td></tr>
+</table></div>
+
+<h3>Filtre</h3>
+<div class="tabellrull"><table>
+  <tr><th>Filter</th><th>Parametre</th><th>Bruk</th></tr>
+  <tr><td><code>samlab_ukesbrev_seksjoner</code></td><td><code>$seksjoner, $siden</code></td><td>Legg til/endre seksjoner i ukesbrevet (<code>{ tittel, linjer: [{ tekst, url? }] }</code>); tom array stanser utsendingen. Brevet er felles - aldri persondata.</td></tr>
+  <tr><td><code>samlab_kunnskap_tidsbudsjett</code></td><td><code>$budsjett</code></td><td>Sekunder kunnskapsbygget får til eksterne kilder. Standard 60 % av <code>max_execution_time</code>, ellers 45 s.</td></tr>
+</table></div>
+
+<h2 id="feilkoder">Feilkoder</h2>
+<h3>Feilrespons-format</h3>
+<p>Feilsvar følger WordPress-formatet - meldingene er norske og generiske, og lekker aldri konfigurasjonsdetaljer:</p>
+<pre><code>{
+  <span class="str">"code"</span>: <span class="str">"samlab_feil_status"</span>,
+  <span class="str">"message"</span>: <span class="str">"Koblingen venter ikke på svar."</span>,
+  <span class="str">"data"</span>: { <span class="str">"status"</span>: 409 }
+}</code></pre>
+<div class="tabellrull"><table>
+  <tr><th>HTTP</th><th>Betyr</th></tr>
+  <tr><td><strong>400</strong></td><td>Ugyldige parametre (enum-brudd, tom melding)</td></tr>
+  <tr><td><strong>401</strong></td><td>Ikke innlogget, eller ugyldig nonce/legitimasjon</td></tr>
+  <tr><td><strong>403</strong></td><td>Mangler capability eller partskap</td></tr>
+  <tr><td><strong>404</strong></td><td>Objektet finnes ikke - eller assistent-modulen er av</td></tr>
+  <tr><td><strong>409</strong></td><td>Handlingen passer ikke objektets tilstand (svar utenfor forespurt, utfall før introduksjon)</td></tr>
+  <tr><td><strong>429</strong></td><td>Over assistentens rate-grense</td></tr>
+  <tr><td><strong>502 / 503</strong></td><td>Assistenten: feil mot Claude API / API-nøkkel ikke satt</td></tr>
+</table></div>
+
+<h2 id="kodeeksempler">Kodeeksempler</h2>
+<h3>JavaScript (fetch, fra portalen)</h3>
+<pre><code>fetch( window.samlabRest.url + <span class="str">'samlab/v1/koblinger/42/svar'</span>, {
+  method: <span class="str">'POST'</span>,
+  credentials: <span class="str">'same-origin'</span>,
+  headers: {
+    <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+    <span class="str">'X-WP-Nonce'</span>: window.samlabRest.nonce
+  },
+  body: JSON.stringify( { svar: <span class="str">'ja'</span> } )
+} ).then( r =&gt; r.json() ).then( console.log );</code></pre>
+
+<h3>Python (requests)</h3>
+<pre><code>import requests
+
+svar = requests.post(
+    <span class="str">"https://huset-ditt.no/wp-json/samlab/v1/koblinger/42/utfall"</span>,
+    auth=(<span class="str">"integrasjon"</span>, <span class="str">"xxxx xxxx xxxx xxxx xxxx xxxx"</span>),
+    json={<span class="str">"utfall"</span>: <span class="str">"avtale"</span>, <span class="str">"notat"</span>: <span class="str">"Rammeavtale om design"</span>},
+    timeout=10,
+)
+svar.raise_for_status()
+print(svar.json())</code></pre>
+
+<h3>PHP (WordPress HTTP-API)</h3>
+<pre><code>$svar = wp_remote_get( <span class="str">'https://huset-ditt.no/wp-json/samlab/v1/koblinger'</span>, array(
+    <span class="str">'headers'</span> =&gt; array(
+        <span class="str">'Authorization'</span> =&gt; <span class="str">'Basic '</span> . base64_encode( <span class="str">'integrasjon:xxxx xxxx xxxx xxxx xxxx xxxx'</span> ),
+    ),
+) );
+$koblinger = json_decode( wp_remote_retrieve_body( $svar ), true );</code></pre>
+
+<h2 id="spilleregler">Spilleregler for integrasjoner</h2>
+<ul>
+  <li><strong>Stabilitet:</strong> alt med <code>samlab_</code>-prefiks er dokumentert API og endres aldri uten versjonsbump. Nye felter kan komme til i svar - vær tolerant for ukjente nøkler.</li>
+  <li><strong>Personvern:</strong> respekter det API-et selv håndhever. Ikke lagre motpartsdata lenger enn du trenger, og ikke forsøk å rekonstruere hvem som takket nei eller hvem som spurte assistenten om hva - API-et gir det ikke, med vilje.</li>
+  <li><strong>Skriv aldri utenom flyten:</strong> koblingsstatuser endres kun via svar- og utfallsendepunktene eller vertens kontrollpanel. En integrasjon som redigerer post-meta direkte, bryter samtykkegarantien.</li>
+  <li><strong>Portalinnhold er internt:</strong> alt bak innloggingsporten er noindex og utenfor offentlige søk. Det samme ansvaret følger dataene inn i din integrasjon.</li>
+</ul>
+
+<footer class="bunn">
+  <p>Samlab utvikles av Digitelle AS. Denne siden dokumenterer navnerommet <code>samlab/v1</code>; kilden er <code>docs/hooks.md</code> i plugin-repoet, som føres i samme endring som API-flaten. Spørsmål om integrasjon: <a href="https://digitelle.no">digitelle.no</a>.</p>
+</footer>
+
+</div>
+
+<script>
+( function () {
+  'use strict';
+
+  var cfg = { base: '', bruker: '', passord: '' };
+  var felter = { base: 'cfg-base', bruker: 'cfg-bruker', passord: 'cfg-passord' };
+  var status = document.getElementById( 'cfg-status' );
+
+  // Per-fane-lagring av base-URL og brukernavn (aldri passordet).
+  try {
+    var lagret = JSON.parse( sessionStorage.getItem( 'samlab-tester' ) || '{}' );
+    if ( lagret.base ) { document.getElementById( felter.base ).value = lagret.base; }
+    if ( lagret.bruker ) { document.getElementById( felter.bruker ).value = lagret.bruker; }
+  } catch ( e ) { /* privat modus e.l. - fortsett uten */ }
+
+  function lesConfig() {
+    Object.keys( felter ).forEach( function ( n ) {
+      cfg[ n ] = document.getElementById( felter[ n ] ).value.trim();
+    } );
+    cfg.base = cfg.base.replace( /\/+$/, '' );
+    try {
+      sessionStorage.setItem( 'samlab-tester', JSON.stringify( { base: cfg.base, bruker: cfg.bruker } ) );
+    } catch ( e ) { /* fortsett uten */ }
+    if ( cfg.base && cfg.bruker && cfg.passord ) {
+      status.innerHTML = 'Klar mot <strong></strong> - send fra testerne under.';
+      status.querySelector( 'strong' ).textContent = cfg.base;
+    } else if ( cfg.base ) {
+      status.textContent = 'Base-URL satt - uten legitimasjon genereres kun curl-kommandoer.';
+    } else {
+      status.textContent = 'Ikke konfigurert - testerne genererer likevel curl-kommandoer du kan kjøre fra terminalen.';
+    }
+  }
+  document.getElementById( 'cfg-lagre' ).addEventListener( 'click', lesConfig );
+
+  function curlFor( metode, url, kropp ) {
+    var deler = [ 'curl' ];
+    if ( cfg.bruker ) {
+      deler.push( "-u '" + cfg.bruker + ":<applikasjonspassord>'" );
+    } else {
+      deler.push( "-u '<bruker>:<applikasjonspassord>'" );
+    }
+    if ( metode !== 'GET' ) {
+      deler.push( '-X ' + metode );
+      deler.push( "-H 'Content-Type: application/json'" );
+      if ( kropp ) { deler.push( "-d '" + JSON.stringify( kropp ) + "'" ); }
+    }
+    deler.push( "'" + url + "'" );
+    return deler.join( ' \\\n  ' );
+  }
+
+  function byggTester( boks ) {
+    var metode = boks.dataset.metode;
+    var sti = boks.dataset.sti;
+    var felterSpec = boks.dataset.felter ? JSON.parse( boks.dataset.felter ) : [];
+    var id = sti.replace( /[^a-z]+/g, '-' ) + '-' + metode.toLowerCase();
+
+    var html = '<h4>Prøv selv</h4>';
+    if ( felterSpec.length ) {
+      html += '<div class="tester-felt">';
+      felterSpec.forEach( function ( f, i ) {
+        var fid = 't-' + id + '-' + i;
+        html += '<div><label for="' + fid + '">' + f.navn + '</label>';
+        if ( f.type === 'valg' ) {
+          html += '<select id="' + fid + '">';
+          f.valg.forEach( function ( v ) { html += '<option>' + v + '</option>'; } );
+          html += '</select>';
+        } else {
+          html += '<input id="' + fid + '" type="' + ( f.type === 'tall' ? 'number' : 'text' ) + '" placeholder="' + ( f.plassholder || '' ) + '" />';
+        }
+        html += '</div>';
+      } );
+      html += '</div>';
+    }
+    html += '<button type="button" class="knapp">Send forespørsel</button> ';
+    html += '<button type="button" class="knapp sekundar">Vis curl</button>';
+    html += '<div class="tester-svar"><p class="tester-status"></p><pre><code></code></pre></div>';
+    boks.innerHTML = html;
+
+    var knapper = boks.querySelectorAll( '.knapp' );
+    var svarBoks = boks.querySelector( '.tester-svar' );
+    var statusLinje = boks.querySelector( '.tester-status' );
+    var utKode = boks.querySelector( 'pre code' );
+
+    function samle() {
+      var stiUt = sti;
+      var kropp = {};
+      var sporring = '';
+      felterSpec.forEach( function ( f, i ) {
+        var verdi = boks.querySelector( '#t-' + id + '-' + i ).value.trim();
+        if ( stiUt.indexOf( '{' + f.navn + '}' ) !== -1 ) {
+          stiUt = stiUt.replace( '{' + f.navn + '}', encodeURIComponent( verdi || '0' ) );
+        } else if ( f.sporring ) {
+          if ( verdi ) { sporring += ( sporring ? '&' : '?' ) + f.navn + '=' + encodeURIComponent( verdi ); }
+        } else if ( verdi ) {
+          kropp[ f.navn ] = f.type === 'tall' ? Number( verdi ) : verdi;
+        }
+      } );
+      return {
+        url: ( cfg.base || 'https://huset-ditt.no' ) + '/wp-json/samlab/v1' + stiUt + sporring,
+        kropp: Object.keys( kropp ).length ? kropp : null
+      };
+    }
+
+    // Vis curl
+    knapper[ 1 ].addEventListener( 'click', function () {
+      var k = samle();
+      svarBoks.classList.add( 'synlig' );
+      statusLinje.textContent = 'curl-ekvivalent';
+      utKode.textContent = curlFor( metode, k.url, k.kropp );
+    } );
+
+    // Send
+    knapper[ 0 ].addEventListener( 'click', function () {
+      var k = samle();
+      if ( ! cfg.base || ! cfg.bruker || ! cfg.passord ) {
+        svarBoks.classList.add( 'synlig' );
+        statusLinje.textContent = 'Mangler oppsett';
+        utKode.textContent = 'Fyll inn base-URL, brukernavn og applikasjonspassord i boksen «Test API-et direkte fra siden» - eller bruk curl:\n\n' + curlFor( metode, k.url, k.kropp );
+        return;
+      }
+      knapper[ 0 ].disabled = true;
+      statusLinje.textContent = 'Sender …';
+      svarBoks.classList.add( 'synlig' );
+      utKode.textContent = '';
+      var valg = {
+        method: metode,
+        headers: { Authorization: 'Basic ' + btoa( cfg.bruker + ':' + cfg.passord ) }
+      };
+      if ( metode !== 'GET' ) {
+        valg.headers[ 'Content-Type' ] = 'application/json';
+        valg.body = JSON.stringify( k.kropp || {} );
+      }
+      fetch( k.url, valg ).then( function ( r ) {
+        return r.text().then( function ( t ) {
+          statusLinje.textContent = 'HTTP ' + r.status;
+          try { utKode.textContent = JSON.stringify( JSON.parse( t ), null, 2 ); }
+          catch ( e ) { utKode.textContent = t.slice( 0, 4000 ); }
+        } );
+      } ).catch( function ( feil ) {
+        statusLinje.textContent = 'Nettverksfeil';
+        utKode.textContent = String( feil ) + '\n\nFår du dette fra et annet domene enn WordPress-installasjonen, blokkerer trolig CORS - kjør curl-kommandoen i stedet:\n\n' + curlFor( metode, k.url, k.kropp );
+      } ).finally( function () {
+        knapper[ 0 ].disabled = false;
+      } );
+    } );
+  }
+
+  document.querySelectorAll( '[data-tester]' ).forEach( byggTester );
+}() );
+</script>

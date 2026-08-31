@@ -6,6 +6,11 @@ hendelser («_endret», «_opprettet») og dokumenteres her i samme
 endring som de innføres. Hooks er en API-flate: navn og signaturer
 endres ikke uten versjonsbump og oppføring her.
 
+Den offentlige dokumentasjonssiden `docs/api-dokumentasjon.html`
+bygger på denne filen og føres i samme endring: endres REST-flaten,
+hooks eller feilkoder, oppdateres begge før endringen erklæres
+ferdig.
+
 ## REST-API
 
 Navnerom: `samlab/v1`. Alle skrivende endepunkter bruker WordPress'

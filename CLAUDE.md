@@ -55,7 +55,10 @@ Konsept og kravspesifikasjon ligger i
   `apply_filters`, inkludert parametrene deres; og endret oppførsel
   som dokumentet beskriver (grenser, avgrensninger, standardverdier).
   Rører endringen auth, escaping, hemmeligheter eller restrisiko,
-  oppdateres `docs/sikkerhet.md` på samme måte.
+  oppdateres `docs/sikkerhet.md` på samme måte. Den offentlige
+  dokumentasjonssiden `docs/api-dokumentasjon.html` bygger på
+  `docs/hooks.md` og føres i samme endring når REST-flaten, hooks
+  eller feilkoder endres.
 - **Changeloggen følger koden.** Merkbare endringer - ny eller endret
   funksjonalitet, sikkerhetsrettinger, endrede krav - føres under
   `## [Uutgitt]` i `CHANGELOG.md` i samme endring som koden. Interne

@@ -184,6 +184,10 @@ kommentaren i filen). CI (GitHub Actions) kjører `php -l` og
 - [CHANGELOG.md](CHANGELOG.md) - hva som er endret mellom versjoner
 - [docs/hooks.md](docs/hooks.md) - REST-endepunkter, actions og
   filters (API-flaten for integrasjoner)
+- [docs/api-dokumentasjon.html](docs/api-dokumentasjon.html) - den
+  offentlige API-dokumentasjonssiden for integratorer, med
+  interaktive endepunkt-testere; bygger på `docs/hooks.md` og
+  føres i samme endring som API-flaten
 - [docs/sikkerhet.md](docs/sikkerhet.md) - sikkerhetsgjennomgangen:
   alle flater med bekreftet status og trusselmodellens aksepterte
   restrisikoer
