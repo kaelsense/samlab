@@ -4,6 +4,11 @@
 # assistent-testene krever modulen henholdsvis AV (f1) og PÅ
 # (f2-f4). Modultilstanden gjenopprettes til AV etterpå.
 #
+# Suiten forbruker seed-data (test-e4 rydder alle koblinger for å få
+# fasit på matchingforslaget), så etter en grønn kjøring re-seedes
+# riggen - da kan nettlesertestene kjøres rett etterpå uten manuell
+# re-seeding. Ved rød kjøring står tilstanden urørt til feilsøking.
+#
 # Bruk: tests/rigg/kjor-alle.sh [riggmappe]
 set -u
 
@@ -47,7 +52,9 @@ done
 assistent av
 
 if [ "$SAMLET" -eq 0 ]; then
-	echo "Alle riggtester grønne."
+	WP samlab seed --slett >/dev/null 2>&1
+	WP samlab seed >/dev/null 2>&1
+	echo "Alle riggtester grønne. Riggen er re-seedet."
 else
 	echo "Én eller flere tester feilet."
 fi
