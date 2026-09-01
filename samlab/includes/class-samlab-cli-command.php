@@ -670,6 +670,501 @@ class Samlab_CLI_Command {
 
 		WP_CLI::success( 'Demodata fjernet.' );
 	}
+
+	/**
+	 * Eksporterer alt portalinnhold til JSON for migrering til
+	 * webapp-sporet. Formatet er definert i samlab-webapp-repoets
+	 * docs/eksportformat.md og endres kun i samme runde som importen.
+	 *
+	 * Passord, API-nøkler og infoskjerm-nøkkelen eksporteres aldri.
+	 * Varsler (flyktige) og kunnskapsgrunnlaget (bygges på nytt)
+	 * er utelatt.
+	 *
+	 * ## OPTIONS
+	 *
+	 * [--fil=<sti>]
+	 * : Skriv til fil i stedet for standard ut.
+	 *
+	 * [--medier=<katalog>]
+	 * : Kopier mediefilene til katalogen (beholder relative stier).
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp samlab eksport --fil=samlab.json --medier=medier/
+	 *
+	 * @param array $args       Posisjonsargumenter (ubrukt).
+	 * @param array $assoc_args Flagg.
+	 * @return void
+	 */
+	public function eksport( $args, $assoc_args ) {
+		$data = $this->eksport_data();
+
+		if ( isset( $assoc_args['medier'] ) && '' !== $assoc_args['medier'] ) {
+			$antall = $this->eksport_medier_kopier( $data['medier'], (string) $assoc_args['medier'] );
+			WP_CLI::log( sprintf( '%d mediefiler kopiert.', $antall ) );
+		}
+
+		$json = wp_json_encode( $data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT );
+		if ( isset( $assoc_args['fil'] ) && '' !== $assoc_args['fil'] ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- CLI-verktøy, skriver dit operatøren peker.
+			if ( false === file_put_contents( (string) $assoc_args['fil'], $json ) ) {
+				WP_CLI::error( 'Kunne ikke skrive til ' . $assoc_args['fil'] );
+			}
+			WP_CLI::success( sprintf( 'Eksportert til %s (%d bedrifter, %d behov, %d koblinger, %d innlegg, %d brukere).', $assoc_args['fil'], count( $data['bedrifter'] ), count( $data['behov'] ), count( $data['koblinger'] ), count( $data['innlegg'] ), count( $data['brukere'] ) ) );
+			return;
+		}
+		WP_CLI::log( $json );
+	}
+
+	/**
+	 * Bygger hele eksportstrukturen. Offentlig så riggtesten kan
+	 * validere formatet uten å gå via filsystemet.
+	 *
+	 * @return array
+	 */
+	public function eksport_data() {
+		$medier  = array();
+		$innlegg = $this->eksport_innlegg( $medier );
+
+		return array(
+			'format'         => 'samlab-eksport',
+			'format_versjon' => 1,
+			'plugin_versjon' => SAMLAB_VERSION,
+			'eksportert'     => gmdate( 'Y-m-d\TH:i:s\Z' ),
+			'nettsted'       => array(
+				'navn' => get_bloginfo( 'name' ),
+				'url'  => home_url(),
+			),
+			'innstillinger'  => $this->eksport_innstillinger(),
+			'brukere'        => $this->eksport_brukere(),
+			'bedrifter'      => $this->eksport_bedrifter( $medier ),
+			'behov'          => $this->eksport_behov(),
+			'koblinger'      => $this->eksport_koblinger(),
+			'arrangementer'  => $this->eksport_arrangementer(),
+			'handbok'        => $this->eksport_handbok(),
+			'innlegg'        => $innlegg,
+			'kommentarer'    => $this->eksport_kommentarer( array_column( $innlegg, 'id' ) ),
+			'reaksjoner'     => $this->eksport_tabell( 'reaksjoner' ),
+			'stemmer'        => $this->eksport_tabell( 'stemmer' ),
+			'ubesvart'       => $this->eksport_ubesvart(),
+			'medier'         => array_values( $medier ),
+		);
+	}
+
+	/**
+	 * Innstillingene - uten hemmeligheter: nøkler med «nokkel» i
+	 * navnet hoppes alltid over, og infoskjerm-nøkkelen bor uansett
+	 * i egen option som ikke røres her.
+	 *
+	 * @return array<string, string>
+	 */
+	private function eksport_innstillinger() {
+		$ut = array();
+		foreach ( (array) get_option( 'samlab_settings', array() ) as $nokkel => $verdi ) {
+			if ( false !== strpos( (string) $nokkel, 'nokkel' ) ) {
+				continue;
+			}
+			$ut[ (string) $nokkel ] = is_array( $verdi ) ? $verdi : (string) $verdi;
+		}
+		return $ut;
+	}
+
+	/**
+	 * Medlemmene: alle med en samlab-rolle. Aldri passord.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_brukere() {
+		$ut = array();
+		foreach ( get_users( array( 'role__in' => array_keys( samlab_get_roles() ) ) ) as $bruker ) {
+			$ut[] = array(
+				'wp_id'              => (int) $bruker->ID,
+				'login'              => $bruker->user_login,
+				'epost'              => $bruker->user_email,
+				'visningsnavn'       => $bruker->display_name,
+				'roller'             => array_values( array_intersect( $bruker->roles, array_keys( samlab_get_roles() ) ) ),
+				'registrert'         => $this->til_utc( $bruker->user_registered ),
+				'ukesbrev_reservert' => '1' === get_user_meta( $bruker->ID, 'samlab_ukesbrev_reservert', true ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Bedriftene med tjenester, intensjoner, logo og galleri.
+	 *
+	 * @param array $medier Medieregisteret (utvides underveis).
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_bedrifter( &$medier ) {
+		$ut = array();
+		foreach ( $this->alle_poster( 'samlab_bedrift' ) as $post ) {
+			$galleri = array();
+			$vedlegg = get_children(
+				array(
+					'post_parent' => $post->ID,
+					'post_type'   => 'attachment',
+					'fields'      => 'ids',
+				)
+			);
+			foreach ( $vedlegg as $vedlegg_id ) {
+				$galleri[] = $this->registrer_medium( (int) $vedlegg_id, $medier );
+			}
+			$logo = has_post_thumbnail( $post ) ? $this->registrer_medium( (int) get_post_thumbnail_id( $post ), $medier ) : null;
+
+			$ut[] = array(
+				'wp_id'         => (int) $post->ID,
+				'tittel'        => $post->post_title,
+				'slug'          => $post->post_name,
+				'status'        => $post->post_status,
+				'beskrivelse'   => $post->post_content,
+				'kort'          => (string) get_post_meta( $post->ID, '_samlab_kort', true ),
+				'kategorier'    => $this->term_slugs( $post, 'samlab_kategori' ),
+				'kontaktperson' => (int) get_post_meta( $post->ID, '_samlab_kontaktperson', true ),
+				'plass'         => (string) get_post_meta( $post->ID, '_samlab_plass', true ),
+				'nettside'      => (string) get_post_meta( $post->ID, '_samlab_nettside', true ),
+				'tjenester'     => (array) get_post_meta( $post->ID, '_samlab_tjenester', true ),
+				'intensjoner'   => array(
+					'leverer'     => (string) get_post_meta( $post->ID, '_samlab_leverer', true ),
+					'kjoper'      => (string) get_post_meta( $post->ID, '_samlab_kjoper', true ),
+					'trenger_na'  => (string) get_post_meta( $post->ID, '_samlab_trenger_na', true ),
+					'idealkunder' => (string) get_post_meta( $post->ID, '_samlab_idealkunder', true ),
+					'apen_for'    => (array) get_post_meta( $post->ID, '_samlab_apen_for', true ),
+				),
+				'logo'          => $logo,
+				'galleri'       => array_values( array_filter( $galleri ) ),
+				'opprettet'     => $this->til_utc( $post->post_date_gmt ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Behov og tilbud.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_behov() {
+		$ut = array();
+		foreach ( $this->alle_poster( 'samlab_behov' ) as $post ) {
+			$retning = $this->term_slugs( $post, 'samlab_retning' );
+			$type    = $this->term_slugs( $post, 'samlab_behovstype' );
+			$ut[]    = array(
+				'wp_id'       => (int) $post->ID,
+				'tittel'      => $post->post_title,
+				'beskrivelse' => $post->post_content,
+				'status'      => $post->post_status,
+				'retning'     => $retning ? $retning[0] : '',
+				'behovstype'  => $type ? $type[0] : '',
+				'frist'       => (string) get_post_meta( $post->ID, '_samlab_frist', true ),
+				'kompetanse'  => array_values( (array) get_post_meta( $post->ID, '_samlab_kompetanse', true ) ),
+				'bedrift'     => (int) get_post_meta( $post->ID, '_samlab_bedrift', true ),
+				'opprettet'   => $this->til_utc( $post->post_date_gmt ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Koblingene med parter, samtykke, utfall og full statuslogg.
+	 * Utfallets hvem/når hentes fra loggens utfall_-innslag.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_koblinger() {
+		$ut = array();
+		foreach ( $this->alle_poster( 'samlab_kobling' ) as $post ) {
+			$logg = get_post_meta( $post->ID, '_samlab_statuslogg', true );
+			$logg = is_array( $logg ) ? $logg : array();
+
+			$logg_ut     = array();
+			$utfall_hvem = 0;
+			$utfall_tid  = '';
+			foreach ( $logg as $rad ) {
+				$slug      = (string) ( $rad['status'] ?? '' );
+				$logg_ut[] = array(
+					'status'     => $slug,
+					'user_wp_id' => (int) ( $rad['user_id'] ?? 0 ),
+					'tid'        => $this->til_utc( (string) ( $rad['tid'] ?? '' ) ),
+				);
+				if ( 0 === strpos( $slug, 'utfall_' ) ) {
+					$utfall_hvem = (int) ( $rad['user_id'] ?? 0 );
+					$utfall_tid  = $this->til_utc( (string) ( $rad['tid'] ?? '' ) );
+				}
+			}
+
+			$utfall_type = (string) get_post_meta( $post->ID, '_samlab_utfall', true );
+			$ut[]        = array(
+				'wp_id'       => (int) $post->ID,
+				'status'      => (string) get_post_meta( $post->ID, '_samlab_status', true ),
+				'part_a'      => array(
+					'type'  => (string) get_post_meta( $post->ID, '_samlab_part_a_type', true ),
+					'wp_id' => (int) get_post_meta( $post->ID, '_samlab_part_a_id', true ),
+				),
+				'part_b'      => array(
+					'type'  => (string) get_post_meta( $post->ID, '_samlab_part_b_type', true ),
+					'wp_id' => (int) get_post_meta( $post->ID, '_samlab_part_b_id', true ),
+				),
+				'samtykke_a'  => samlab_kobling_samtykke( $post->ID, 'a' ),
+				'samtykke_b'  => samlab_kobling_samtykke( $post->ID, 'b' ),
+				'kilde'       => (string) get_post_meta( $post->ID, '_samlab_kilde', true ),
+				'begrunnelse' => $post->post_content,
+				'utfall'      => '' === $utfall_type ? null : array(
+					'type'    => $utfall_type,
+					'notat'   => (string) get_post_meta( $post->ID, '_samlab_utfall_notat', true ),
+					'satt_av' => $utfall_hvem,
+					'tid'     => $utfall_tid,
+				),
+				'paminnet'    => '1' === get_post_meta( $post->ID, '_samlab_utfall_paminnet', true ),
+				'statuslogg'  => $logg_ut,
+				'opprettet'   => $this->til_utc( $post->post_date_gmt ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Arrangementene.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_arrangementer() {
+		$ut = array();
+		foreach ( $this->alle_poster( 'samlab_arrangement' ) as $post ) {
+			$ut[] = array(
+				'wp_id'       => (int) $post->ID,
+				'tittel'      => $post->post_title,
+				'beskrivelse' => $post->post_content,
+				'status'      => $post->post_status,
+				'start'       => (string) get_post_meta( $post->ID, '_samlab_start', true ),
+				'slutt'       => (string) get_post_meta( $post->ID, '_samlab_slutt', true ),
+				'sted'        => (string) get_post_meta( $post->ID, '_samlab_sted', true ),
+				'bedrift'     => (int) get_post_meta( $post->ID, '_samlab_bedrift', true ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Håndbok-sidene (kun sider merket som håndbok).
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_handbok() {
+		$ut = array();
+		foreach ( samlab_get_handbok_pages() as $post ) {
+			$ut[] = array(
+				'wp_id'   => (int) $post->ID,
+				'tittel'  => $post->post_title,
+				'slug'    => $post->post_name,
+				'status'  => $post->post_status,
+				'innhold' => $post->post_content,
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Vegginnleggene fra egen tabell.
+	 *
+	 * @param array $medier Medieregisteret (utvides underveis).
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_innlegg( &$medier ) {
+		global $wpdb;
+		$tabell = samlab_table( 'innlegg' );
+		$ut     = array();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Egen tabell, engangs-eksport uten brukerinput.
+		foreach ( (array) $wpdb->get_results( "SELECT * FROM {$tabell} ORDER BY id" ) as $rad ) {
+			$valg = json_decode( (string) $rad->poll_valg, true );
+			$ut[] = array(
+				'id'         => (int) $rad->id,
+				'user_wp_id' => (int) $rad->user_id,
+				'innhold'    => (string) $rad->content,
+				'bilde'      => $rad->image_id ? $this->registrer_medium( (int) $rad->image_id, $medier ) : null,
+				'festet'     => (bool) $rad->pinned,
+				'lesekrav'   => (bool) $rad->confirm_read,
+				'status'     => (string) $rad->status,
+				'avstemning' => '' === (string) $rad->poll_sporsmal ? null : array(
+					'sporsmal'     => (string) $rad->poll_sporsmal,
+					'alternativer' => is_array( $valg ) ? $valg : array(),
+				),
+				'opprettet'  => $this->til_utc( (string) $rad->created_at ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Kommentarene på veggen (WP-kommentarer, type samlab_innlegg).
+	 * Foreldreløse kommentarer (innlegget er slettet) hoppes over -
+	 * de vises ingen steder og skal ikke gjenoppstå ved import.
+	 *
+	 * @param int[] $innlegg_ids Innleggene som faktisk eksporteres.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_kommentarer( $innlegg_ids ) {
+		$ut       = array();
+		$sporring = array(
+			'type'   => 'samlab_innlegg',
+			'status' => 'approve',
+		);
+		foreach ( get_comments( $sporring ) as $kommentar ) {
+			$innlegg_id = (int) get_comment_meta( $kommentar->comment_ID, '_samlab_innlegg', true );
+			if ( ! in_array( $innlegg_id, $innlegg_ids, true ) ) {
+				continue;
+			}
+			$ut[] = array(
+				'wp_id'      => (int) $kommentar->comment_ID,
+				'innlegg_id' => $innlegg_id,
+				'user_wp_id' => (int) $kommentar->user_id,
+				'innhold'    => $kommentar->comment_content,
+				'opprettet'  => $this->til_utc( $kommentar->comment_date_gmt ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Rader fra en av pluginens egne tabeller (reaksjoner/stemmer).
+	 *
+	 * @param string $navn Tabellens basisnavn.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_tabell( $navn ) {
+		global $wpdb;
+		$tabell = samlab_table( $navn );
+		$ut     = array();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Egen tabell, navn fra samlab_table(), engangs-eksport.
+		foreach ( (array) $wpdb->get_results( "SELECT * FROM {$tabell} ORDER BY id" ) as $rad ) {
+			if ( 'reaksjoner' === $navn ) {
+				$ut[] = array(
+					'object_type' => (string) $rad->object_type,
+					'object_id'   => (int) $rad->object_id,
+					'user_wp_id'  => (int) $rad->user_id,
+					'reaksjon'    => (string) $rad->reaction,
+					'opprettet'   => $this->til_utc( (string) $rad->created_at ),
+				);
+			} else {
+				$ut[] = array(
+					'innlegg_id' => (int) $rad->innlegg_id,
+					'user_wp_id' => (int) $rad->user_id,
+					'valg'       => (int) $rad->valg,
+					'opprettet'  => $this->til_utc( (string) $rad->created_at ),
+				);
+			}
+		}
+		return $ut;
+	}
+
+	/**
+	 * Ubesvart-køen - anonym per domenekontrakten.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function eksport_ubesvart() {
+		$ut = array();
+		foreach ( (array) get_option( 'samlab_ubesvart', array() ) as $rad ) {
+			$ut[] = array(
+				'sporsmal' => (string) ( $rad['sporsmal'] ?? '' ),
+				'antall'   => (int) ( $rad['antall'] ?? 0 ),
+				'sist'     => (string) ( $rad['dato'] ?? '' ),
+			);
+		}
+		return $ut;
+	}
+
+	/**
+	 * Registrerer et vedlegg i medieregisteret og returnerer wp_id.
+	 *
+	 * @param int   $vedlegg_id Vedlegget.
+	 * @param array $medier     Registeret (wp_id => rad).
+	 * @return int|null wp_id, eller null når vedlegget ikke finnes.
+	 */
+	private function registrer_medium( $vedlegg_id, &$medier ) {
+		if ( isset( $medier[ $vedlegg_id ] ) ) {
+			return $vedlegg_id;
+		}
+		$fil = (string) get_post_meta( $vedlegg_id, '_wp_attached_file', true );
+		if ( '' === $fil ) {
+			return null;
+		}
+		$medier[ $vedlegg_id ] = array(
+			'wp_id' => $vedlegg_id,
+			'fil'   => $fil,
+			'url'   => (string) wp_get_attachment_url( $vedlegg_id ),
+		);
+		return $vedlegg_id;
+	}
+
+	/**
+	 * Kopierer mediefilene til en katalog, med relative stier i behold.
+	 *
+	 * @param array  $medier  Medieregisterets rader.
+	 * @param string $katalog Målkatalogen.
+	 * @return int Antall kopierte filer.
+	 */
+	private function eksport_medier_kopier( $medier, $katalog ) {
+		$oppl   = wp_get_upload_dir();
+		$antall = 0;
+		foreach ( $medier as $rad ) {
+			$kilde = trailingslashit( $oppl['basedir'] ) . $rad['fil'];
+			$maal  = trailingslashit( $katalog ) . $rad['fil'];
+			if ( ! file_exists( $kilde ) ) {
+				continue;
+			}
+			wp_mkdir_p( dirname( $maal ) );
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_copy -- CLI-verktøy.
+			if ( copy( $kilde, $maal ) ) {
+				++$antall;
+			}
+		}
+		return $antall;
+	}
+
+	/**
+	 * Term-slugs for en post i en taksonomi, tom liste uten termer.
+	 *
+	 * @param WP_Post $post      Posten.
+	 * @param string  $taksonomi Taksonomien.
+	 * @return string[]
+	 */
+	private function term_slugs( $post, $taksonomi ) {
+		$termer = get_the_terms( $post, $taksonomi );
+		if ( ! is_array( $termer ) ) {
+			return array();
+		}
+		return array_values( wp_list_pluck( $termer, 'slug' ) );
+	}
+
+	/**
+	 * Alle poster av en type, uansett status, eldste først.
+	 *
+	 * @param string $type Post-typen.
+	 * @return WP_Post[]
+	 */
+	private function alle_poster( $type ) {
+		return get_posts(
+			array(
+				'post_type'      => $type,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'orderby'        => 'ID',
+				'order'          => 'ASC',
+			)
+		);
+	}
+
+	/**
+	 * «Y-m-d H:i:s» i UTC (slik pluginen lagrer) til RFC3339.
+	 *
+	 * @param string $tid Tidspunktet, eller tom streng.
+	 * @return string RFC3339, eller tom streng.
+	 */
+	private function til_utc( $tid ) {
+		$ts = strtotime( (string) $tid . ' UTC' );
+		return $ts ? gmdate( 'Y-m-d\TH:i:s\Z', $ts ) : '';
+	}
 }
 
 WP_CLI::add_command( 'samlab', 'Samlab_CLI_Command' );

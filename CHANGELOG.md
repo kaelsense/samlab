@@ -9,6 +9,12 @@ og versjonsnumrene følger [semantisk versjonering](https://semver.org/lang/no/)
 
 ### Lagt til
 
+- `wp samlab eksport [--fil=<sti>] [--medier=<katalog>]`: eksporterer
+  alt portalinnhold til JSON for migrering til webapp-sporet
+  (formatet er definert i samlab-webapp-repoets
+  docs/eksportformat.md). Passord og nøkler eksporteres aldri;
+  varsler og kunnskapsgrunnlaget er utelatt.
+
 - Offentlig API-dokumentasjonsside for integratorer
   (`docs/api-dokumentasjon.html`): mørk, monokrom enkeltside med
   autentisering, koblingsmodellen, alle endepunkter med interaktive

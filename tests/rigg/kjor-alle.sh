@@ -38,7 +38,7 @@ kjor() {
 }
 
 assistent av
-for t in test-versjon.php test-admin.php test-b3.php test-b4.php test-b5.php test-b6.php \
+for t in test-versjon.php test-admin.php test-eksport.php test-b3.php test-b4.php test-b5.php test-b6.php \
 	test-e1.php test-e2.php test-e3.php test-e4.php test-e5.php \
 	test-e6.php test-e7.php test-e8.php test-e9.php test-g1.php \
 	test-g2.php test-g3.php test-g4.php test-g5.php test-f1.php; do

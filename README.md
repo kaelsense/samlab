@@ -64,6 +64,14 @@ Arbeidslisten ligger i [BACKLOG.md](BACKLOG.md); åpne spørsmål i
    wp samlab seed --slett  # fjerner alt demoinnhold sporløst
    ```
 
+Alt portalinnhold kan eksporteres til JSON for migrering (formatet er
+definert i samlab-webapp-repoets `docs/eksportformat.md`; passord og
+nøkler eksporteres aldri):
+
+   ```
+   wp samlab eksport --fil=samlab.json --medier=medier/
+   ```
+
 Distribusjon skjer via egen oppdaterings-URL, ikke wordpress.org
 (ennå).
 
