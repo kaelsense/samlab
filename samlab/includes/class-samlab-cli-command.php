@@ -524,13 +524,18 @@ class Samlab_CLI_Command {
 	/**
 	 * Oppretter demoarrangementer: to kommende og ett tidligere (E6).
 	 *
+	 * De kommende ligger et godt stykke frem i tid: test-f2 forventer
+	 * at «Felleslunsj med quiz» er kommende, og med kun +1 døgn ble
+	 * testen rød i en rigg seedet dagen før - arrangementet var da
+	 * fortid, og kunnskapsbygget utelot det helt korrekt.
+	 *
 	 * @param array $bedrifter Slug => post-ID.
 	 * @return void
 	 */
 	private function seed_arrangementer( $bedrifter ) {
 		$definisjoner = array(
-			array( 'Felleslunsj med quiz', DAY_IN_SECONDS, HOUR_IN_SECONDS, 'Kantina', '' ),
-			array( 'Frokostmøte: bærekraft i praksis', 3 * DAY_IN_SECONDS, 2 * HOUR_IN_SECONDS, '2. etasje', 'gronn-vekst-radgivning' ),
+			array( 'Felleslunsj med quiz', 7 * DAY_IN_SECONDS, HOUR_IN_SECONDS, 'Kantina', '' ),
+			array( 'Frokostmøte: bærekraft i praksis', 10 * DAY_IN_SECONDS, 2 * HOUR_IN_SECONDS, '2. etasje', 'gronn-vekst-radgivning' ),
 			array( 'Sommerfesten (vel overstått)', -30 * DAY_IN_SECONDS, 4 * HOUR_IN_SECONDS, 'Takterrassen', '' ),
 		);
 
